@@ -2,6 +2,7 @@ package main
 
 import (
 	"./controllers"
+	"./controllers/authenticate"
 	"./helpers/database"
 	"./helpers/globals"
 	_ "./helpers/mimetypes"
@@ -13,6 +14,10 @@ import (
 var (
 	CorsHandler = func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
+		return
+	}
+	AuthHandler = func(w http.ResponseWriter, r *http.Request) {
+		authenticate.AuthHandler(w, r)
 		return
 	}
 )
@@ -32,7 +37,11 @@ func main() {
 
 	server.AddFilter(CorsHandler)
 
-	server.Get("/", controllers.Index)
+	server.Get("/Authenticate", authenticate.Index)
+	server.Post("/Authenticate", authenticate.Login)
+	server.Get("/Logout", authenticate.Logout)
+
+	server.Get("/", controllers.Index).AddFilter(AuthHandler)
 
 	server.Static("/", *globals.Filepath+"static")
 

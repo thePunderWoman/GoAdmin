@@ -10,7 +10,7 @@ import (
 func Index(w http.ResponseWriter, r *http.Request) {
 	server := plate.NewServer()
 
-	tmpl, _ := server.Template(w)
+	tmpl, _ := server.Template(w, r)
 
 	templates := append(globals.StandardLayout, "templates/index.html")
 

@@ -1,0 +1,86 @@
+/* 
+    Document   : login
+    Created on : Jan 10, 2011, 2:29:38 PM
+    Author     : alex
+    Description: This stylesheet is for the styling of our applications authentication.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block;
+}
+
+body{
+    background: #ccc;
+    font-family: 'Ubuntu',arial,serif;
+}
+
+form, #userFound{
+    background: #343434;
+    border-radius: 10px 10px 10px;
+    border: #2c2e2b;
+    -webkit-box-shadow: 10px 10px 10px #343434;
+    vertical-align: middle;
+    width: 400px;
+    min-height: 200px;
+    margin: auto;
+    padding: 10px;
+    margin-top: 25px;
+    padding-bottom: 35px;
+}
+
+#userFound p, #userFound p a{
+    color: white;
+}
+
+label{
+    color: white;
+    font-size: 14pt;
+    width: 380px;
+    display: block;
+    height: 35px;
+    line-height: 39px;
+}
+
+input[type=text], input[type=password], input[type=email]{
+    width: 280px;
+    float:right;
+    height: 35px;
+    line-height: 21px;
+    padding: 2px;
+    font-size: 16px;
+    font-weight: normal;
+    border: 2px solid #2c2e2b;
+    border-radius: 6px 6px 6px;
+}
+
+input[type=submit]{
+    width: 400px;
+    height: 35px;
+    margin: auto;
+    text-align: center;
+    cursor: pointer;
+    background: #e44f31;
+    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#e44f31), to(#923a15));
+    background: -moz-linear-gradient(top, #e44f31, #923a15);
+    background: -o-gradient(linear, 0% 0%, 0% 100%, from(#e44f31), to(#923a15));
+    background: gradient(linear, 0% 0%, 0% 100%, from(#e44f31), to(#923a15));
+    /* For Internet Explorer 5.5 - 7 */
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#e44f31, endColorstr=#923a15);
+
+    /* For Internet Explorer 8 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#e44f31, endColorstr=#923a15)";
+    border: 0;
+    color: white;
+    font-size: 14pt;
+    border-radius: 6px 6px 6px;
+}
+
+input[type=submit]:hover{
+    text-decoration: underline;
+}
+

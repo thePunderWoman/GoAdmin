@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -14,6 +15,7 @@ type Template struct {
 	Template string
 	Bag      map[string]interface{}
 	Writer   http.ResponseWriter
+	Request  *http.Request
 	FuncMap  template.FuncMap
 }
 
@@ -32,6 +34,17 @@ func (t *Template) SetGlobalValues() {
 	}
 
 	t.FuncMap["isLoggedIn"] = func() bool {
+		cook, err := t.Request.Cookie("userID")
+		userID := 0
+		if err == nil && cook != nil {
+			userID, err = strconv.Atoi(cook.Value)
+			if err != nil {
+				userID = 0
+			}
+		}
+		if userID == 0 {
+			return false
+		}
 		return true
 	}
 
@@ -44,12 +57,13 @@ func (t *Template) SetGlobalValues() {
 
 }
 
-func (this *Server) Template(w http.ResponseWriter) (templ Template, err error) {
+func (this *Server) Template(w http.ResponseWriter, r *http.Request) (templ Template, err error) {
 	if w == nil {
 		log.Printf("Template Error: %v", err.Error())
 		return
 	}
 	templ.Writer = w
+	templ.Request = r
 	templ.Bag = make(map[string]interface{})
 	return
 }
@@ -93,7 +107,6 @@ func (t Template) DisplayTemplate() (err error) {
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
 	}
-
 	t.SetGlobalValues()
 
 	// the template name must match the first file it parses, but doesn't accept slashes

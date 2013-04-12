@@ -8,7 +8,8 @@ import (
 
 var (
 	// MySQL Connection Handler
-	Db = thrsafe.New(db_proto, "", db_addr, db_user, db_pass, db_name)
+	CurtDevDb = thrsafe.New(db_proto, "", db_addr, db_user, db_pass, CurtDevdb_name)
+	AdminDb   = thrsafe.New(db_proto, "", db_addr, db_user, db_pass, Admindb_name)
 )
 
 func MysqlError(err error) (ret bool) {

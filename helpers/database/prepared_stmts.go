@@ -8,8 +8,8 @@ import (
 
 // prepared statements go here
 var (
-// example statement
-//statementNameStmt = "select * from TableName"
+	// example statement
+	authenticateUserStmt = "select * from user where username=? and password=?"
 )
 
 // Create map of all statements
@@ -22,18 +22,16 @@ func PrepareAll() error {
 
 	Statements = make(map[string]mysql.Stmt, 0)
 
-	if !Db.IsConnected() {
-		Db.Connect()
+	if !AdminDb.IsConnected() {
+		AdminDb.Connect()
 	}
 
 	// Example Preparation
-	/*
-		statementNamePrepared, err := Db.Prepare(statementNameStmt)
-		if err != nil {
-			return err
-		}
-		Statements["statementNameStmt"] = statementNamePrepared
-	*/
+	authenticateUserPrepared, err := AdminDb.Prepare(authenticateUserStmt)
+	if err != nil {
+		return err
+	}
+	Statements["authenticateUserStmt"] = authenticateUserPrepared
 
 	return nil
 }
@@ -44,8 +42,6 @@ func GetStatement(key string) (stmt mysql.Stmt, err error) {
 		qry := expvar.Get(key)
 		if qry == nil {
 			err = errors.New("Invalid query reference")
-		} else {
-			stmt, err = Db.Prepare(qry.String())
 		}
 	}
 	return

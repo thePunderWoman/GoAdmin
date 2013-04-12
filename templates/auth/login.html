@@ -1,0 +1,33 @@
+{{define "content"}}
+    <link href="/css/login.css" rel="stylesheet" type="text/css" />
+    <form action="/Authenticate" method="post">
+        <div style="color:whitesmoke;font-weight: bold">
+            <img src="/img/curtLogo.png" style="width: 100px" /> 
+            <span style="line-height: 26px;vertical-align: top">Administration Login</span>
+        </div>
+        {{ with .Error }}
+            <p style="color: #e44f31;margin:0px;margin-left:100px">{{ . }}</p>
+        {{ end }}
+        <label for="username">
+            Username
+            <input type="text" name="username" id="username" />
+        </label><br />
+        <label for="password">
+            Password
+            <input type="password" name="password" id="password" />
+        </label><br />
+        <div style="clear:both"></div>
+        <input type="submit" name="btnLogin" id="btnLogin" value="Login" /><br />
+        <div style="float:left; margin-top: 10px;">
+            <a style="color:white" href="/Authenticate/Forgot">Forgot Username/Password?</a>
+        </div>
+        <div style="float:right; margin-top: 10px;">
+            <a style="color:white" href="/Authenticate/Signup">Sign Up</a>
+        </div>
+    </form>
+    <script type="text/javascript">
+        $(function () {
+            $('#username').focus();
+        });
+    </script>
+{{end}}

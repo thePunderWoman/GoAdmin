@@ -6,7 +6,9 @@
     </a>
 	    <!-- Sidebar navigation -->
 	<nav>
-	    <a href="#" id="lines"></a>
+	    {{ if isLoggedIn }}
+		    <a href="#" id="lines"></a>
+		{{ end }}
 	    <ul id="sidebar">
 	        {{ with .Modules }}
 	        	{{ range . }}
@@ -29,7 +31,7 @@
     {{ if isLoggedIn }}
         <span id="userLinks">
             <a href="/Account" title="Account Information">Account Info</a>
-            <a href="/Authenticate/Logout" title="Logout">Logout</a>
+            <a href="/Logout" title="Logout">Logout</a>
         </span>
                 
         <form action="search" method="post" id="docsSearch">
