@@ -1,2 +1,45 @@
 {{define "header"}}
+<!-- Page Header -->
+<div id="adminHeader">
+    <a href="/" id="logoLink">
+        <img id="curtLogo" src="/img/curtLogo.png" alt="CURT Manufacturing" /> <span>Web Tools Admin</span>
+    </a>
+	    <!-- Sidebar navigation -->
+	<nav>
+	    <a href="#" id="lines"></a>
+	    <ul id="sidebar">
+	        {{ with .Modules }}
+	        	{{ range . }}
+	                <li>
+	                    <a href="{{.module_path}}">
+	                        {{ if isNotNull .img_path }}
+	                            <span>
+	                                <img src="/Content/img/{{ .img_path }}" alt="{{.module1}}" />
+	                            </span>
+	                        }
+	                        {{ end }}
+	                        {{ .module1 }}
+	                    </a>
+	                </li>
+	            {{ end }}
+	        {{ end }}
+	    </ul>
+	</nav>
+    <div id="searchArea">
+    {{ if isLoggedIn }}
+        <span id="userLinks">
+            <a href="/Account" title="Account Information">Account Info</a>
+            <a href="/Authenticate/Logout" title="Logout">Logout</a>
+        </span>
+                
+        <form action="search" method="post" id="docsSearch">
+            <label for="searchTerm">
+                <input type="text" name="searchTerm" id="searchTerm" placeholder="Search" autocomplete="off" />
+                <input type="submit" name="btnSearch" id="btnSearch" value="" />
+            </label>
+            <div id="searchResults"><ul></ul></div>
+        </form>
+    {{end}}
+</div>
+</div>
 {{end}}

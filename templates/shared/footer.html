@@ -1,2 +1,16 @@
 {{define "footer"}}
+<hr style="border-bottom:1px dotted #343434;width:90%;margin-top: 25px;" />
+<div id="footer_links">
+    <span>
+        &copy; {{ .CurrentYear }} CURT Manufacturing 
+        <a href="mailto:websupport@curtmfg.com" title="Support">Support</a>
+        {{ if isLoggedIn }}
+            <span>&nbsp;|&nbsp;</span>
+            <a href="/">Home</a><span>&nbsp;|&nbsp;</span>
+            <a href="/Users">Account</a><span>&nbsp;|&nbsp;</span>
+            <a href="/Authenticate/Logout">Logout</a>
+        {{ end }}
+        </span>
+</div>
+<div id="message_box"><span>Message Box.</span></div>
 {{end}}

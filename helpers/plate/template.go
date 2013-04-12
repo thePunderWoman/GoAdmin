@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type Template struct {
@@ -22,13 +23,24 @@ type Template struct {
 func (t *Template) SetGlobalValues() {
 	// Set Bag values
 	// example
-	// t.Bag["val"] = val
+	t.Bag["CurrentYear"] = time.Now().Year()
 
 	// Set FuncMap Values
 	// example:
-	/* t.FuncMap["name"] = func() int {
-		   return val
-	   }*/
+	if t.FuncMap == nil {
+		t.FuncMap = template.FuncMap{}
+	}
+
+	t.FuncMap["isLoggedIn"] = func() bool {
+		return true
+	}
+
+	t.FuncMap["isNotNull"] = func(str string) bool {
+		if strings.TrimSpace(str) != "" && len(strings.TrimSpace(str)) > 0 {
+			return true
+		}
+		return false
+	}
 
 }
 
