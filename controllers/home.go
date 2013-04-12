@@ -2,6 +2,7 @@ package controllers
 
 import (
 	//	"fmt"
+	"../helpers/globals"
 	"../helpers/plate"
 	"net/http"
 )
@@ -11,7 +12,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, _ := server.Template(w)
 
-	tmpl.Template = "templates/index.html"
+	templates := append(globals.StandardLayout, "templates/index.html")
 
-	tmpl.DisplayTemplate()
+	tmpl.DisplayMultiple(templates)
 }

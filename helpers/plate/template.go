@@ -133,6 +133,9 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		templ.ParseFiles(*globals.Filepath + filename)
 	}
 	err = templ.Execute(t.Writer, t.Bag)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return
 }
