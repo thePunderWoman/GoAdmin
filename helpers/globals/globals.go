@@ -5,8 +5,7 @@ import (
 )
 
 var (
-	ListenAddr     = flag.String("http", ":8080", "http listen address")
-	StandardLayout = []string{"templates/shared/head.html", "templates/shared/header.html", "templates/shared/navigation.html", "templates/shared/footer.html"}
+	ListenAddr = flag.String("http", ":8080", "http listen address")
 )
 
 func SetGlobals() {

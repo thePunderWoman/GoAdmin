@@ -1,8 +1,8 @@
 package main
 
 import (
-	"./controllers"
 	"./controllers/authenticate"
+	"./controllers/base"
 	"./helpers/database"
 	"./helpers/globals"
 	_ "./helpers/mimetypes"
@@ -38,8 +38,8 @@ func main() {
 
 	server.AddFilter(CorsHandler)
 
-	server.Get("/Authenticate", authenticate.Index)
-	server.Post("/Authenticate", authenticate.Login)
+	server.Get("/Authenticate", authenticate.Index).NoFilter()
+	server.Post("/Authenticate", authenticate.Login).NoFilter()
 	server.Get("/Logout", authenticate.Logout)
 
 	server.Get("/", controllers.Index).AddFilter(AuthHandler)

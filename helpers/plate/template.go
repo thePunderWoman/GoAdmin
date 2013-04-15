@@ -6,9 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
-	"time"
 )
 
 var (
@@ -16,35 +14,16 @@ var (
 )
 
 type Template struct {
-	Layout   string
-	Template string
-	Bag      map[string]interface{}
-	Writer   http.ResponseWriter
-	FuncMap  template.FuncMap
+	Layout       string
+	Template     string
+	Bag          map[string]interface{}
+	Writer       http.ResponseWriter
+	FuncMap      template.FuncMap
+	HtmlTemplate *template.Template
 }
 
 /* Templating |-- Using html/template library built into golang http://golang.org/pkg/html/template/ --|
    ------------------------------ */
-
-func (t *Template) SetGlobalValues() {
-	// Set Bag values
-	// example
-	t.Bag["CurrentYear"] = time.Now().Year()
-
-	// Set FuncMap Values
-	// example:
-	if t.FuncMap == nil {
-		t.FuncMap = template.FuncMap{}
-	}
-
-	t.FuncMap["isNotNull"] = func(str string) bool {
-		if strings.TrimSpace(str) != "" && len(strings.TrimSpace(str)) > 0 {
-			return true
-		}
-		return false
-	}
-
-}
 
 func (this *Server) Template(w http.ResponseWriter) (templ *Template, err error) {
 	if w == nil {
@@ -73,8 +52,6 @@ func (t Template) SinglePage(file_path string) (err error) {
 		t.Template = dir + "/" + file_path
 	}
 
-	t.SetGlobalValues()
-
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
 	templateName := t.Template
@@ -85,7 +62,6 @@ func (t Template) SinglePage(file_path string) (err error) {
 
 	tmpl, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Template)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	err = tmpl.Execute(t.Writer, t.Bag)
@@ -110,7 +86,6 @@ func (t Template) DisplayTemplate() (err error) {
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
 	}
-	t.SetGlobalValues()
 
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
@@ -122,7 +97,6 @@ func (t Template) DisplayTemplate() (err error) {
 
 	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
@@ -148,8 +122,6 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		t.Bag = make(map[string]interface{})
 	}
 
-	t.SetGlobalValues()
-
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
 	templateName := t.Layout
@@ -160,21 +132,65 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 
 	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	for _, filename := range templates {
 		templ.ParseFiles(dir + "/" + filename)
 	}
 	err = templ.Execute(t.Writer, t.Bag)
-	if err != nil {
-		log.Println(err)
-	}
 
 	return
 }
-func SetTemplate(t Template) {
-	tmpl = &t
+
+func SetTemplate(t *Template) {
+	tmpl = t
+}
+
+func (t *Template) ParseFile(file string) error {
+
+	if t.HtmlTemplate == nil {
+		var tmplName string
+		if strings.Index(file, "/") > -1 {
+			tparts := strings.Split(file, "/")
+			tmplName = tparts[len(tparts)-1]
+		}
+		tmpl, err := template.New(tmplName).Funcs(t.FuncMap).ParseFiles(file)
+		if err != nil {
+			return err
+		}
+		t.HtmlTemplate = tmpl
+		return nil
+	}
+
+	_, err := t.HtmlTemplate.ParseFiles(file)
+
+	return err
+}
+
+func (t Template) Display(w http.ResponseWriter) error {
+
+	t.Writer = w
+	if t.HtmlTemplate == nil {
+		if t.Template == "" {
+			return errors.New("No template files defined")
+		}
+
+		tmplName := t.Template
+		if strings.Index(t.Template, "/") > -1 {
+			tparts := strings.Split(t.Template, "/")
+			tmplName = tparts[len(tparts)-1]
+		}
+		tmpl, err := template.New(tmplName).Funcs(t.FuncMap).ParseFiles(t.Template)
+		if err != nil {
+			return err
+		}
+		t.HtmlTemplate = tmpl
+		return nil
+	}
+
+	err := tmpl.HtmlTemplate.Execute(t.Writer, t.Bag)
+	return err
+
 }
 
 func GetTemplate() (*Template, error) {

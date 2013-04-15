@@ -11,21 +11,14 @@ import (
 	"time"
 )
 
-func AuthHandler(w http.ResponseWriter, r *http.Request) bool {
-	cook, err := r.Cookie("userID")
-	userID := 0
-	if err == nil && cook != nil {
-		userID, err = strconv.Atoi(cook.Value)
-		if err != nil {
-			userID = 0
-		}
+var (
+	TemplateFiles = []string{
+		"templates/shared/head.html",
+		"templates/shared/header.html",
+		"templates/shared/navigation.html",
+		"templates/shared/footer.html",
 	}
-	if userID == 0 {
-		http.Redirect(w, r, "/Authenticate", http.StatusFound)
-	}
-
-	return true
-}
+)
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -44,8 +37,19 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.Bag["Error"] = strings.ToTitle(error)
+	tmpl.Bag["CurrentYear"] = time.Now().Year()
+	tmpl.Bag["userID"] = 0
 
-	templates := append(globals.StandardLayout, "templates/auth/login.html")
+	tmpl.FuncMap = template.FuncMap{
+		"isNotNull": func(str string) bool {
+			if strings.TrimSpace(str) != "" && len(strings.TrimSpace(str)) > 0 {
+				return true
+			}
+			return false
+		},
+	}
+
+	templates := append(TemplateFiles, "templates/auth/login.html")
 
 	tmpl.DisplayMultiple(templates)
 }

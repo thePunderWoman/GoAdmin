@@ -20,8 +20,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tmpl.Layout = "layout.html"
 	templates := append(globals.StandardLayout, "templates/index.html")
 
-	tmpl.DisplayMultiple(templates)
+	tmpl.Display(templates)
 }
