@@ -3,7 +3,6 @@ package authenticate
 import (
 	"../../helpers/plate"
 	"../../models"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -51,7 +50,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templates := append(TemplateFiles, "templates/auth/login.html")
-	log.Println(templates)
 
 	tmpl.DisplayMultiple(templates)
 }

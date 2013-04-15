@@ -2,6 +2,7 @@ package base
 
 import (
 	"../../helpers/plate"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 var (
 	TemplateFiles = []string{
+		"layout.html",
 		"templates/shared/head.html",
 		"templates/shared/header.html",
 		"templates/shared/navigation.html",
@@ -58,6 +60,9 @@ func Base(w http.ResponseWriter, r *http.Request) {
 
 	for _, file := range TemplateFiles {
 		err = tmpl.ParseFile(file, false)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	plate.SetTemplate(tmpl)

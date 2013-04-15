@@ -3,6 +3,7 @@ package controllers
 import (
 	//	"fmt"
 	"../helpers/plate"
+	"log"
 	"net/http"
 )
 
@@ -21,5 +22,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	tmpl.ParseFile("templates/index.html", false)
 
-	tmpl.Display(w)
+	err = tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
 }

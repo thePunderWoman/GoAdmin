@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 )
 
 var (
@@ -53,18 +52,11 @@ func (t Template) SinglePage(file_path string) (err error) {
 		t.Template = dir + "/" + file_path
 	}
 
-	// the template name must match the first file it parses, but doesn't accept slashes
-	// the following block ensures a match
-	templateName := t.Template
-	if strings.Index(templateName, "/") > -1 {
-		tparts := strings.Split(templateName, "/")
-		templateName = tparts[len(tparts)-1]
-	}
-
-	tmpl, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Template)
+	tmpl, err := template.ParseFiles(t.Template)
 	if err != nil {
 		return err
 	}
+	tmpl.Funcs(t.FuncMap)
 	err = tmpl.Execute(t.Writer, t.Bag)
 
 	return
@@ -88,18 +80,11 @@ func (t Template) DisplayTemplate() (err error) {
 		t.Bag = make(map[string]interface{})
 	}
 
-	// the template name must match the first file it parses, but doesn't accept slashes
-	// the following block ensures a match
-	templateName := t.Layout
-	if strings.Index(templateName, "/") > -1 {
-		tparts := strings.Split(templateName, "/")
-		templateName = tparts[len(tparts)-1]
-	}
-
-	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
+	templ, err := template.ParseFiles(t.Layout, t.Template)
 	if err != nil {
 		return err
 	}
+	templ.Funcs(t.FuncMap)
 
 	err = templ.Execute(t.Writer, t.Bag)
 
@@ -119,21 +104,15 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 	// ensure proper pathing for layout layout files
 	t.Layout = t.Layout
 
-	// the template name must match the first file it parses, but doesn't accept slashes
-	// the following block ensures a match
-	templateName := t.Layout
-	if strings.Index(templateName, "/") > -1 {
-		tparts := strings.Split(templateName, "/")
-		templateName = tparts[len(tparts)-1]
-	}
-
-	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(dir + "/" + t.Layout)
+	templ, err := template.ParseFiles(dir + "/" + t.Layout)
 	if err != nil {
 		return err
 	}
+	templ.Funcs(t.FuncMap)
 	for _, filename := range templates {
 		_, err = templ.ParseFiles(dir + "/" + filename)
 	}
+
 	err = templ.Execute(t.Writer, t.Bag)
 	if err != nil {
 		log.Println(err)
@@ -147,7 +126,6 @@ func SetTemplate(t *Template) {
 }
 
 func (t *Template) ParseFile(file string, override bool) error {
-
 	dir := ""
 	var err error
 	if !override {
@@ -157,15 +135,17 @@ func (t *Template) ParseFile(file string, override bool) error {
 		}
 	}
 	if t.HtmlTemplate == nil {
-		var tmplName string
+		/*var tmplName string
 		if strings.Index(file, "/") > -1 {
 			tparts := strings.Split(file, "/")
 			tmplName = tparts[len(tparts)-1]
-		}
-		tmpl, err := template.New(tmplName).Funcs(t.FuncMap).ParseFiles(dir + "/" + file)
+		}*/
+		tmpl, err := template.ParseFiles(dir + "/" + file)
 		if err != nil {
 			return err
 		}
+		tmpl.Funcs(t.FuncMap)
+
 		t.HtmlTemplate = tmpl
 		return nil
 	}
@@ -188,22 +168,20 @@ func (t Template) Display(w http.ResponseWriter) error {
 			return err
 		}
 
-		tmplName := t.Template
-		if strings.Index(t.Template, "/") > -1 {
-			tparts := strings.Split(t.Template, "/")
-			tmplName = tparts[len(tparts)-1]
-		}
-		tmpl, err := template.New(tmplName).Funcs(t.FuncMap).ParseFiles(dir + "/" + t.Template)
+		tmpl, err := template.ParseFiles(dir + "/" + t.Template)
 
 		if err != nil {
+			log.Println(err)
 			return err
 		}
+		tmpl.Funcs(t.FuncMap)
+
 		t.HtmlTemplate = tmpl
 		return nil
 	}
+
 	err := tmpl.HtmlTemplate.Execute(t.Writer, t.Bag)
 	return err
-
 }
 
 func GetTemplate() (*Template, error) {
