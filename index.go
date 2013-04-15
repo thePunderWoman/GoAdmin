@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./controllers"
 	"./controllers/authenticate"
 	"./controllers/base"
 	"./helpers/database"
@@ -15,10 +16,6 @@ import (
 var (
 	CorsHandler = func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
-		return
-	}
-	AuthHandler = func(w http.ResponseWriter, r *http.Request) {
-		authenticate.AuthHandler(w, r)
 		return
 	}
 )
@@ -37,12 +34,13 @@ func main() {
 	server := plate.NewServer("doughboy")
 
 	server.AddFilter(CorsHandler)
+	server.AddFilter(base.Base)
 
 	server.Get("/Authenticate", authenticate.Index).NoFilter()
 	server.Post("/Authenticate", authenticate.Login).NoFilter()
 	server.Get("/Logout", authenticate.Logout)
 
-	server.Get("/", controllers.Index).AddFilter(AuthHandler)
+	server.Get("/", controllers.Index)
 
 	dir, _ := os.Getwd()
 

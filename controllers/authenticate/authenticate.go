@@ -1,9 +1,9 @@
 package authenticate
 
 import (
-	"../../helpers/globals"
 	"../../helpers/plate"
 	"../../models"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -22,7 +22,7 @@ var (
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	var err error
-	var tmpl plate.Template
+	var tmpl *plate.Template
 
 	params := r.URL.Query()
 	error := params.Get(":error")
@@ -40,16 +40,18 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	tmpl.Bag["CurrentYear"] = time.Now().Year()
 	tmpl.Bag["userID"] = 0
 
-	tmpl.FuncMap = template.FuncMap{
-		"isNotNull": func(str string) bool {
-			if strings.TrimSpace(str) != "" && len(strings.TrimSpace(str)) > 0 {
-				return true
-			}
-			return false
-		},
+	tmpl.FuncMap["isNotNull"] = func(str string) bool {
+		if strings.TrimSpace(str) != "" && len(strings.TrimSpace(str)) > 0 {
+			return true
+		}
+		return false
+	}
+	tmpl.FuncMap["isLoggedIn"] = func() bool {
+		return false
 	}
 
 	templates := append(TemplateFiles, "templates/auth/login.html")
+	log.Println(templates)
 
 	tmpl.DisplayMultiple(templates)
 }

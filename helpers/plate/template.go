@@ -117,11 +117,7 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		t.Layout = "layout.html"
 	}
 	// ensure proper pathing for layout layout files
-	t.Layout = dir + "/" + t.Layout
-
-	if t.Bag == nil {
-		t.Bag = make(map[string]interface{})
-	}
+	t.Layout = t.Layout
 
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
@@ -131,14 +127,17 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		templateName = tparts[len(tparts)-1]
 	}
 
-	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout)
+	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(dir + "/" + t.Layout)
 	if err != nil {
 		return err
 	}
 	for _, filename := range templates {
-		templ.ParseFiles(dir + "/" + filename)
+		_, err = templ.ParseFiles(dir + "/" + filename)
 	}
 	err = templ.Execute(t.Writer, t.Bag)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return
 }
@@ -202,7 +201,6 @@ func (t Template) Display(w http.ResponseWriter) error {
 		t.HtmlTemplate = tmpl
 		return nil
 	}
-
 	err := tmpl.HtmlTemplate.Execute(t.Writer, t.Bag)
 	return err
 

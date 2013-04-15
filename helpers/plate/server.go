@@ -199,7 +199,7 @@ func (this *Server) Static(pattern string, dir string) *Route {
 
 		w.Header().Set("Content-Type", mime.TypeByExtension(ext))
 		http.ServeFile(w, r, path)
-	})
+	}).NoFilter()
 }
 
 // Add middleware filter globally to server

@@ -3,7 +3,8 @@ package base
 import (
 	"../../helpers/plate"
 	"net/http"
-	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -32,12 +33,6 @@ func Base(w http.ResponseWriter, r *http.Request) {
 	}
 
 	server := plate.NewServer()
-	dir, err := os.Getwd()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	tmpl, err := plate.GetTemplate()
 	if err != nil {
 		tmpl, err = server.Template(w)
@@ -50,17 +45,19 @@ func Base(w http.ResponseWriter, r *http.Request) {
 	tmpl.Bag["CurrentYear"] = time.Now().Year()
 	tmpl.Bag["userID"] = userID
 
-	tmpl.FuncMap = template.FuncMap{
-		"isNotNull": func(str string) bool {
-			if strings.TrimSpace(str) != "" && len(strings.TrimSpace(str)) > 0 {
-				return true
-			}
-			return false
-		},
+	tmpl.FuncMap["isNotNull"] = func(str string) bool {
+		if strings.TrimSpace(str) != "" && len(strings.TrimSpace(str)) > 0 {
+			return true
+		}
+		return false
+	}
+
+	tmpl.FuncMap["isLoggedIn"] = func() bool {
+		return userID > 0
 	}
 
 	for _, file := range TemplateFiles {
-		err = tmpl.ParseFile(file)
+		err = tmpl.ParseFile(file, false)
 	}
 
 	plate.SetTemplate(tmpl)
