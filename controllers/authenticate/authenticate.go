@@ -36,7 +36,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	error, _ = url.QueryUnescape(error)
 	server := plate.NewServer()
 
-	tmpl, err = server.Template(w, r)
+	tmpl, err = server.Template(w)
 
 	if err != nil {
 		plate.Serve404(w, err.Error())
