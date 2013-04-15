@@ -9,6 +9,7 @@ import (
 	"./helpers/plate"
 	"log"
 	"net/http"
+	"os"
 )
 
 var (
@@ -43,7 +44,9 @@ func main() {
 
 	server.Get("/", controllers.Index).AddFilter(AuthHandler)
 
-	server.Static("/", *globals.Filepath+"static")
+	dir, _ := os.Getwd()
+
+	server.Static("/", dir+"/"+"static")
 
 	http.Handle("/", server)
 

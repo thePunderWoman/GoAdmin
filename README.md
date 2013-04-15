@@ -4,6 +4,8 @@ GoEngine Boilerplate is combination of serveral different repositories, some mad
 
 The project is built using with Sinatra style routing and MySQL support. HTML Structure and design using h5bp(http://html5boilerplate.com) and Twitter Bootstrap(http://twitter.github.com/bootstrap). Javascript templating is done with mustache.js, but has not been baked into requireJS. The javascript component incorporates RequireJS for dependency management.
 
+**IMPORTANT**: If you **__are__** using Google AppEngine, use the [_gae_](https://github.com/ninnemana/goengine/tree/gae) branch.
+
 Deploying
 -----------
 
@@ -86,21 +88,6 @@ Mustache.js
 -----------
 
 mustache.js has been converted to use [[ ]] as delimiters so it can play nice with golang's html/template package.
-
-Issues
------------
-
-There is currently (1.7.0) an issue with passing routes with spaces on the App Engine dev_appserver.py. The issue does not seem to exist on the live server. We have found that making a small change to /google/appengine/ext/go/__init__.py will resolve this issue.
-
-Remove from line 513:
-```
-request_uri = env['PATH_INFO']
-```
-
-Replace with:
-```
-request_uri = env['_AH_ENCODED_SCRIPT_NAME']
-```
 
 Contributors
 -----------
