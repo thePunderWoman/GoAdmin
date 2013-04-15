@@ -10,6 +10,7 @@ import (
 var (
 	// example statement
 	authenticateUserStmt = "select * from user where username=? and password=?"
+	allUserStmt          = "select * from user"
 )
 
 // Create map of all statements
@@ -32,6 +33,13 @@ func PrepareAll() error {
 		return err
 	}
 	Statements["authenticateUserStmt"] = authenticateUserPrepared
+
+	// Example Preparation
+	allUserPrepared, err := AdminDb.Prepare(allUserStmt)
+	if err != nil {
+		return err
+	}
+	Statements["allUserStmt"] = allUserPrepared
 
 	return nil
 }

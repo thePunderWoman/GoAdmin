@@ -2,6 +2,8 @@ package models
 
 import (
 	"../helpers/database"
+	"crypto/md5"
+	"log"
 	"time"
 )
 
@@ -74,4 +76,38 @@ func Authenticate(username string, password string) (user User, err error) {
 	}
 
 	return user, err
+}
+
+func EncryptAll() {
+	h := md5.New()
+	sel, err := database.GetStatement("allUserStmt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	rows, res, err := sel.Exec()
+	if database.MysqlError(err) {
+		log.Println(err)
+		return
+	}
+
+	//id := res.Map("id")
+	uname := res.Map("username")
+	pword := res.Map("password")
+
+	if err != nil {
+		log.Println(err)
+		return
+	} else if len(rows) > 0 {
+		for _, row := range rows {
+			username := row.Str(uname)
+			log.Println(username)
+			pw := row.Str(pword)
+			log.Println(pw)
+			h.Write([]byte(pw))
+			epw := h.Sum(nil)
+			log.Println(epw)
+		}
+	}
 }
