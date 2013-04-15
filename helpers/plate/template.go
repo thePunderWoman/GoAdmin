@@ -31,8 +31,9 @@ func (this *Server) Template(w http.ResponseWriter) (templ *Template, err error)
 		return
 	}
 	templ = &Template{
-		Writer: w,
-		Bag:    make(map[string]interface{}),
+		Writer:  w,
+		Bag:     make(map[string]interface{}),
+		FuncMap: template.FuncMap{},
 	}
 
 	return
@@ -146,15 +147,23 @@ func SetTemplate(t *Template) {
 	tmpl = t
 }
 
-func (t *Template) ParseFile(file string) error {
+func (t *Template) ParseFile(file string, override bool) error {
 
+	dir := ""
+	var err error
+	if !override {
+		dir, err = os.Getwd()
+		if err != nil {
+			return err
+		}
+	}
 	if t.HtmlTemplate == nil {
 		var tmplName string
 		if strings.Index(file, "/") > -1 {
 			tparts := strings.Split(file, "/")
 			tmplName = tparts[len(tparts)-1]
 		}
-		tmpl, err := template.New(tmplName).Funcs(t.FuncMap).ParseFiles(file)
+		tmpl, err := template.New(tmplName).Funcs(t.FuncMap).ParseFiles(dir + "/" + file)
 		if err != nil {
 			return err
 		}
@@ -162,7 +171,7 @@ func (t *Template) ParseFile(file string) error {
 		return nil
 	}
 
-	_, err := t.HtmlTemplate.ParseFiles(file)
+	_, err = t.HtmlTemplate.ParseFiles(dir + "/" + file)
 
 	return err
 }
@@ -175,12 +184,18 @@ func (t Template) Display(w http.ResponseWriter) error {
 			return errors.New("No template files defined")
 		}
 
+		dir, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+
 		tmplName := t.Template
 		if strings.Index(t.Template, "/") > -1 {
 			tparts := strings.Split(t.Template, "/")
 			tmplName = tparts[len(tparts)-1]
 		}
-		tmpl, err := template.New(tmplName).Funcs(t.FuncMap).ParseFiles(t.Template)
+		tmpl, err := template.New(tmplName).Funcs(t.FuncMap).ParseFiles(dir + "/" + t.Template)
+
 		if err != nil {
 			return err
 		}
