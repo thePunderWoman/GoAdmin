@@ -126,6 +126,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/authenticate", http.StatusFound)
 }
 
-func Encrypt(w http.ResponseWriter, r *http.Request) {
+/*func Encrypt(w http.ResponseWriter, r *http.Request) {
 	models.EncryptAll()
-}
+}*/

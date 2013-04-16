@@ -9,8 +9,10 @@ import (
 // prepared statements go here
 var (
 	// example statement
-	authenticateUserStmt = "select * from user where username=? and password=?"
+	authenticateUserStmt = "select * from user where username=? and encpassword=? and isActive = 1"
+	getUserByIDStmt      = "select * from user where id=?"
 	allUserStmt          = "select * from user"
+	userModulesStmt      = "select module.* from module inner join user_module on module.id = user_module.moduleID where user_module.userID = ? order by module"
 )
 
 // Create map of all statements
@@ -34,12 +36,23 @@ func PrepareAll() error {
 	}
 	Statements["authenticateUserStmt"] = authenticateUserPrepared
 
-	// Example Preparation
 	allUserPrepared, err := AdminDb.Prepare(allUserStmt)
 	if err != nil {
 		return err
 	}
 	Statements["allUserStmt"] = allUserPrepared
+
+	getUserByIDPrepared, err := AdminDb.Prepare(getUserByIDStmt)
+	if err != nil {
+		return err
+	}
+	Statements["getUserByIDStmt"] = getUserByIDPrepared
+
+	userModulesPrepared, err := AdminDb.Prepare(userModulesStmt)
+	if err != nil {
+		return err
+	}
+	Statements["userModulesStmt"] = userModulesPrepared
 
 	return nil
 }

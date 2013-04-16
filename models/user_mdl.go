@@ -2,8 +2,10 @@ package models
 
 import (
 	"../helpers/database"
+	"bytes"
 	"crypto/md5"
-	"log"
+	"errors"
+	_ "log"
 	"time"
 )
 
@@ -14,7 +16,6 @@ var (
 type User struct {
 	ID        int
 	Username  string
-	Password  string
 	Email     string
 	Fname     string
 	Lname     string
@@ -23,6 +24,7 @@ type User struct {
 	SuperUser bool
 	Biography string
 	Photo     string
+	Modules   []Module
 }
 
 type Module struct {
@@ -38,7 +40,12 @@ func Authenticate(username string, password string) (user User, err error) {
 		return user, err
 	}
 
-	sel.Bind(username, password)
+	epw, err := Md5Encrypt(password)
+	if err != nil {
+		return user, err
+	}
+
+	sel.Bind(username, epw)
 
 	row, res, err := sel.ExecFirst()
 	if database.MysqlError(err) {
@@ -47,7 +54,40 @@ func Authenticate(username string, password string) (user User, err error) {
 
 	id := res.Map("id")
 	uname := res.Map("username")
-	pword := res.Map("password")
+	fname := res.Map("fname")
+	lname := res.Map("lname")
+	super := res.Map("superUser")
+
+	if err != nil { // Must be something wrong with the db, lets bail
+		return user, err
+	} else if row != nil { // populate history object
+		user = User{
+			ID:        row.Int(id),
+			Username:  row.Str(uname),
+			Fname:     row.Str(fname),
+			Lname:     row.Str(lname),
+			SuperUser: row.Bool(super),
+		}
+	}
+
+	return user, err
+}
+
+func GetUser(id int) (u User, err error) {
+	sel, err := database.GetStatement("getUserByIDStmt")
+	if err != nil {
+		return u, err
+	}
+
+	sel.Bind(id)
+
+	row, res, err := sel.ExecFirst()
+	if database.MysqlError(err) {
+		return u, err
+	}
+
+	idval := res.Map("id")
+	uname := res.Map("username")
 	email := res.Map("email")
 	fname := res.Map("fname")
 	lname := res.Map("lname")
@@ -58,12 +98,11 @@ func Authenticate(username string, password string) (user User, err error) {
 	photo := res.Map("photo")
 
 	if err != nil { // Must be something wrong with the db, lets bail
-		return user, err
+		return u, err
 	} else if row != nil { // populate history object
-		user = User{
-			ID:        row.Int(id),
+		u = User{
+			ID:        row.Int(idval),
 			Username:  row.Str(uname),
-			Password:  row.Str(pword),
 			Email:     row.Str(email),
 			Fname:     row.Str(fname),
 			Lname:     row.Str(lname),
@@ -73,41 +112,59 @@ func Authenticate(username string, password string) (user User, err error) {
 			Biography: row.Str(bio),
 			Photo:     row.Str(photo),
 		}
+		err = u.GetModules()
+		if err != nil {
+			return u, err
+		}
 	}
 
-	return user, err
+	return u, err
+
 }
 
-func EncryptAll() {
-	h := md5.New()
-	sel, err := database.GetStatement("allUserStmt")
+func (u *User) GetModules() error {
+	sel, err := database.GetStatement("userModulesStmt")
 	if err != nil {
-		log.Println(err)
-		return
+		return err
 	}
+
+	sel.Bind(u.ID)
 
 	rows, res, err := sel.Exec()
 	if database.MysqlError(err) {
-		log.Println(err)
-		return
+		return err
 	}
 
-	//id := res.Map("id")
-	uname := res.Map("username")
-	pword := res.Map("password")
+	id := res.Map("id")
+	mod := res.Map("module")
+	modPath := res.Map("module_path")
+	imgPath := res.Map("img_path")
 
-	if err != nil {
-		log.Println(err)
-		return
-	} else if len(rows) > 0 {
-		for _, row := range rows {
-			username := row.Str(uname)
-			log.Println(username)
-			pw := row.Str(pword)
-			log.Println(pw)
-			h.Write([]byte(pw))
-			epw := h.Sum(nil)
-			log.Println(epw)
+	var modules []Module
+
+	for _, row := range rows {
+		m := Module{
+			ID:          row.Int(id),
+			Module:      row.Str(mod),
+			Module_path: row.Str(modPath),
+			Img_path:    row.Str(imgPath),
 		}
+		modules = append(modules, m)
 	}
+	u.Modules = modules
+	return nil
+}
+
+func Md5Encrypt(str string) (string, error) {
+	if str == "" {
+		return "", errors.New("Invalid string parameter")
+	}
+	h := md5.New()
+	h.Write([]byte(str))
+	var buf bytes.Buffer
+	_, err := buf.Write(h.Sum(nil))
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }

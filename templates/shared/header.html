@@ -10,17 +10,16 @@
 		    <a href="#" id="lines"></a>
 		{{ end }}
 	    <ul id="sidebar">
-	        {{ with .Modules }}
+	        {{ with .user.Modules }}
 	        	{{ range . }}
 	                <li>
-	                    <a href="{{.module_path}}">
-	                        {{ if isNotNull .img_path }}
+	                    <a href="{{.Module_path}}">
+	                        {{ if isNotNull .Img_path }}
 	                            <span>
-	                                <img src="/Content/img/{{ .img_path }}" alt="{{.module1}}" />
+	                                <img src="/img/{{ .Img_path }}" alt="{{.Module}}" />
 	                            </span>
-	                        }
 	                        {{ end }}
-	                        {{ .module1 }}
+	                        {{ .Module }}
 	                    </a>
 	                </li>
 	            {{ end }}

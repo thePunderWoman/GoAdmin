@@ -2,6 +2,7 @@ package base
 
 import (
 	"../../helpers/plate"
+	"../../models"
 	"log"
 	"net/http"
 	"strconv"
@@ -33,6 +34,11 @@ func Base(w http.ResponseWriter, r *http.Request) {
 		// user is not logged in
 		http.Redirect(w, r, "/Authenticate", http.StatusFound)
 	}
+	user, err := models.GetUser(userID)
+	if err != nil {
+		// user is not logged in
+		http.Redirect(w, r, "/Authenticate", http.StatusFound)
+	}
 
 	server := plate.NewServer()
 	tmpl, err := plate.GetTemplate()
@@ -43,7 +49,7 @@ func Base(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
+	tmpl.Bag["user"] = user
 	tmpl.Bag["CurrentYear"] = time.Now().Year()
 	tmpl.Bag["userID"] = userID
 
