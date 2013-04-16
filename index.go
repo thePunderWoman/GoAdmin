@@ -36,13 +36,16 @@ func main() {
 	server.AddFilter(CorsHandler)
 	server.AddFilter(base.Base)
 
+	// Authentication Routes
 	server.Get("/Authenticate", authenticate.Index).NoFilter()
 	server.Post("/Authenticate", authenticate.Login).NoFilter()
-	//server.Get("/Encrypt", authenticate.Encrypt).NoFilter()
 	server.Get("/Forgot", authenticate.Forgot).NoFilter()
 	server.Post("/Forgot", authenticate.NewPassword).NoFilter()
+	server.Get("/Signup", authenticate.SignUp).NoFilter()
+	server.Post("/Signup", authenticate.Register).NoFilter()
 	server.Get("/Logout", authenticate.Logout)
 
+	// Home page route
 	server.Get("/", controllers.Index)
 
 	dir, _ := os.Getwd()

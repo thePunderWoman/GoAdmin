@@ -1,0 +1,45 @@
+{{ define "content" }}
+    <link href="/css/signup.css" rel="stylesheet" media="all" />
+    {{ if not .Submitted }}
+        <form action="/signup" method="post">
+            <div style="color:whitesmoke;font-weight: bold">
+                <img src="/img/curtLogo.png" style="width: 100px" /> 
+                <span style="line-height: 26px;vertical-align: top">Administration Sign Up</span>
+            </div>
+            {{ with .error }}
+                <p style="color: #e44f31;margin:0px;margin-left:10px">{{ . }}</p>
+            {{ end }}
+            <p id="required">All fields are required.</p>
+            <label for="fname">
+                First Name
+                <input type="text" name="fname" id="fname" placeholder="Enter your first name..." value="{{ .Fname }}" required />
+            </label>
+            <label for="lname">
+                <span style="float:left">Last Name</span>
+                <input type="text" name="lname" id="lname" placeholder="Enter your last name..." value="{{ .Lname }}" required />
+            </label>
+            <label for="username">
+                Username
+                <input type="text" name="username" id="username" placeholder="Enter desired username..." value="{{ .Username }}" required />
+            </label>
+            <label for="email">
+                E-Mail
+                <input type="email" name="email" id="email" placeholder="Enter your e-mail address..." value="{{ .Email }}" required />
+            </label>
+            <div style="clear:both"></div>
+            <input type="submit" name="btnSignup" id="btnSignup" value="Sign Up" />
+            <span id="already">Already a user? <a href="/Authenticate" title="Login">Login</a></span>
+            <span id="forgot">Forgot Login? <a href="/Forgot" title="Forgot account">Remind me.</a></span>
+            <div style="clear:both"></div>
+        </form>
+    {{ else }}
+        <form action="/signup" method="post">
+            <div style="color:whitesmoke;font-weight: bold">
+                <img src="/img/curtLogo.png" style="width: 100px" /> 
+                <span style="line-height: 26px;vertical-align: top">Administration Sign Up</span>
+            </div>
+            <p style="color: whitesmoke;margin-left:10px;font-size: 14pt">Thank you for your submission.</p><br />
+            <p style="color: whitesmoke;margin:0px;margin-left:10px">We will review the information that you submitted and you will receive an e-mail notification when we activate your account.</p>
+        </form>
+    {{ end }}
+{{ end }}

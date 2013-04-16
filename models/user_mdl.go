@@ -76,6 +76,16 @@ func Authenticate(username string, password string) (user User, err error) {
 	return user, err
 }
 
+func (u *User) Save() error {
+	if u.ID > 0 {
+		// update user
+
+	} else {
+		// new user
+	}
+	return nil
+}
+
 func GetUserByID(id int) (u User, err error) {
 	sel, err := database.GetStatement("getUserByIDStmt")
 	if err != nil {
@@ -292,7 +302,7 @@ func (u *User) SendPasswordEmail(password string) {
 }
 
 func GeneratePassword() string {
-	charlist := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$^&*?"
+	charlist := "ABCDEFGHJKMNOPQRSTUVWXYZabcdefghjkmnopqrstuvwxyz23456789!@#$^&*?"
 	charslice := strings.Split(charlist, "")
 	targetlength := 8
 	newpw := ""

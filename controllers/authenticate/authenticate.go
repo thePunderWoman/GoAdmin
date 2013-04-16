@@ -185,3 +185,101 @@ func NewPassword(w http.ResponseWriter, r *http.Request) {
 	user.ResetPassword()
 	http.Redirect(w, r, "/Forgot?error="+url.QueryEscape("Reset successful. Check your email for your new password."), http.StatusFound)
 }
+
+func SignUp(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var tmpl *plate.Template
+
+	params := r.URL.Query()
+	error := params.Get("error")
+	error, _ = url.QueryUnescape(error)
+
+	fname := params.Get("fname")
+	fname, _ = url.QueryUnescape(fname)
+
+	lname := params.Get("lname")
+	lname, _ = url.QueryUnescape(lname)
+
+	email := params.Get("email")
+	email, _ = url.QueryUnescape(email)
+
+	username := params.Get("username")
+	username, _ = url.QueryUnescape(username)
+
+	var submitted bool
+	submitted, err = strconv.ParseBool(params.Get("submitted"))
+	if err != nil {
+		submitted = false
+	}
+
+	server := plate.NewServer()
+
+	tmpl, err = server.Template(w)
+
+	if err != nil {
+		plate.Serve404(w, err.Error())
+		return
+	}
+
+	tmpl.Bag["Error"] = strings.ToTitle(error)
+	tmpl.Bag["Fname"] = strings.TrimSpace(fname)
+	tmpl.Bag["Lname"] = strings.TrimSpace(lname)
+	tmpl.Bag["Email"] = strings.TrimSpace(email)
+	tmpl.Bag["Username"] = strings.TrimSpace(username)
+	tmpl.Bag["CurrentYear"] = time.Now().Year()
+	tmpl.Bag["Submitted"] = submitted
+	tmpl.Bag["userID"] = 0
+
+	tmpl.FuncMap["isNotNull"] = func(str string) bool {
+		if strings.TrimSpace(str) != "" && len(strings.TrimSpace(str)) > 0 {
+			return true
+		}
+		return false
+	}
+	tmpl.FuncMap["isLoggedIn"] = func() bool {
+		return false
+	}
+
+	templates := append(TemplateFiles, "templates/auth/signup.html")
+
+	tmpl.DisplayMultiple(templates)
+
+}
+
+func Register(w http.ResponseWriter, r *http.Request) {
+	fname := r.FormValue("fname")
+	lname := r.FormValue("lname")
+	email := r.FormValue("email")
+	username := r.FormValue("username")
+	if strings.TrimSpace(fname) == "" || strings.TrimSpace(lname) == "" || strings.TrimSpace(email) == "" || strings.TrimSpace(username) == "" {
+		qvals := url.Values{}
+		qvals.Add("error", "Please fill out required fields")
+		qvals.Add("fname", fname)
+		qvals.Add("lname", lname)
+		qvals.Add("email", email)
+		qvals.Add("username", username)
+		http.Redirect(w, r, "/Signup?"+qvals.Encode(), http.StatusFound)
+		return
+	}
+
+	user := models.User{
+		Username: username,
+		Email:    email,
+		Fname:    fname,
+		Lname:    lname,
+	}
+
+	err := user.Save()
+	if err != nil {
+		qvals := url.Values{}
+		qvals.Add("error", err.Error())
+		qvals.Add("fname", fname)
+		qvals.Add("lname", lname)
+		qvals.Add("email", email)
+		qvals.Add("username", username)
+		http.Redirect(w, r, "/Signup?"+qvals.Encode(), http.StatusFound)
+		return
+	}
+
+	http.Redirect(w, r, "/Signup?submitted=true", http.StatusFound)
+}
