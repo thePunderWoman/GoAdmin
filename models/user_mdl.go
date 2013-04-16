@@ -2,10 +2,13 @@ package models
 
 import (
 	"../helpers/database"
+	"../helpers/email"
 	"bytes"
 	"crypto/md5"
 	"errors"
 	_ "log"
+	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -73,7 +76,7 @@ func Authenticate(username string, password string) (user User, err error) {
 	return user, err
 }
 
-func GetUser(id int) (u User, err error) {
+func GetUserByID(id int) (u User, err error) {
 	sel, err := database.GetStatement("getUserByIDStmt")
 	if err != nil {
 		return u, err
@@ -117,9 +120,113 @@ func GetUser(id int) (u User, err error) {
 			return u, err
 		}
 	}
+	if u.ID == 0 {
+		return u, errors.New("User not found")
+	}
 
 	return u, err
+}
 
+func GetUserByUsername(username string) (u User, err error) {
+	sel, err := database.GetStatement("getUserByUsernameStmt")
+	if err != nil {
+		return u, err
+	}
+
+	sel.Bind(username)
+
+	row, res, err := sel.ExecFirst()
+	if database.MysqlError(err) {
+		return u, err
+	}
+
+	idval := res.Map("id")
+	uname := res.Map("username")
+	email := res.Map("email")
+	fname := res.Map("fname")
+	lname := res.Map("lname")
+	dateAdded := res.Map("dateAdded")
+	active := res.Map("isActive")
+	super := res.Map("superUser")
+	bio := res.Map("biography")
+	photo := res.Map("photo")
+
+	if err != nil { // Must be something wrong with the db, lets bail
+		return u, err
+	} else if row != nil { // populate history object
+		u = User{
+			ID:        row.Int(idval),
+			Username:  row.Str(uname),
+			Email:     row.Str(email),
+			Fname:     row.Str(fname),
+			Lname:     row.Str(lname),
+			DateAdded: row.Time(dateAdded, UTC),
+			IsActive:  row.Bool(active),
+			SuperUser: row.Bool(super),
+			Biography: row.Str(bio),
+			Photo:     row.Str(photo),
+		}
+		err = u.GetModules()
+		if err != nil {
+			return u, err
+		}
+	}
+	if u.ID == 0 {
+		return u, errors.New("User not found")
+	}
+
+	return u, err
+}
+
+func GetUserByEmail(email string) (u User, err error) {
+	sel, err := database.GetStatement("getUserByEmailStmt")
+	if err != nil {
+		return u, err
+	}
+
+	sel.Bind(email)
+
+	row, res, err := sel.ExecFirst()
+	if database.MysqlError(err) {
+		return u, err
+	}
+
+	idval := res.Map("id")
+	uname := res.Map("username")
+	emailaddr := res.Map("email")
+	fname := res.Map("fname")
+	lname := res.Map("lname")
+	dateAdded := res.Map("dateAdded")
+	active := res.Map("isActive")
+	super := res.Map("superUser")
+	bio := res.Map("biography")
+	photo := res.Map("photo")
+
+	if err != nil { // Must be something wrong with the db, lets bail
+		return u, err
+	} else if row != nil { // populate history object
+		u = User{
+			ID:        row.Int(idval),
+			Username:  row.Str(uname),
+			Email:     row.Str(emailaddr),
+			Fname:     row.Str(fname),
+			Lname:     row.Str(lname),
+			DateAdded: row.Time(dateAdded, UTC),
+			IsActive:  row.Bool(active),
+			SuperUser: row.Bool(super),
+			Biography: row.Str(bio),
+			Photo:     row.Str(photo),
+		}
+		err = u.GetModules()
+		if err != nil {
+			return u, err
+		}
+	}
+	if u.ID == 0 {
+		return u, errors.New("User not found")
+	}
+
+	return u, err
 }
 
 func (u *User) GetModules() error {
@@ -153,6 +260,49 @@ func (u *User) GetModules() error {
 	}
 	u.Modules = modules
 	return nil
+}
+
+func (u *User) ResetPassword() error {
+	newpassword := GeneratePassword()
+	u.SendPasswordEmail(newpassword)
+
+	encpassword, err := Md5Encrypt(newpassword)
+	if err != nil {
+		return err
+	}
+
+	upd, err := database.GetStatement("setUserPasswordStmt")
+	if err != nil {
+		return err
+	}
+
+	upd.Bind(encpassword, u.ID)
+	_, _, err = upd.Exec()
+	return nil
+}
+
+func (u *User) SendPasswordEmail(password string) {
+	tos := []string{u.Email}
+	body := "<p>Hi " + u.Fname + ",</p>"
+	body += "<p>Here is your new password for the <a href=\"http://admin.curtmfg.com\">CURT Administration</a> site.<br /></br />Password: " + password + "</p>"
+	body += "<p>If you did not request this password reset, please contact <a href=\"mailto:websupport@curtmfg.com\">Web Support</a>.</p>"
+	body += "<p>Thanks,<br />The Ecommerce Developer Team</p>"
+	subject := "CURT Administration Password Reset"
+	email.Send(tos, subject, body, true)
+}
+
+func GeneratePassword() string {
+	charlist := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$^&*?"
+	charslice := strings.Split(charlist, "")
+	targetlength := 8
+	newpw := ""
+	var index int
+	for i := 0; i < targetlength; i++ {
+		rand.Seed(time.Now().UnixNano())
+		index = rand.Intn(len(charslice))
+		newpw += charslice[index]
+	}
+	return newpw
 }
 
 func Md5Encrypt(str string) (string, error) {

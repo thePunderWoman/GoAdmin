@@ -1,3 +1,11 @@
 {{define "content"}}
-  <h1> Hello, World! </h1>
+<div id="content_container">
+    <h2>Welcome {{ .user.Fname }} {{ .user.Lname }}</h2>
+
+    <p>You have successfully logged into the CURT Web Resource Administration tool. If you encounter an error or problem, please e-mail <a href="mailto:websupport@curtmfg.com">Web Support</a>.</p>
+
+    <p>You can view your account information by click on the link in the top right corner of the screen.</p>
+
+    <p>Thanks!</p>
+</div>
 {{end}}

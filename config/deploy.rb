@@ -19,7 +19,7 @@ set :use_sudo, false
 set :sudo_prompt, ""
 set :normalize_asset_timestamps, false
 
-after :deploy, "deploy:goget", "db:configure", "deploy:compile", "deploy:stop", "deploy:restart"
+after :deploy, "deploy:goget", "db:configure", "email:configure", "deploy:compile", "deploy:stop", "deploy:restart"
 
 namespace :db do
   desc "set database Connection Strings"
@@ -42,6 +42,26 @@ namespace :db do
     EOF
     run "mkdir -p #{deploy_to}/current/helpers/database"
     put db_config, "#{deploy_to}/current/helpers/database/ConnectionString.go"
+  end
+end
+namespace :email do
+  desc "set email settings"
+  task :configure do
+    set(:email_password) { Capistrano::CLI.password_prompt("Email Password:") }
+    email_config = <<-EOF
+      package email
+
+      const (
+        EmailServer   = "smtp.gmail.com"
+        EmailAddress  = "no-reply@curtmfg.com"
+        EmailUsername = "no-reply@curtmfg.com"
+        EmailPassword = "#{email_password}"
+        EmailSSL      = true
+        EmailPort     = 587
+      )
+    EOF
+    run "mkdir -p #{deploy_to}/current/helpers/email"
+    put email_config, "#{deploy_to}/current/helpers/email/EmailSettings.go"
   end
 end
 namespace :deploy do

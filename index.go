@@ -39,6 +39,8 @@ func main() {
 	server.Get("/Authenticate", authenticate.Index).NoFilter()
 	server.Post("/Authenticate", authenticate.Login).NoFilter()
 	//server.Get("/Encrypt", authenticate.Encrypt).NoFilter()
+	server.Get("/Forgot", authenticate.Forgot).NoFilter()
+	server.Post("/Forgot", authenticate.NewPassword).NoFilter()
 	server.Get("/Logout", authenticate.Logout)
 
 	server.Get("/", controllers.Index)

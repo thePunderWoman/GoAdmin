@@ -34,7 +34,7 @@ func Base(w http.ResponseWriter, r *http.Request) {
 		// user is not logged in
 		http.Redirect(w, r, "/Authenticate", http.StatusFound)
 	}
-	user, err := models.GetUser(userID)
+	user, err := models.GetUserByID(userID)
 	if err != nil {
 		// user is not logged in
 		http.Redirect(w, r, "/Authenticate", http.StatusFound)

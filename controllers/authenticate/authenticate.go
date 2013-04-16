@@ -54,6 +54,41 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	tmpl.DisplayMultiple(templates)
 }
 
+func Forgot(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var tmpl *plate.Template
+
+	params := r.URL.Query()
+	error := params.Get("error")
+	error, _ = url.QueryUnescape(error)
+	server := plate.NewServer()
+
+	tmpl, err = server.Template(w)
+
+	if err != nil {
+		plate.Serve404(w, err.Error())
+		return
+	}
+
+	tmpl.Bag["Error"] = strings.ToTitle(error)
+	tmpl.Bag["CurrentYear"] = time.Now().Year()
+	tmpl.Bag["userID"] = 0
+
+	tmpl.FuncMap["isNotNull"] = func(str string) bool {
+		if strings.TrimSpace(str) != "" && len(strings.TrimSpace(str)) > 0 {
+			return true
+		}
+		return false
+	}
+	tmpl.FuncMap["isLoggedIn"] = func() bool {
+		return false
+	}
+
+	templates := append(TemplateFiles, "templates/auth/forgot.html")
+
+	tmpl.DisplayMultiple(templates)
+}
+
 func Login(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
@@ -126,6 +161,27 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/authenticate", http.StatusFound)
 }
 
-/*func Encrypt(w http.ResponseWriter, r *http.Request) {
-	models.EncryptAll()
-}*/
+func NewPassword(w http.ResponseWriter, r *http.Request) {
+	username := r.FormValue("username")
+	email := r.FormValue("email")
+	var user models.User
+	var err error
+	if strings.TrimSpace(username) != "" {
+		user, err = models.GetUserByUsername(username)
+		if err != nil {
+			http.Redirect(w, r, "/Forgot?error="+url.QueryEscape("The username you specified was not found"), http.StatusFound)
+			return
+		}
+	} else if strings.TrimSpace(email) != "" {
+		user, err = models.GetUserByEmail(email)
+		if err != nil {
+			http.Redirect(w, r, "/Forgot?error="+url.QueryEscape("The email address you specified was not found"), http.StatusFound)
+			return
+		}
+	} else {
+		http.Redirect(w, r, "/Forgot?error="+url.QueryEscape("No Email or Username was entered."), http.StatusFound)
+		return
+	}
+	user.ResetPassword()
+	http.Redirect(w, r, "/Forgot?error="+url.QueryEscape("Reset successful. Check your email for your new password."), http.StatusFound)
+}

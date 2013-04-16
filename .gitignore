@@ -3,4 +3,5 @@
 
 .DS_Store
 ConnectionString.go
+EmailSettings.go
 server.log

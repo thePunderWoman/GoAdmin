@@ -1,0 +1,43 @@
+{{define "content"}}
+    <link href="/css/login.css" rel="stylesheet" type="text/css" />
+	<form action="/Forgot" method="post">
+	    <div style="color:whitesmoke;font-weight: bold">
+	        <img src="/img/curtLogo.png" style="width: 100px" />
+	        <span style="line-height: 26px;vertical-align: top">Administration Login</span>
+	    </div>
+	    {{ with .Error }}
+	        <p style="color: #e44f31;margin:0px;">{{ . }}</p>
+	    {{ end }}
+	    <label for="username">
+	        Username
+	        <input type="text" name="username" id="username" />
+	    </label>
+	    <span style="display:block;color:white;text-align:center;margin: 5px 0px">----------------------------- Or -----------------------------</span>
+	    <label for="email">
+	        E-Mail
+	        <input type="email" name="email" id="email" />
+	    </label><br />
+	    <input type="submit" name="btnForgot" id="btnForgot" value="Reset" /><br />
+	    <div style="float:right;">
+	        <a style="color:white" href="/Signup">Sign Up</a>
+	    </div>
+	</form>
+
+
+	<script type="text/javascript">
+	    $(function () {
+	        $('#username').focus();
+
+	        $('#btnForgot').click(function () {
+	            $('form').find('p').remove();
+	            if ($.trim($('#username').val()).length == 0 && $.trim($('#email').val()).length == 0) {
+	                $('label:first').before('<p style="color:#e44f31;margin:0px">You must enter a username or e-mail address.</p>');
+	                return false;
+	            }
+	            return true;
+	        });
+
+	    });
+	</script>
+
+{{end}}
