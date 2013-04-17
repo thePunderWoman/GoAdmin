@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"crypto/md5"
 	"errors"
-	_ "log"
 	"math/rand"
 	"strings"
 	"time"
@@ -82,6 +81,79 @@ func (u *User) Save() error {
 
 	} else {
 		// new user
+		// check if username exists
+		uchan := make(chan bool)
+		echan := make(chan bool)
+		go func(username string) {
+			_, err := GetUserByUsername(username)
+			if err != nil {
+				uchan <- false
+			} else {
+				uchan <- true
+			}
+		}(u.Username)
+
+		go func(email string) {
+			// check if email exists
+			_, err := GetUserByEmail(email)
+			if err != nil {
+				echan <- false
+			} else {
+				echan <- true
+			}
+		}(u.Email)
+
+		uexists := <-uchan
+		eexists := <-echan
+		if uexists {
+			return errors.New("A User account with that username already exists.")
+		}
+		if eexists {
+			return errors.New("A User account with that email already exists.")
+		}
+		// add user
+		ins, err := database.GetStatement("registerUserStmt")
+		if err != nil {
+			return err
+		}
+
+		params := struct {
+			Username string
+			Email    string
+			Fname    string
+			Lname    string
+		}{}
+
+		params.Username = u.Username
+		params.Email = u.Email
+		params.Fname = u.Fname
+		params.Lname = u.Lname
+
+		ins.Bind(&params)
+
+		_, _, err = ins.Exec()
+		if err != nil {
+			return err
+		}
+
+		sel, err := database.GetStatement("getID")
+		if err != nil {
+			return err
+		}
+
+		row, res, err := sel.ExecFirst()
+		if err != nil {
+			return err
+		}
+
+		id := res.Map("id")
+		u.ID = row.Int(id)
+		err = u.ResetPassword()
+		if err != nil {
+			return err
+		}
+		u.SendNewUserEmail()
+
 	}
 	return nil
 }
@@ -298,6 +370,22 @@ func (u *User) SendPasswordEmail(password string) {
 	body += "<p>If you did not request this password reset, please contact <a href=\"mailto:websupport@curtmfg.com\">Web Support</a>.</p>"
 	body += "<p>Thanks,<br />The Ecommerce Developer Team</p>"
 	subject := "CURT Administration Password Reset"
+	email.Send(tos, subject, body, true)
+}
+
+func (u *User) SendNewUserEmail() {
+	tos := []string{"websupport@curtmfg.com"}
+	body := "<div style='margin-top: 15px;font-family: Arial;font-size: 10pt;'>"
+	body += "<div style='border-bottom: 2px solid #999'>"
+	body += "<p>A new account has been created with the e-mail {" + u.Email + "}. </p>"
+	body += "<p style='margin:2px 0px'>Name: <strong>" + u.Fname + " " + u.Lname + "</strong></p>"
+	body += "<p style='margin:2px 0px'>Please login to the admin section of the CURT Administration and activate the account.</p>"
+	body += "</div>"
+	body += "<br /><span style='color:#999'>Thank you,</span>"
+	body += "<br /><br /><br />"
+	body += "<span style='line-height:75px;color:#999'>CURT Administration</span>"
+	body += "</div>"
+	subject := "CURT Administration Account Sign Up"
 	email.Send(tos, subject, body, true)
 }
 

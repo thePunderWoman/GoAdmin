@@ -95,7 +95,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	user, err := models.Authenticate(username, password)
 
 	if err != nil {
-		urlpath := "/authenticate/" + url.QueryEscape("Failed to log you into the system")
+		urlpath := "/authenticate?error=" + url.QueryEscape("Failed to log you into the system")
 		http.Redirect(w, r, urlpath, http.StatusFound)
 	} else {
 		cook := http.Cookie{
