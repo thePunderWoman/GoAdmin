@@ -80,7 +80,7 @@ namespace :deploy do
       kill_processes_matching "go-admin"
   end
   task :restart do
-  	restart_cmd = "#{current_release}/go-admin -http=127.0.0.1:8091 -path=#{deploy_to}/current/"
+  	restart_cmd = "#{current_release}/go-admin -http=127.0.0.1:8082 -path=#{deploy_to}/current/"
   	run "nohup sh -c '#{restart_cmd} &' > goadmin-nohup.out"
   end
 end
