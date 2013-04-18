@@ -1,0 +1,112 @@
+{{define "content"}}
+<style type="text/css">
+    #user_container{
+        width: 90%;
+        margin: auto;
+        border: 2px solid #343434;
+        border-radius: 4px 4px 4px;
+        display: none;
+    }
+    
+    #user_container #user_name{
+       min-height: 40px;
+       padding: 5px;
+       border-bottom: 1px solid black;
+       background: #343434;
+       color: White;
+       padding-left: 25px;
+    }
+    
+    #user_container #user_name h4{
+        margin: 0px;
+        line-height: 40px;
+    }
+    
+    #user_info span:nth-child(odd){
+        float:left;
+        margin: 3px 0px;
+        clear:left;
+    }
+    #user_info span:nth-child(even){
+        float: right;
+        margin: 3px 0px;
+        margin-right: 20%;
+    }
+</style>
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<div id="usersNav">
+    <ul>
+        <li>
+            <a href="/Users" class="active">View Internal Users</a>
+        </li>
+        <li>
+            <a href="/Users/Add">Add New</a>
+        </li>
+    </ul>
+</div>
+
+<div id="content_container">
+    <h2>All Users (@ViewBag.users.Count)</h2>
+
+    <div style="width: 90%;margin:auto">
+        <table style="width: 100% !important">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>E-Mail</th>
+                    <th>Date Added</th>
+                    <th>Is Active?</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (CurtAdmin.user u in ViewBag.users) {
+                    <tr id="user:@u.userID">
+                        <td>@u.username</td>
+                        <td>@u.fname @u.lname</td>
+                        <td>@u.email</td>
+                        <td>@u.dateAdded</td>
+                        <td class="center">
+                            <input type="checkbox" name="isActive" id="isActive:@u.userID" class="isActive" value="1" />
+                        </td>
+                        <td class="center">
+                            <select id="action:@u.userID" class="user_action">
+                                <option value="0">Select Action</option>
+                                <option value="view">View</option>
+                                <option value="edit">Edit</option>
+                                <option value="delete">Remove</option>
+                            </select>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div id="user_container">
+        <div id="user_name">
+            <h4></h4>
+        </div>
+        <div id="user_info">
+            <div style="float:left;width:45%;margin-left: 4%">
+                <span>Username:</span>
+                <span id="username"></span>
+                <span>E-Mail:</span>
+                <span id="email"></span>
+                <span>Website:</span>
+                <span id="website"></span>
+            </div>
+            <div style="float:left;width: 45%;margin-right:4%">
+                <span>Phone:</span>
+                <span id="phone"></span>
+                <span>Fax:</span>
+                <span id="fax"></span>
+            </div>
+            <div style="clear:both"></div>
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript" src="/js/admin/users_home.js"></script>
+{{end}}

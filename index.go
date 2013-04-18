@@ -4,6 +4,7 @@ import (
 	"./controllers"
 	"./controllers/authenticate"
 	"./controllers/base"
+	"./controllers/users"
 	"./helpers/database"
 	"./helpers/globals"
 	_ "./helpers/mimetypes"
@@ -44,6 +45,9 @@ func main() {
 	server.Get("/Signup", authenticate.SignUp).NoFilter()
 	server.Post("/Signup", authenticate.Register).NoFilter()
 	server.Get("/Logout", authenticate.Logout)
+
+	// User Routes
+	server.Get("/Users", users.Index)
 
 	// Home page route
 	server.Get("/", controllers.Index)
