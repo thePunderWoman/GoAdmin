@@ -19,7 +19,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tmpl.ParseFile("templates/users/users.html", false)
+	tmpl.ParseFile("templates/users/index.html", false)
 
 	err = tmpl.Display(w)
 	if err != nil {

@@ -41,13 +41,10 @@ func Base(w http.ResponseWriter, r *http.Request) {
 	}
 
 	server := plate.NewServer()
-	tmpl, err := plate.GetTemplate()
+	tmpl, err := server.Template(w)
 	if err != nil {
-		tmpl, err = server.Template(w)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	tmpl.Bag["user"] = user
 	tmpl.Bag["CurrentYear"] = time.Now().Year()
