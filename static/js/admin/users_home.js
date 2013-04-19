@@ -12,19 +12,17 @@
         }
     })
 
-    $('.user_action').live('change', function () {
+    $('.user_action').on('change', function () {
         var action = $(this).val();
         var user_id = $(this).attr('id').split(':')[1];
         switch (action) {
-            case 'view':
-                $.get('/Users/GetUser', { 'user_id': user_id }, quickView, 'json');
-                break;
             case 'edit':
                 window.location.href = "/Users/Edit?user_id=" + user_id;
                 break;
             case 'delete':
                 if (confirm('Are you sure you want to remove this user?')) {
-                    $.get('/Users/RemoveUser', { 'userID': user_id }, function (data) {
+                    $.getJSON('/Users/Delete/' + user_id, function (data) {
+                        console.log(data)
                         deleteUser(data, user_id);
                     });
                 }
@@ -49,7 +47,8 @@
 * @param userID: Primary Key for user
 */
 function set_isActive(userID) {
-    $.get('/Users/SetUserStatus',{'userID':userID},function(response){
+    $.getJSON('/Users/SetUserStatus/' + userID,function(response){
+        console.log(response)
         if (response != '') {
             showMessage(response);
         }else{
@@ -69,22 +68,6 @@ function deleteUser(response, user_id) {
     } else {
         $('#user\\:' + user_id).remove();
         showMessage('User was successfully removed.');
-    }
-}
-
-/*
-* Does an ajax call to get the data for this user and display it on this page.
-* @param userID: Primary Key for user
-*/
-function quickView(user) {
-    if (user != '') {
-        $('#user_name').find('h4').text(user.fname + ' ' + user.lname);
-        $('#username').text(user.username);
-        $('#email').text(user.email);
-        $('#website').text(user.website);
-        $('#phone').text(user.phone);
-        $('#fax').text(user.fax);
-        $('#user_container').slideDown();
     }
 }
 

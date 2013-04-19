@@ -352,6 +352,53 @@ func (u *User) GetAll() (users []User, err error) {
 	return users, nil
 }
 
+func (u *User) SetStatus(status bool) error {
+	stat := 0
+	if status {
+		stat = 1
+	}
+
+	upd, err := database.GetStatement("setUserStatusStmt")
+	if err != nil {
+		return err
+	}
+
+	upd.Bind(stat, u.ID)
+
+	_, _, err = upd.Exec()
+	if database.MysqlError(err) {
+		return err
+	}
+	return nil
+}
+
+func (u *User) Delete() error {
+	del, err := database.GetStatement("clearUserModuleStmt")
+	if err != nil {
+		return err
+	}
+
+	del.Bind(u.ID)
+
+	_, _, err = del.Exec()
+	if database.MysqlError(err) {
+		return err
+	}
+
+	del2, err := database.GetStatement("deleteUserStmt")
+	if err != nil {
+		return err
+	}
+
+	del2.Bind(u.ID)
+
+	_, _, err = del2.Exec()
+	if database.MysqlError(err) {
+		return err
+	}
+	return nil
+}
+
 func (u *User) GetModules() error {
 	sel, err := database.GetStatement("userModulesStmt")
 	if err != nil {

@@ -48,6 +48,8 @@ func main() {
 
 	// User Routes
 	server.Get("/Users", users.Index)
+	server.Get("/Users/SetUserStatus/:id", users.SetUserStatus)
+	server.Get("/Users/Delete/:id", users.Delete)
 
 	// Home page route
 	server.Get("/", controllers.Index)

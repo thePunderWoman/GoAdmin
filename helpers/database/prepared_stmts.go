@@ -27,6 +27,9 @@ func PrepareAll() error {
 	UnPreparedStatements["setUserPasswordStmt"] = "update user set encpassword = ? where id = ?"
 	UnPreparedStatements["registerUserStmt"] = "insert into user (username,email,fname,lname,isActive,superUser) VALUES (?,?,?,?,0,0)"
 	UnPreparedStatements["getAllUserStmt"] = "select * from user order by fname, lname"
+	UnPreparedStatements["setUserStatusStmt"] = "update user set isActive = ? WHERE id = ?"
+	UnPreparedStatements["clearUserModuleStmt"] = "delete from user_module WHERE userid = ?"
+	UnPreparedStatements["deleteUserStmt"] = "delete from user WHERE id = ?"
 
 	if !AdminDb.IsConnected() {
 		AdminDb.Connect()
