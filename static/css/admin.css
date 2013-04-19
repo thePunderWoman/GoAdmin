@@ -114,7 +114,7 @@ img{
 }
 
 #adminHeader #searchArea form input[type=submit]{
-    background: url('img/eyeglass.png');
+    background: url('/img/eyeglass.png');
     position: absolute;
     right: 37px;
     top: -3px;

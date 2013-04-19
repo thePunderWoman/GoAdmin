@@ -26,6 +26,7 @@ func PrepareAll() error {
 	UnPreparedStatements["userModulesStmt"] = "select module.* from module inner join user_module on module.id = user_module.moduleID where user_module.userID = ? order by module"
 	UnPreparedStatements["setUserPasswordStmt"] = "update user set encpassword = ? where id = ?"
 	UnPreparedStatements["registerUserStmt"] = "insert into user (username,email,fname,lname,isActive,superUser) VALUES (?,?,?,?,0,0)"
+	UnPreparedStatements["getAllUserStmt"] = "select * from user order by fname, lname"
 
 	if !AdminDb.IsConnected() {
 		AdminDb.Connect()

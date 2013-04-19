@@ -37,7 +37,7 @@
 <div id="usersNav">
     <ul>
         <li>
-            <a href="/Users" class="active">View Internal Users</a>
+            <a href="/Users" class="active">View Users</a>
         </li>
         <li>
             <a href="/Users/Add">Add New</a>
@@ -46,8 +46,9 @@
 </div>
 
 <div id="content_container">
-    <h2>All Users (@ViewBag.users.Count)</h2>
+    <h2>All Users ({{ .Count }})</h2>
 
+    {{ with .Users }}
     <div style="width: 90%;margin:auto">
         <table style="width: 100% !important">
             <thead>
@@ -61,17 +62,17 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (CurtAdmin.user u in ViewBag.users) {
-                    <tr id="user:@u.userID">
-                        <td>@u.username</td>
-                        <td>@u.fname @u.lname</td>
-                        <td>@u.email</td>
-                        <td>@u.dateAdded</td>
+                {{ range . }}
+                    <tr id="user:{{ .ID }}">
+                        <td>{{ .Username }}</td>
+                        <td>{{ .Fname }} {{ .Lname }}</td>
+                        <td>{{ .Email }}</td>
+                        <td>{{formatDate .DateAdded}}</td>
                         <td class="center">
-                            <input type="checkbox" name="isActive" id="isActive:@u.userID" class="isActive" value="1" />
+                            <input type="checkbox" name="isActive" id="isActive:{{ .ID }}" class="isActive" value="1" {{ if .IsActive }} checked="checked" {{ end }} />
                         </td>
                         <td class="center">
-                            <select id="action:@u.userID" class="user_action">
+                            <select id="action:{{ .ID }}" class="user_action">
                                 <option value="0">Select Action</option>
                                 <option value="view">View</option>
                                 <option value="edit">Edit</option>
@@ -79,10 +80,11 @@
                             </select>
                         </td>
                     </tr>
-                }
+                {{ end }}
             </tbody>
         </table>
     </div>
+    {{ end }}
 
     <div id="user_container">
         <div id="user_name">

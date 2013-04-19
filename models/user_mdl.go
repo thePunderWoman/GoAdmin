@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"errors"
+	_ "log"
 	"math/rand"
 	"strings"
 	"time"
@@ -309,6 +310,46 @@ func GetUserByEmail(email string) (u User, err error) {
 	}
 
 	return u, err
+}
+
+func (u *User) GetAll() (users []User, err error) {
+	sel, err := database.GetStatement("getAllUserStmt")
+	if err != nil {
+		return users, err
+	}
+	rows, res, err := sel.Exec()
+	if database.MysqlError(err) {
+		return users, err
+	}
+
+	idval := res.Map("id")
+	uname := res.Map("username")
+	emailaddr := res.Map("email")
+	fname := res.Map("fname")
+	lname := res.Map("lname")
+	dateAdded := res.Map("dateAdded")
+	active := res.Map("isActive")
+	super := res.Map("superUser")
+	bio := res.Map("biography")
+	photo := res.Map("photo")
+
+	for _, row := range rows {
+		u := User{
+			ID:        row.Int(idval),
+			Username:  row.Str(uname),
+			Email:     row.Str(emailaddr),
+			Fname:     row.Str(fname),
+			Lname:     row.Str(lname),
+			DateAdded: row.Time(dateAdded, UTC),
+			IsActive:  row.Bool(active),
+			SuperUser: row.Bool(super),
+			Biography: row.Str(bio),
+			Photo:     row.Str(photo),
+		}
+		users = append(users, u)
+	}
+
+	return users, nil
 }
 
 func (u *User) GetModules() error {
