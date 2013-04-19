@@ -23,6 +23,7 @@ func PrepareAll() error {
 	UnPreparedStatements["getUserByUsernameStmt"] = "select * from user where username=?"
 	UnPreparedStatements["getUserByEmailStmt"] = "select * from user where email=?"
 	UnPreparedStatements["allUserStmt"] = "select * from user"
+	UnPreparedStatements["getAllModulesStmt"] = "select * from module order by module"
 	UnPreparedStatements["userModulesStmt"] = "select module.* from module inner join user_module on module.id = user_module.moduleID where user_module.userID = ? order by module"
 	UnPreparedStatements["setUserPasswordStmt"] = "update user set encpassword = ? where id = ?"
 	UnPreparedStatements["registerUserStmt"] = "insert into user (username,email,fname,lname,isActive,superUser) VALUES (?,?,?,?,0,0)"
@@ -30,6 +31,9 @@ func PrepareAll() error {
 	UnPreparedStatements["setUserStatusStmt"] = "update user set isActive = ? WHERE id = ?"
 	UnPreparedStatements["clearUserModuleStmt"] = "delete from user_module WHERE userid = ?"
 	UnPreparedStatements["deleteUserStmt"] = "delete from user WHERE id = ?"
+	UnPreparedStatements["addUserStmt"] = "insert into user (username,email,fname,lname,biography,photo,isActive,superUser) VALUES (?,?,?,?,?,?,?,?)"
+	UnPreparedStatements["updateUserStmt"] = "update user set username=?, email=?, fname=?, lname=?, biography=?, photo=?, isActive=?, superUser=? WHERE id = ?"
+	UnPreparedStatements["addModuleToUserStmt"] = "insert into user_module (userID,moduleID) VALUES (?,?)"
 
 	if !AdminDb.IsConnected() {
 		AdminDb.Connect()

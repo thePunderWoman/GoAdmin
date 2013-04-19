@@ -269,7 +269,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Lname:    lname,
 	}
 
-	err := user.Save()
+	err := user.New()
 	if err != nil {
 		qvals := url.Values{}
 		qvals.Add("error", err.Error())

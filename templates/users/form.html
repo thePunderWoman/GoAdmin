@@ -1,0 +1,151 @@
+{{ define "content" }}
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<div id="usersNav">
+    <ul>
+        <li>
+            <a href="/Users">View Users</a>
+        </li>
+        <li>
+            <a href="/Users/Add" class="active">Add New</a>
+        </li>
+    </ul>
+</div>
+
+<div id="content_container">
+	{{ if isZero .u.ID }}
+    <h2>Add User</h2>
+    {{ else }}
+    <h2>Editing {{ .u.Fname }} {{ .u.Lname }}</h2>
+    {{ end }}
+
+    {{ with .error }}
+        <p style="font-weight: bold; color: red;">{{.}}</p>
+    {{ end }}
+
+    <form method="post" action="/Users/Save/{{ .u.ID }}" id="newUser_form" class="form">
+        <div id="newUser_form_left" class="form_left">
+            <!-- Username -->
+            <label for="username">
+                Username
+                <input type="text" name="username" id="username" placeholder="Enter username..." value="{{ .u.Username }}" required="required" /><br />
+                <span class="inputHelper">Username must be at least 8 characters. * Required</span>
+            </label>
+
+
+			{{ if isZero .u.ID }}
+            <!-- Initial Password -->
+            <label for="password1">
+                Password
+                <input type="password" name="password1" id="password1" placeholder="Enter password..." required="required" /><br />
+                <span class="inputHelper">Password must be at least 8 characters. * Required</span>
+            </label>
+
+            <!-- Password validation -->
+            <label for="password2">
+                Re-enter Password
+                <input type="password" name="password2" id="password2" placeholder="Re-enter password..." required="required" /><br />
+                <span class="inputHelper">Validate password. * Required</span>
+            </label>
+            {{ else }}
+             <!-- Initial Password -->
+            <label for="password1">
+                Password
+                <input type="password" name="password1" id="password1" placeholder="Enter password..." /><br />
+                <span class="inputHelper">Leave Blank to not change user password.</span>
+            </label>
+
+            <!-- Password validation -->
+            <label for="password2">
+                Re-enter Password
+                <input type="password" name="password2" id="password2" placeholder="Re-enter password..." /><br />
+                <span class="inputHelper">Passwords must be at least 8 characters.</span>
+            </label>
+           {{ end }}
+
+            <!-- E-Mail Address -->
+            <label for="email">
+                E-Mail
+                <input type="email" name="email" id="email" placeholder="Enter e-mail address..." value="{{ .u.Email }}" required="required" /><br />
+                <span class="inputHelper">* Required</span>
+            </label>
+
+            <!-- First Name -->
+            <label for="fname">
+                First Name
+                <input type="text" name="fname" id="fname" placeholder="Enter first name..." value="{{ .u.Fname }}" />
+            </label>
+
+            <!-- Last Name -->
+            <label for="lname">
+                Last Name
+                <input type="text" name="lname" id="lname" placeholder="Enter last name..." value="{{ .u.Lname }}" />
+            </label>
+
+            <!-- Biography -->
+            <label for="biography">
+                Biography<br />
+                <textarea rows="5" cols="65" name="biography" id="biography" placeholder="Enter user biography...">{{ .u.Biography }}</textarea>
+            </label><br/>
+
+            <label for="photo">Photo</label>
+            <input type="hidden" name="photo" id="file" value="{{ .u.Photo }}" />
+            <div id="photobox">
+                <div id="photo-file">
+                    {{ if isNotNull .u.Photo }}
+                        <img src="{{ .u.Photo }}" alt="photo" />
+                    {{ else }}
+                        <img src="/img/nophoto.jpg" alt="No Photo" />
+                    {{ end }}
+                </div>
+                <button type="button" id="choose-photo">Choose</button>
+                <button type="button" id="clear-photo">Clear</button>
+            </div>
+            <div style="clear:both"></div>
+
+            <div id="buttons">
+
+                <span id="formMessage"></span>
+
+                <!-- Submit -->
+                <input type="submit" name="btnSaveUser" id="btnSaveUser" value="Save" />
+
+                <!-- Reset -->
+                <input type="reset" name="btnResetUser" id="btnResetUser" value="Reset" />
+            </div>
+        </div>
+        <div class="form_right">
+
+            <!-- Admin modules -->
+            <div id="adminModules" class="moduleContainer">
+                <h4>Modules</h4>
+                {{ range .modules }}
+                    <label for="module:{{ .ID }}">
+                        {{ .Module }}
+                        <input type="checkbox" name="module" id="module:{{ .ID }}" value="{{ .ID }}" {{ if hasModule .ID }} checked="checked" {{ end }} />
+                    </label>
+                {{ end }}
+            </div>
+            
+            <div id="activeUser" class="moduleContainer">
+                <h4>User Access Layer</h4>
+                <label for="isActive">
+                    Is Active?
+                    <input type="checkbox" name="isActive" id="isActive" value="1" {{ if .u.IsActive }} checked="checked" {{ end }} />
+                </label>
+                {{ if .user.SuperUser }}
+                    <label for="isActive">
+                        Super User?
+                        <input type="checkbox" name="superUser" id="superUser" value="1" {{ if .u.SuperUser }} checked="checked" {{ end }} />
+                    </label>
+                {{ end }}
+            </div>
+
+        </div>
+        <div style="clear:both"></div>
+    </form>
+        
+</div>
+<script type="text/javascript" src="/js/fileiframe.js"></script>
+<script type="text/javascript" src="/js/admin/users_home.js"></script>
+<div id="file-dialog"></div>
+{{ end }}

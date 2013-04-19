@@ -476,7 +476,7 @@ img{
 }
 
 .form_left #buttons input[type=submit],#buttons input[type=submit]{
-    background: url('img/save.png');
+    background: url('/img/save.png');
     background-repeat: no-repeat;
     color: White;
     font-size: 14pt;
@@ -491,7 +491,7 @@ img{
 .form_left #buttons a.cancel {
     float: right;
     margin-left: 10px;
-    background: url('/Content/img/cancel.png');
+    background: url('/img/cancel.png');
     background-repeat: no-repeat;
     color: White;
     font-size: 14pt;
@@ -510,7 +510,7 @@ img{
 {
     float: right;
     margin-left: 10px;
-    background: url('/Content/img/altButton.png');
+    background: url('/img/altButton.png');
     background-repeat: no-repeat;
     color: White;
     font-size: 14pt;
@@ -524,7 +524,7 @@ img{
 
 
 .form_left #buttons input[type=reset],.form_left input[type=reset],#buttons input[type=reset]{
-    background: url('img/cancel.png');
+    background: url('/img/cancel.png');
     background-repeat: no-repeat;
     color: White;
     font-size: 14pt;

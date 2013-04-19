@@ -18,7 +18,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -375,11 +374,7 @@ func ServeJson(w http.ResponseWriter, v interface{}) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Length", strconv.Itoa(len(content)))
 	w.Header().Set("Content-Type", mimetypes.ApplicationJson)
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	w.Header().Set("Access-Control-Allow-Headers", "Origin")
 	w.Write(content)
 }
 
@@ -404,7 +399,6 @@ func ServeXml(w http.ResponseWriter, v interface{}) {
 		return
 	}
 	w.Write(content)
-	w.Header().Set("Content-Length", strconv.Itoa(len(content)))
 	w.Header().Set("Content-Type", mimetypes.TextXml)
 }
 

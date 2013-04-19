@@ -6,8 +6,9 @@ import (
 	"bytes"
 	"crypto/md5"
 	"errors"
-	_ "log"
+	"log"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -19,6 +20,7 @@ var (
 type User struct {
 	ID        int
 	Username  string
+	Password  string
 	Email     string
 	Fname     string
 	Lname     string
@@ -76,13 +78,88 @@ func Authenticate(username string, password string) (user User, err error) {
 	return user, err
 }
 
-func (u *User) Save() error {
-	if u.ID > 0 {
-		// update user
+func (u *User) New() error {
+	// new user
+	// check if username exists
+	uchan := make(chan bool)
+	echan := make(chan bool)
+	go func(username string) {
+		_, err := GetUserByUsername(username)
+		if err != nil {
+			uchan <- false
+		} else {
+			uchan <- true
+		}
+	}(u.Username)
 
-	} else {
-		// new user
-		// check if username exists
+	go func(email string) {
+		// check if email exists
+		_, err := GetUserByEmail(email)
+		if err != nil {
+			echan <- false
+		} else {
+			echan <- true
+		}
+	}(u.Email)
+
+	uexists := <-uchan
+	eexists := <-echan
+	if uexists {
+		return errors.New("A User account with that username already exists.")
+	}
+	if eexists {
+		return errors.New("A User account with that email already exists.")
+	}
+	// add user
+	ins, err := database.GetStatement("registerUserStmt")
+	if err != nil {
+		return err
+	}
+
+	params := struct {
+		Username string
+		Email    string
+		Fname    string
+		Lname    string
+	}{}
+
+	params.Username = u.Username
+	params.Email = u.Email
+	params.Fname = u.Fname
+	params.Lname = u.Lname
+
+	ins.Bind(&params)
+
+	_, _, err = ins.Exec()
+	if err != nil {
+		return err
+	}
+
+	sel, err := database.GetStatement("getID")
+	if err != nil {
+		return err
+	}
+
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return err
+	}
+
+	id := res.Map("id")
+	u.ID = row.Int(id)
+	err = u.ResetPassword()
+	if err != nil {
+		return err
+	}
+	u.SendNewUserEmail()
+
+	return nil
+}
+
+func (u *User) Save() error {
+	// new user
+	// check if username exists
+	if u.ID == 0 {
 		uchan := make(chan bool)
 		echan := make(chan bool)
 		go func(username string) {
@@ -113,22 +190,30 @@ func (u *User) Save() error {
 			return errors.New("A User account with that email already exists.")
 		}
 		// add user
-		ins, err := database.GetStatement("registerUserStmt")
+		ins, err := database.GetStatement("addUserStmt")
 		if err != nil {
 			return err
 		}
 
 		params := struct {
-			Username string
-			Email    string
-			Fname    string
-			Lname    string
+			Username  string
+			Email     string
+			Fname     string
+			Lname     string
+			Biography string
+			Photo     string
+			IsActive  bool
+			SuperUser bool
 		}{}
 
 		params.Username = u.Username
 		params.Email = u.Email
 		params.Fname = u.Fname
 		params.Lname = u.Lname
+		params.Biography = u.Biography
+		params.Photo = u.Photo
+		params.IsActive = u.IsActive
+		params.SuperUser = u.SuperUser
 
 		ins.Bind(&params)
 
@@ -149,12 +234,46 @@ func (u *User) Save() error {
 
 		id := res.Map("id")
 		u.ID = row.Int(id)
-		err = u.ResetPassword()
+
+		u.SavePassword()
+	} else {
+		// add user
+		upd, err := database.GetStatement("updateUserStmt")
 		if err != nil {
 			return err
 		}
-		u.SendNewUserEmail()
 
+		params := struct {
+			Username  string
+			Email     string
+			Fname     string
+			Lname     string
+			Biography string
+			Photo     string
+			IsActive  bool
+			SuperUser bool
+			ID        int
+		}{}
+
+		params.Username = u.Username
+		params.Email = u.Email
+		params.Fname = u.Fname
+		params.Lname = u.Lname
+		params.Biography = u.Biography
+		params.Photo = u.Photo
+		params.IsActive = u.IsActive
+		params.SuperUser = u.SuperUser
+		params.ID = u.ID
+
+		upd.Bind(&params)
+
+		_, _, err = upd.Exec()
+		if err != nil {
+			return err
+		}
+		if strings.TrimSpace(u.Password) != "" {
+			u.SavePassword()
+		}
 	}
 	return nil
 }
@@ -372,6 +491,42 @@ func (u *User) SetStatus(status bool) error {
 	return nil
 }
 
+func (u *User) SaveModules(modules []string) {
+	// clear user modules
+	del, err := database.GetStatement("clearUserModuleStmt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	del.Bind(u.ID)
+
+	_, _, err = del.Exec()
+	if database.MysqlError(err) {
+		log.Println(err)
+		return
+	}
+
+	// re-add user modules
+	for _, module := range modules {
+		mID, err := strconv.Atoi(module)
+		ins, err := database.GetStatement("addModuleToUserStmt")
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		ins.Bind(u.ID, mID)
+
+		_, _, err = ins.Exec()
+		if database.MysqlError(err) {
+			log.Println(err)
+			return
+		}
+
+	}
+}
+
 func (u *User) Delete() error {
 	del, err := database.GetStatement("clearUserModuleStmt")
 	if err != nil {
@@ -432,6 +587,35 @@ func (u *User) GetModules() error {
 	return nil
 }
 
+func GetAllModules() (modules []Module, err error) {
+	sel, err := database.GetStatement("getAllModulesStmt")
+	if err != nil {
+		return modules, err
+	}
+
+	rows, res, err := sel.Exec()
+	if database.MysqlError(err) {
+		return modules, err
+	}
+
+	id := res.Map("id")
+	mod := res.Map("module")
+	modPath := res.Map("module_path")
+	imgPath := res.Map("img_path")
+
+	for _, row := range rows {
+		m := Module{
+			ID:          row.Int(id),
+			Module:      row.Str(mod),
+			Module_path: row.Str(modPath),
+			Img_path:    row.Str(imgPath),
+		}
+		modules = append(modules, m)
+	}
+
+	return modules, nil
+}
+
 func (u *User) ResetPassword() error {
 	newpassword := GeneratePassword()
 	u.SendPasswordEmail(newpassword)
@@ -449,6 +633,18 @@ func (u *User) ResetPassword() error {
 	upd.Bind(encpassword, u.ID)
 	_, _, err = upd.Exec()
 	return nil
+}
+
+func (u *User) SavePassword() {
+	upd, err := database.GetStatement("setUserPasswordStmt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	upd.Bind(u.Password, u.ID)
+	_, _, err = upd.Exec()
+	return
 }
 
 func (u *User) SendPasswordEmail(password string) {

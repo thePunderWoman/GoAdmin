@@ -48,6 +48,9 @@ func main() {
 
 	// User Routes
 	server.Get("/Users", users.Index)
+	server.Get("/Users/Add", users.Add)
+	server.Get("/Users/Edit/:id", users.Edit)
+	server.Post("/Users/Save/:id", users.Save)
 	server.Get("/Users/SetUserStatus/:id", users.SetUserStatus)
 	server.Get("/Users/Delete/:id", users.Delete)
 
