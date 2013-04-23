@@ -1,0 +1,90 @@
+{{ define "content"}}
+<div id="content_container">
+    <h2>{{ .user.Fname}} {{ .user.Lname }} Account Information</h2>
+
+    {{ with .error }}
+        <p style="font-weight: bold; color: red;">{{.}}</p>
+    {{ end }}
+
+    <form method="post" action="/Account" id="newUser_form" class="form">
+        <div id="newUser_form_left" class="form_left">
+            <!-- Username -->
+            <label for="username">
+                Username
+                <input type="text" name="username" id="username" placeholder="Enter username..." value="{{ .user.Username }}" disabled /><br />
+                <span class="inputHelper">Username must be at least 8 characters. * Required</span>
+            </label>
+
+            <!-- E-Mail Address -->
+            <label for="email">
+                E-Mail
+                <input type="email" name="email" id="email" placeholder="Enter e-mail address..." value="{{ .user.Email }}" required="required" /><br />
+                <span class="inputHelper">* Required</span>
+            </label>
+
+             <!-- Initial Password -->
+            <label for="password1">
+                Password
+                <input type="password" name="password1" id="password1" placeholder="Enter password Or Leave blank to not change your password..." /><br />
+                <span class="inputHelper">Leave Blank to not change password.</span>
+            </label>
+
+            <!-- Password validation -->
+            <label for="password2">
+                Re-enter Password
+                <input type="password" name="password2" id="password2" placeholder="Re-enter password or leave blank if not chaning your password..." /><br />
+                <span class="inputHelper">Passwords must be at least 8 characters.</span>
+            </label>
+
+            <!-- First Name -->
+            <label for="fname">
+                First Name
+                <input type="text" name="fname" id="fname" placeholder="Enter first name..." value="{{ .user.Fname }}" required="required" />
+            </label>
+
+            <!-- Last Name -->
+            <label for="lname">
+                Last Name
+                <input type="text" name="lname" id="lname" placeholder="Enter last name..." value="{{ .user.Lname }}" required="required" />
+            </label>
+
+            <!-- Biography -->
+            <label for="biography">
+                Biography<br />
+                <textarea rows="5" cols="65" name="biography" id="biography" placeholder="Enter user biography...">{{ .user.Biography }}</textarea>
+            </label><br/>
+
+            <label for="photo">Photo</label>
+            <input type="hidden" name="photo" id="file" value="{{ .user.Photo }}" />
+            <div id="photobox">
+                <div id="photo-file">
+                    {{ if isNotNull .user.Photo }}
+                        <img src="{{ .user.Photo }}" alt="photo" />
+                    {{ else }}
+                        <img src="/img/nophoto.jpg" alt="No Photo" />
+                    {{ end }}
+                </div>
+                <button type="button" id="choose-photo">Choose</button>
+                <button type="button" id="clear-photo">Clear</button>
+            </div>
+            <div style="clear:both"></div>
+
+            <div id="buttons">
+
+                <span id="formMessage"></span>
+
+                <!-- Submit -->
+                <input type="submit" name="btnSaveUser" id="btnSaveUser" value="Save" />
+
+                <!-- Reset -->
+                <input type="reset" name="btnResetUser" id="btnResetUser" value="Reset" />
+            </div>
+        </div>
+        <div style="clear:both"></div>
+    </form>  
+</div>
+<div id="file-dialog"></div>
+
+<script type="text/javascript" src="/js/fileiframe.js"></script>
+<script type="text/javascript" src="/js/admin/users_home.js"></script>
+{{ end }}

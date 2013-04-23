@@ -52,7 +52,9 @@ func main() {
 	server.Get("/Users/Edit/:id", users.Edit)
 	server.Post("/Users/Save/:id", users.Save)
 	server.Get("/Users/SetUserStatus/:id", users.SetUserStatus)
-	server.Get("/Users/Delete/:id", users.Delete)
+	server.Get("/Logout", authenticate.Logout)
+	server.Get("/Account", users.MyAccount)
+	server.Post("/Account", users.UpdateAccount)
 
 	// Home page route
 	server.Get("/", controllers.Index)
