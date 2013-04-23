@@ -507,24 +507,39 @@ func (u *User) SaveModules(modules []string) {
 		return
 	}
 
+	c := make(chan int)
+
 	// re-add user modules
 	for _, module := range modules {
-		mID, err := strconv.Atoi(module)
-		ins, err := database.GetStatement("addModuleToUserStmt")
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		ins.Bind(u.ID, mID)
-
-		_, _, err = ins.Exec()
-		if database.MysqlError(err) {
-			log.Println(err)
-			return
-		}
-
+		modID, _ := strconv.Atoi(module)
+		go u.AddUserModule(modID, c)
 	}
+
+	for _, _ = range modules {
+		<-c
+	}
+
+}
+
+func (u *User) AddUserModule(mID int, ch chan int) {
+	ins, err := database.GetStatement("addModuleToUserStmt")
+	if err != nil {
+		log.Println(err)
+		ch <- mID
+		return
+	}
+
+	ins.Reset()
+	ins.Bind(u.ID, mID)
+
+	_, _, err = ins.Exec()
+	if database.MysqlError(err) {
+		log.Println(err)
+		ch <- mID
+		return
+	}
+
+	ch <- mID
 }
 
 func (u *User) Delete() error {
