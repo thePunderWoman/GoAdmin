@@ -1,5 +1,5 @@
-default_run_options[:pty] = true
-ssh_options[:forward_agent] = true
+#default_run_options[:pty] = true
+#ssh_options[:forward_agent] = true
 
 
 set :application, "GoAdmin"
