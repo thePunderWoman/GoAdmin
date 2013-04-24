@@ -56,6 +56,9 @@ func Base(w http.ResponseWriter, r *http.Request) {
 		}
 		return false
 	}
+	tmpl.FuncMap["isZero"] = func(num int) bool {
+		return num == 0
+	}
 
 	tmpl.FuncMap["isLoggedIn"] = func() bool {
 		return userID > 0

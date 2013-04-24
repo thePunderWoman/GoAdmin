@@ -5,6 +5,7 @@ import (
 	"./controllers/authenticate"
 	"./controllers/base"
 	"./controllers/users"
+	"./controllers/website"
 	"./helpers/database"
 	"./helpers/globals"
 	_ "./helpers/mimetypes"
@@ -55,6 +56,9 @@ func main() {
 	server.Get("/Logout", authenticate.Logout)
 	server.Get("/Account", users.MyAccount)
 	server.Post("/Account", users.UpdateAccount)
+
+	// Website Routes
+	server.Get("/Website", website.Index)
 
 	// Home page route
 	server.Get("/", controllers.Index)

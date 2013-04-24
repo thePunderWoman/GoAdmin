@@ -12,8 +12,14 @@ var (
 	Statements = make(map[string]mysql.Stmt, 0)
 )
 
-// Prepare all MySQL statements
 func PrepareAll() error {
+	PrepareAdmin()
+	PrepareCurtDev()
+	return nil
+}
+
+// Prepare all MySQL statements
+func PrepareAdmin() error {
 
 	UnPreparedStatements := make(map[string]string, 0)
 
@@ -42,7 +48,7 @@ func PrepareAll() error {
 	c := make(chan int)
 
 	for stmtname, stmtsql := range UnPreparedStatements {
-		go PrepareStatement(stmtname, stmtsql, c)
+		go PrepareAdminStatement(stmtname, stmtsql, c)
 	}
 
 	for _, _ = range UnPreparedStatements {
@@ -52,7 +58,37 @@ func PrepareAll() error {
 	return nil
 }
 
-func PrepareStatement(name string, sql string, ch chan int) {
+func PrepareCurtDev() error {
+	UnPreparedStatements := make(map[string]string, 0)
+
+	// Website Statements
+	UnPreparedStatements["getAllSiteContentStmt"] = "select * from SiteContent order by page_title"
+	UnPreparedStatements["getPrimaryMenuStmt"] = "select * from Menu where isPrimary = 1"
+	UnPreparedStatements["getMenuItemsStmt"] = `select MSC.menuContentID, MSC.menuID, MSC.menuSort, MSC.menuTitle, MSC.menuLink, MSC.parentID, MSC.linkTarget, SC.* from Menu_SiteContent AS MSC 
+												INNER JOIN Menu AS M ON MSC.menuID = M.menuID
+												LEFT JOIN SiteContent AS SC ON MSC.contentID = SC.contentID
+												WHERE MSC.menuID = ?`
+	UnPreparedStatements["GetContentRevisionsStmt"] = "select * from SiteContentRevision WHERE contentID = ?"
+
+	if !CurtDevDb.IsConnected() {
+		CurtDevDb.Connect()
+	}
+
+	c := make(chan int)
+
+	for stmtname, stmtsql := range UnPreparedStatements {
+		go PrepareCurtDevStatement(stmtname, stmtsql, c)
+	}
+
+	for _, _ = range UnPreparedStatements {
+		<-c
+	}
+
+	return nil
+
+}
+
+func PrepareAdminStatement(name string, sql string, ch chan int) {
 	stmt, err := AdminDb.Prepare(sql)
 	if err == nil {
 		Statements[name] = stmt
@@ -60,6 +96,17 @@ func PrepareStatement(name string, sql string, ch chan int) {
 		log.Println(err)
 	}
 	ch <- 1
+}
+
+func PrepareCurtDevStatement(name string, sql string, ch chan int) {
+	stmt, err := CurtDevDb.Prepare(sql)
+	if err == nil {
+		Statements[name] = stmt
+	} else {
+		log.Println(err)
+	}
+	ch <- 1
+
 }
 
 func GetStatement(key string) (stmt mysql.Stmt, err error) {

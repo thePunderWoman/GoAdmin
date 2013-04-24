@@ -48,9 +48,6 @@ func Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl.FuncMap["isZero"] = func(num int) bool {
-		return num == 0
-	}
 	tmpl.FuncMap["hasModule"] = func(modID int) bool {
 		for _, m := range u.Modules {
 			if modID == m.ID {
