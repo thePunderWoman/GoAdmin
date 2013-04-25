@@ -146,6 +146,65 @@ func GetPrimaryMenu() (menu Menu, err error) {
 	return menu, nil
 }
 
+func (m *Menu) GenerateDisplayStructure() map[int][]MenuItem {
+	items := make(map[int][]MenuItem)
+
+	for _, item := range m.Items {
+		if items[item.ParentID] == nil {
+			mitems := make([]MenuItem, 0)
+			items[item.ParentID] = mitems
+		}
+		items[item.ParentID] = append(items[item.ParentID], item)
+	}
+	return items
+}
+
+func (m *Menu) GenerateHtml() string {
+	html := ""
+	counter := 0
+	rootkids := ""
+    html += "<ul id=\"pages\" class=\"connected\">"
+                {{ range .displaymenu }}
+                    {{ $counter := incrementCounter $counter }}
+                    {{ if not equalsOne $counter }}
+                        {{ $rootkids += "," }}
+                    {{ end }}
+                    {{ $rootkids += .menuContentID }}
+                    <li class="level_1{{ addPublishedClass . }} published{{ end }}" id="item_{{ .ID }}">
+                        <span class="handle">↕</span>
+                        <span class="title">{{ if .hasContent() }}{{ .Content.PageTitle }} {{ else }}{{ .Title }} (link){{ end }}</span>
+                        <span class="controls">
+                            {{ if .hasContent() and .Content.Primary }}
+                                <a href="/Website/SetPrimaryContent/{{ .ContentID }}/{{ .menu.ID }}"><img src="/Content/img/check.png" alt="Primary Page" title="Primary Page" /></a>
+                            {{ else if .hasContent() }}
+                                <a href="/Website/SetPrimaryContent/{{ .ContentID }}/{{ .menu.ID }}"><img src="/Content/img/makeprimary.png" alt="Make This Page the Primary Page" title="Make This Page the Primary Page" /></a>
+                            {{ end }}
+                            {{ if .hasContent() }}
+                                <a href="/Website/Content/Edit/{{ .ContentID }}"><img src="/Content/img/pencil.png" alt="Edit Page" title="Edit Page" /></a>
+                            {{ else }}
+                                <a href="/Website/Link/Edit/{{ .ID }}"><img src="/Content/img/pencil.png" alt="Edit Link" title="Edit Link" /></a>
+                            {{ end }}
+                            <a href="/Website/RemoveContent/{{ .ID }}" class="remove" id="remove_{{ .ID }}"><img src="/Content/img/delete.png" alt="Remove Page From Menu" title="Remove Page From Menu" /></a>
+                        </span>
+                        <span id="meta_{{ .ID }}">
+                            <input type="hidden" id="parent_{{ .ID }}" value="{{ .ParentID }}" />
+                            <input type="hidden" id="children_{{ .ID }}" value="@menu.getChildrenIDs(item.menuContentID)" />
+                            <input type="hidden" id="count_{{ .ID }}" value="@menu.getChildrenCount(item.menuContentID)" />
+                            <input type="hidden" id="sort_{{ .ID }}" value="{{ .Sort }}" />
+                            <input type="hidden" id="depth_{{ .ID }}" value="1" />
+                        </span>
+                        <ul id="transport_{{ .ID }}"></ul>
+                    </li>
+                            if (menu.hasChildren(item.menuContentID)) {
+                                string childrencontent = UDF.writeContentTree(menu, item.menuContentID, 1);
+                        @Html.Raw(childrencontent);
+                            }
+                }
+            
+	html += "</ul><input type=\"hidden\" id=\"children_0\" value=\"{{ $rootkids }}\" />"
+	return html
+}
+
 func PopulateMenu(row mysql.Row, res mysql.Result, ch chan Menu) {
 	id := res.Map("menuID")
 	name := res.Map("menu_name")
@@ -231,6 +290,10 @@ func PopulateMenuItem(row mysql.Row, res mysql.Result, ch chan MenuItem) {
 	}
 
 	ch <- item
+}
+
+func (i *MenuItem) HasContent() bool {
+	return i.ContentID > 0
 }
 
 func GetContentRevisions(id int, ch chan []ContentRevision) {

@@ -25,7 +25,21 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.Bag["menu"] = menu
+	tmpl.Bag["displaymenu"] = menu.GenerateDisplayStructure()
 	tmpl.Bag["contents"] = contents
+
+	tmpl.FuncMap["addPublishedClass"] = func(itm models.MenuItem) bool {
+		if (itm.HasContent() && itm.Content.Published) || !itm.HasContent() {
+			return true
+		}
+		return false
+	}
+	tmpl.FuncMap["incrementCounter"] = func(num int) int {
+		return num + 1
+	}
+	tmpl.FuncMap["equalsOne"] = func(num int) bool {
+		return num == 1
+	}
 
 	tmpl.ParseFile("templates/website/index.html", false)
 
