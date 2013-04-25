@@ -8,6 +8,7 @@ import (
 	"errors"
 	"log"
 	"math/rand"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -629,6 +630,25 @@ func GetAllModules() (modules []Module, err error) {
 	}
 
 	return modules, nil
+}
+
+func (u *User) HasModuleAccess(url *url.URL) bool {
+	hasAccess := false
+	SafePaths := []string{"/Account", "/Logout"}
+
+	for _, mod := range u.Modules {
+		if strings.Index(url.Path, mod.Module_path) >= 0 {
+			hasAccess = true
+		}
+	}
+	if !hasAccess {
+		for _, path := range SafePaths {
+			if strings.Index(url.Path, path) >= 0 || url.Path == "/" {
+				hasAccess = true
+			}
+		}
+	}
+	return hasAccess
 }
 
 func (u *User) ResetPassword() error {

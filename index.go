@@ -46,6 +46,9 @@ func main() {
 	server.Get("/Signup", authenticate.SignUp).NoFilter()
 	server.Post("/Signup", authenticate.Register).NoFilter()
 	server.Get("/Logout", authenticate.Logout)
+	server.Get("/Logout", authenticate.Logout)
+	server.Get("/Account", users.MyAccount)
+	server.Post("/Account", users.UpdateAccount)
 
 	// User Routes
 	server.Get("/Users", users.Index)
@@ -53,9 +56,6 @@ func main() {
 	server.Get("/Users/Edit/:id", users.Edit)
 	server.Post("/Users/Save/:id", users.Save)
 	server.Get("/Users/SetUserStatus/:id", users.SetUserStatus)
-	server.Get("/Logout", authenticate.Logout)
-	server.Get("/Account", users.MyAccount)
-	server.Post("/Account", users.UpdateAccount)
 
 	// Website Routes
 	server.Get("/Website", website.Index)

@@ -33,11 +33,17 @@ func Base(w http.ResponseWriter, r *http.Request) {
 	if userID == 0 {
 		// user is not logged in
 		http.Redirect(w, r, "/Authenticate", http.StatusFound)
+		return
 	}
 	user, err := models.GetUserByID(userID)
 	if err != nil {
 		// user is not logged in
 		http.Redirect(w, r, "/Authenticate", http.StatusFound)
+		return
+	}
+	if !user.HasModuleAccess(r.URL) {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
 	}
 
 	server := plate.NewServer()
