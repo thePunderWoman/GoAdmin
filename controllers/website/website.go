@@ -25,8 +25,9 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.Bag["menu"] = menu
-	tmpl.Bag["displaymenu"] = menu.GenerateDisplayStructure()
 	tmpl.Bag["contents"] = contents
+
+	tmpl.HtmlTemplate.Parse(menu.GenerateHtml())
 
 	tmpl.FuncMap["addPublishedClass"] = func(itm models.MenuItem) bool {
 		if (itm.HasContent() && itm.Content.Published) || !itm.HasContent() {

@@ -5,6 +5,8 @@ import (
 	_ "errors"
 	"github.com/ziutek/mymysql/mysql"
 	_ "log"
+	"sort"
+	"strconv"
 	"time"
 )
 
@@ -17,7 +19,13 @@ type Menu struct {
 	RequireAuth   bool
 	ShowOnSitemap bool
 	Sort          int
-	Items         []MenuItem
+	Items         MenuItems
+	Map           MenuMap
+}
+
+type MenuItems []MenuItem
+type MenuMap struct {
+	Items map[int]MenuItems
 }
 
 type MenuItem struct {
@@ -146,62 +154,97 @@ func GetPrimaryMenu() (menu Menu, err error) {
 	return menu, nil
 }
 
-func (m *Menu) GenerateDisplayStructure() map[int][]MenuItem {
-	items := make(map[int][]MenuItem)
+func (m *Menu) GenerateMenuMap() {
+	var menumap MenuMap
+	menumap.Items = make(map[int]MenuItems, 0)
 
 	for _, item := range m.Items {
-		if items[item.ParentID] == nil {
-			mitems := make([]MenuItem, 0)
-			items[item.ParentID] = mitems
+		if menumap.Items[item.ParentID] == nil {
+			var mitems MenuItems
+			menumap.Items[item.ParentID] = mitems
 		}
-		items[item.ParentID] = append(items[item.ParentID], item)
+		menumap.Items[item.ParentID] = append(menumap.Items[item.ParentID], item)
 	}
-	return items
+	for _, tier := range menumap.Items {
+		tier.SortItems()
+	}
+	m.Map = menumap
 }
 
 func (m *Menu) GenerateHtml() string {
 	html := ""
-	counter := 0
 	rootkids := ""
-    html += "<ul id=\"pages\" class=\"connected\">"
-                {{ range .displaymenu }}
-                    {{ $counter := incrementCounter $counter }}
-                    {{ if not equalsOne $counter }}
-                        {{ $rootkids += "," }}
-                    {{ end }}
-                    {{ $rootkids += .menuContentID }}
-                    <li class="level_1{{ addPublishedClass . }} published{{ end }}" id="item_{{ .ID }}">
-                        <span class="handle">↕</span>
-                        <span class="title">{{ if .hasContent() }}{{ .Content.PageTitle }} {{ else }}{{ .Title }} (link){{ end }}</span>
-                        <span class="controls">
-                            {{ if .hasContent() and .Content.Primary }}
-                                <a href="/Website/SetPrimaryContent/{{ .ContentID }}/{{ .menu.ID }}"><img src="/Content/img/check.png" alt="Primary Page" title="Primary Page" /></a>
-                            {{ else if .hasContent() }}
-                                <a href="/Website/SetPrimaryContent/{{ .ContentID }}/{{ .menu.ID }}"><img src="/Content/img/makeprimary.png" alt="Make This Page the Primary Page" title="Make This Page the Primary Page" /></a>
-                            {{ end }}
-                            {{ if .hasContent() }}
-                                <a href="/Website/Content/Edit/{{ .ContentID }}"><img src="/Content/img/pencil.png" alt="Edit Page" title="Edit Page" /></a>
-                            {{ else }}
-                                <a href="/Website/Link/Edit/{{ .ID }}"><img src="/Content/img/pencil.png" alt="Edit Link" title="Edit Link" /></a>
-                            {{ end }}
-                            <a href="/Website/RemoveContent/{{ .ID }}" class="remove" id="remove_{{ .ID }}"><img src="/Content/img/delete.png" alt="Remove Page From Menu" title="Remove Page From Menu" /></a>
-                        </span>
-                        <span id="meta_{{ .ID }}">
-                            <input type="hidden" id="parent_{{ .ID }}" value="{{ .ParentID }}" />
-                            <input type="hidden" id="children_{{ .ID }}" value="@menu.getChildrenIDs(item.menuContentID)" />
-                            <input type="hidden" id="count_{{ .ID }}" value="@menu.getChildrenCount(item.menuContentID)" />
-                            <input type="hidden" id="sort_{{ .ID }}" value="{{ .Sort }}" />
-                            <input type="hidden" id="depth_{{ .ID }}" value="1" />
-                        </span>
-                        <ul id="transport_{{ .ID }}"></ul>
-                    </li>
-                            if (menu.hasChildren(item.menuContentID)) {
-                                string childrencontent = UDF.writeContentTree(menu, item.menuContentID, 1);
-                        @Html.Raw(childrencontent);
-                            }
-                }
-            
-	html += "</ul><input type=\"hidden\" id=\"children_0\" value=\"{{ $rootkids }}\" />"
+	m.GenerateMenuMap()
+	html += `{{ define "menucontent" }}<ul id="pages" class="connected">`
+	if _, ok := m.Map.Items[0]; ok {
+		html += m.Map.Build(0, m.ID, 1)
+		rootkids, _ = m.Map.GetChildren(0)
+	}
+	html += `</ul><input type="hidden" id="children_0" value="` + rootkids + `" />{{ end }}`
+	return html
+}
+
+func (mm *MenuMap) GetChildren(parentID int) (string, int) {
+	list := ""
+	counter := 0
+	for _, item := range mm.Items[parentID] {
+		counter += 1
+		if counter > 1 {
+			list += ","
+		}
+		list += strconv.Itoa(item.ID)
+	}
+	return list, len(mm.Items[parentID])
+}
+
+func (mm *MenuMap) HasChildren(parentID int) bool {
+	if _, ok := mm.Items[parentID]; ok {
+		return true
+	}
+	return false
+}
+
+func (mm *MenuMap) Build(parentID int, menuID int, level int) string {
+	html := ""
+	for _, item := range mm.Items[parentID] {
+		// generate menu
+
+		html += `<li class="level_` + strconv.Itoa(level)
+		if (item.HasContent() && item.Content.Published) || !item.HasContent() {
+			html += " published"
+		}
+		html += `" id="item_` + strconv.Itoa(item.ID) + `"><span class="handle">↕</span>`
+		html += `<span class="title">`
+		if item.HasContent() {
+			html += item.Content.PageTitle
+		} else {
+			html += item.Title + " (link)"
+		}
+		html += `</span><span class="controls">`
+		if item.HasContent() && item.Content.Primary {
+			html += `<a href="/Website/SetPrimaryContent/` + strconv.Itoa(item.ContentID) + `/` + strconv.Itoa(menuID) + `"><img src="/img/check.png" alt="Primary Page" title="Primary Page" /></a>`
+		} else if item.HasContent() {
+			html += `<a href="/Website/SetPrimaryContent/` + strconv.Itoa(item.ContentID) + `/` + strconv.Itoa(menuID) + `"><img src="/img/makeprimary.png" alt="Make This Page the Primary Page" title="Make This Page the Primary Page" /></a>`
+		}
+		if item.HasContent() {
+			html += `<a href="/Website/Content/Edit/` + strconv.Itoa(item.ContentID) + `"><img src="/img/pencil.png" alt="Edit Page" title="Edit Page" /></a>`
+		} else {
+			html += `<a href="/Website/Link/Edit/` + strconv.Itoa(item.ID) + `"><img src="/img/pencil.png" alt="Edit Link" title="Edit Link" /></a>`
+		}
+		html += `<a href="/Website/RemoveContent/` + strconv.Itoa(item.ID) + `" class="remove" id="remove_` + strconv.Itoa(item.ID) + `"><img src="/img/delete.png" alt="Remove Page From Menu" title="Remove Page From Menu" /></a>`
+		html += `</span><span id="meta_` + strconv.Itoa(item.ID) + `">`
+		html += `<input type="hidden" id="parent_` + strconv.Itoa(item.ID) + `" value="` + strconv.Itoa(item.ParentID) + `" />`
+		children, childcount := mm.GetChildren(item.ID)
+		html += `<input type="hidden" id="children_` + strconv.Itoa(item.ID) + `" value="` + children + `" />`
+		html += `<input type="hidden" id="count_` + strconv.Itoa(item.ID) + `" value="` + strconv.Itoa(childcount) + `" />`
+		html += `<input type="hidden" id="sort_` + strconv.Itoa(item.ID) + `" value="` + strconv.Itoa(item.Sort) + `" />`
+		html += `<input type="hidden" id="depth_` + strconv.Itoa(item.ID) + `" value="1" />`
+		html += `</span><ul id="transport_` + strconv.Itoa(item.ID) + `"></ul></li>`
+		if mm.HasChildren(item.ID) {
+			html += mm.Build(item.ID, menuID, level+1)
+		}
+
+	}
 	return html
 }
 
@@ -231,7 +274,7 @@ func PopulateMenu(row mysql.Row, res mysql.Result, ch chan Menu) {
 }
 
 func GetMenuItems(id int, ch chan []MenuItem) {
-	items := make([]MenuItem, 0)
+	var items MenuItems
 	if id > 0 {
 		sel, err := database.GetStatement("getMenuItemsStmt")
 		if err != nil {
@@ -252,7 +295,6 @@ func GetMenuItems(id int, ch chan []MenuItem) {
 		for _, _ = range rows {
 			items = append(items, <-mch)
 		}
-
 	}
 
 	ch <- items
@@ -343,3 +385,11 @@ func PopulateRevision(row mysql.Row, res mysql.Result, ch chan ContentRevision) 
 
 	ch <- revision
 }
+
+func (m *MenuItems) SortItems() {
+	sort.Sort(m)
+}
+
+func (m MenuItems) Len() int           { return len(m) }
+func (m MenuItems) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m MenuItems) Less(i, j int) bool { return m[i].Sort < m[j].Sort }
