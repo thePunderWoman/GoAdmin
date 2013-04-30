@@ -32,9 +32,9 @@
                     <td>{{ if .RequireAuth }}Yes{{ else }}No{{ end }}</td>
                     <td>{{ if .Primary }}
                         Primary
-                        <a href="/Website/SetPrimaryMenu/{{ .ID }}">Remove Primary</a>
+                        <a href="/Website/Menu/SetPrimary/{{ .ID }}">Remove Primary</a>
                         {{ else }}
-                            <a href="/Website/SetPrimaryMenu/{{ .ID }}">Set Primary</a>
+                            <a href="/Website/Menu/SetPrimary/{{ .ID }}">Set Primary</a>
                         {{ end }}
                     </td>
                     <td class="center">

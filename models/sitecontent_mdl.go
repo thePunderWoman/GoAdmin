@@ -154,27 +154,36 @@ func GetPrimaryMenu() (menu Menu, err error) {
 	return menu, nil
 }
 
-func GetMenu(id int) (menu Menu, err error) {
+func (m *Menu) Get() error {
 	sel, err := database.GetStatement("getMenuByIDStmt")
 	if err != nil {
-		return menu, err
+		return err
 	}
-	sel.Bind(id)
+	sel.Bind(m.ID)
 
 	row, res, err := sel.ExecFirst()
 	if database.MysqlError(err) {
-		return menu, err
+		return err
 	}
 
 	c := make(chan Menu)
 	mi := make(chan []MenuItem)
 
 	go PopulateMenu(row, res, c)
-	go GetMenuItems(id, mi)
-	menu = <-c
-	menu.Items = <-mi
+	go GetMenuItems(m.ID, mi)
+	menu := <-c
 
-	return menu, nil
+	m.ID = menu.ID
+	m.Name = menu.Name
+	m.DisplayName = menu.DisplayName
+	m.Primary = menu.Primary
+	m.RequireAuth = menu.RequireAuth
+	m.Active = menu.Active
+	m.ShowOnSitemap = menu.ShowOnSitemap
+	m.Sort = menu.Sort
+	m.Items = <-mi
+
+	return nil
 }
 
 func GetAllMenus() (menus []Menu, err error) {
@@ -430,6 +439,113 @@ func PopulateRevision(row mysql.Row, res mysql.Result, ch chan ContentRevision) 
 	}
 
 	ch <- revision
+}
+
+func (m *Menu) Save() error {
+	if m.ID > 0 {
+		// update
+		// new
+		upd, err := database.GetStatement("UpdateMenuStmt")
+		if err != nil {
+			return err
+		}
+
+		params := struct {
+			Name          string
+			RequireAuth   bool
+			ShowOnSitemap bool
+			DisplayName   string
+			ID            int
+		}{}
+
+		params.Name = m.Name
+		params.DisplayName = m.DisplayName
+		params.RequireAuth = m.RequireAuth
+		params.ShowOnSitemap = m.ShowOnSitemap
+		params.ID = m.ID
+
+		upd.Bind(&params)
+
+		_, _, err = upd.Exec()
+		if err != nil {
+			return err
+		}
+
+	} else {
+		// new
+		ins, err := database.GetStatement("AddMenuStmt")
+		if err != nil {
+			return err
+		}
+
+		params := struct {
+			Name          string
+			DisplayName   string
+			RequireAuth   bool
+			ShowOnSitemap bool
+		}{}
+
+		params.Name = m.Name
+		params.DisplayName = m.DisplayName
+		params.RequireAuth = m.RequireAuth
+		params.ShowOnSitemap = m.ShowOnSitemap
+
+		ins.Bind(&params)
+
+		_, _, err = ins.Exec()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *Menu) Remove() error {
+	if m.ID > 0 {
+		// update
+		// new
+		upd, err := database.GetStatement("deleteMenuStmt")
+		if err != nil {
+			return err
+		}
+
+		upd.Bind(m.ID)
+
+		_, _, err = upd.Exec()
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+func (m *Menu) SetPrimary() error {
+	m.Get()
+	upd, err := database.GetStatement("clearPrimaryMenuStmt")
+	if err != nil {
+		return err
+	}
+
+	_, _, err = upd.Exec()
+	if err != nil {
+		return err
+	}
+
+	if !m.Primary {
+		upd1, err := database.GetStatement("setPrimaryMenuStmt")
+		if err != nil {
+			return err
+		}
+
+		upd1.Bind(m.ID)
+
+		_, _, err = upd.Exec()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (m *MenuItems) SortItems() {

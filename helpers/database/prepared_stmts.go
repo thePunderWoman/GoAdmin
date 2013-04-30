@@ -70,7 +70,13 @@ func PrepareCurtDev() error {
 												LEFT JOIN SiteContent AS SC ON MSC.contentID = SC.contentID
 												WHERE MSC.menuID = ?`
 	UnPreparedStatements["GetContentRevisionsStmt"] = "select * from SiteContentRevision WHERE contentID = ?"
-	UnPreparedStatements["GetAllMenusStmt"] = "select * from Menu"
+	UnPreparedStatements["GetAllMenusStmt"] = "select * from Menu where active = 1"
+	UnPreparedStatements["UpdateMenuStmt"] = "Update Menu Set menu_name = ?, requireAuthentication = ?, showOnSitemap = ?, display_name = ? where menuID = ?"
+	UnPreparedStatements["AddMenuStmt"] = `INSERT INTO Menu (menu_name,display_name,requireAuthentication,showOnSitemap,isPrimary,active,sort) VALUES (?,?,?,?,0,1,1)`
+	UnPreparedStatements["getInsertedMenuID"] = "select LAST_INSERT_ID() FROM Menu AS id LIMIT 1"
+	UnPreparedStatements["deleteMenuStmt"] = "Update Menu set active = 0 WHERE menuID = ?"
+	UnPreparedStatements["clearPrimaryMenuStmt"] = "Update Menu set isPrimary = 0"
+	UnPreparedStatements["setPrimaryMenuStmt"] = "Update Menu set isPrimary = 1 WHERE menuID = ?"
 
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()

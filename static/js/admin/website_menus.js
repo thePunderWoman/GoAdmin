@@ -1,4 +1,4 @@
-﻿$(document).ready(function () {
+﻿$(function () {
 
     var menutable = $('table').dataTable({
         "bJQueryUI": true
@@ -13,13 +13,17 @@
                 window.location.href = "/Website/Menu/" + menu_id;
                 break;
             case 'edit':
-                window.location.href = "/Website/EditMenu/" + menu_id;
+                window.location.href = "/Website/Menu/Edit/" + menu_id;
                 break;
             case 'delete':
                 if (confirm('Are you sure you want to remove this menu?')) {
-                    $.post('/Website/RemoveMenu', { 'menuID': menu_id }, function (data) {
-                        menutable.fnDeleteRow(table_row);
-                    });
+                    $.post('/Website/Menu/Remove/' + menu_id, function (data) {
+                        if(data.Success) {
+                            menutable.fnDeleteRow(table_row);
+                        } else {
+                            showMessage("There was a problem removing the menu.")
+                        }
+                    },'json');
                 }
 
                 break;

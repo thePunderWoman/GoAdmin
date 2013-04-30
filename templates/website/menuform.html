@@ -1,0 +1,52 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/Website/Contents">Manage Content</a>
+    </li>
+    <li>
+        <a href="/Website/Menus">Manage Menus</a>
+    </li>
+    <li class="add">
+        <a href="/Website/Menu/Add" class="active">Add Menu</a>
+    </li>
+</ul>
+
+<div id="content_container">
+    {{ if isZero .menu.ID }}
+    <h2>Add a Menu</h2>
+    {{ else }}
+    <h2>Edit {{ .menu.Name }} Menu</h2>
+    {{ end }}
+
+    {{ with .error }}
+        <p style="font-weight: bold; color: Red;">{{ .error }}</p>
+    {{ end }}
+    <form action="/Website/Menu/Save/{{ .menu.ID }}" Method="post" class="form_left">
+        <!-- Item Name -->
+        <label for="menu_name">
+            Name
+            <input type="text" name="menu_name" id="menu_name" placeholder="Enter the name of the menu..." value="{{ .menu.Name }}" />
+        </label>
+
+        <label for="display_name">
+            Display Name
+            <input type="text" name="display_name" id="display_name" placeholder="Enter the display name of the menu..." value="{{ .menu.DisplayName }}" />
+        </label>
+
+        <label for="requireAuthentication">
+            Require User Login to View?
+            <input type="checkbox" name="requireAuthentication" id="requireAuthentication" value="true" {{ if .menu.RequireAuth }} checked="checked" {{ end }}/>
+        </label>
+
+        <label for="showOnSitemap">
+            Show on Footer Sitemap?
+            <input type="checkbox" name="showOnSitemap" id="showOnSitemap" value="true" {{ if .menu.ShowOnSitemap }} checked="checked" {{ end }}/>
+        </label>
+
+        <div id="buttons">
+            <input type="submit" name="btnSave" id="btnSave" value="Save" />
+            <input type="reset" name="btnReset" id="btnReset" value="Reset" />
+        </div>
+    </form>
+</div>
+{{ end }}

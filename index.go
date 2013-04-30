@@ -60,7 +60,12 @@ func main() {
 	// Website Routes
 	server.Get("/Website", website.Index)
 	server.Get("/Website/Menus", website.Menus)
+	server.Get("/Website/Menu/Add", website.Add)
+	server.Get("/Website/Menu/SetPrimary/:id", website.SetPrimaryMenu)
+	server.Post("/Website/Menu/Save/:id", website.Save)
+	server.Get("/Website/Menu/Edit/:id", website.Edit)
 	server.Get("/Website/Menu/:id", website.Menu)
+	server.Post("/Website/Menu/Remove/:id", website.Remove)
 
 	// Home page route
 	server.Get("/", controllers.Index)
