@@ -154,6 +154,52 @@ func GetPrimaryMenu() (menu Menu, err error) {
 	return menu, nil
 }
 
+func GetMenu(id int) (menu Menu, err error) {
+	sel, err := database.GetStatement("getMenuByIDStmt")
+	if err != nil {
+		return menu, err
+	}
+	sel.Bind(id)
+
+	row, res, err := sel.ExecFirst()
+	if database.MysqlError(err) {
+		return menu, err
+	}
+
+	c := make(chan Menu)
+	mi := make(chan []MenuItem)
+
+	go PopulateMenu(row, res, c)
+	go GetMenuItems(id, mi)
+	menu = <-c
+	menu.Items = <-mi
+
+	return menu, nil
+}
+
+func GetAllMenus() (menus []Menu, err error) {
+	sel, err := database.GetStatement("GetAllMenusStmt")
+	if err != nil {
+		return menus, err
+	}
+	rows, res, err := sel.Exec()
+	if database.MysqlError(err) {
+		return menus, err
+	}
+
+	c := make(chan Menu)
+
+	for _, row := range rows {
+		go PopulateMenu(row, res, c)
+	}
+	for _, _ = range rows {
+		menus = append(menus, <-c)
+	}
+
+	return menus, nil
+
+}
+
 func (m *Menu) GenerateMenuMap() {
 	var menumap MenuMap
 	menumap.Items = make(map[int]MenuItems, 0)

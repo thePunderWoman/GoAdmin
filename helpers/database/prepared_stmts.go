@@ -64,11 +64,13 @@ func PrepareCurtDev() error {
 	// Website Statements
 	UnPreparedStatements["getAllSiteContentStmt"] = "select * from SiteContent order by page_title"
 	UnPreparedStatements["getPrimaryMenuStmt"] = "select * from Menu where isPrimary = 1"
+	UnPreparedStatements["getMenuByIDStmt"] = "select * from Menu where menuID = ?"
 	UnPreparedStatements["getMenuItemsStmt"] = `select MSC.menuContentID, MSC.menuID, MSC.menuSort, MSC.menuTitle, MSC.menuLink, MSC.parentID, MSC.linkTarget, SC.* from Menu_SiteContent AS MSC 
 												INNER JOIN Menu AS M ON MSC.menuID = M.menuID
 												LEFT JOIN SiteContent AS SC ON MSC.contentID = SC.contentID
 												WHERE MSC.menuID = ?`
 	UnPreparedStatements["GetContentRevisionsStmt"] = "select * from SiteContentRevision WHERE contentID = ?"
+	UnPreparedStatements["GetAllMenusStmt"] = "select * from Menu"
 
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()

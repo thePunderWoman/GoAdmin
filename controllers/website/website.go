@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	_ "net/url"
-	_ "strconv"
+	"strconv"
 	_ "strings"
 	"time"
 )
@@ -35,16 +35,73 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		}
 		return false
 	}
-	tmpl.FuncMap["incrementCounter"] = func(num int) int {
-		return num + 1
+	tmpl.FuncMap["equalsOne"] = func(num int) bool {
+		return num == 1
+	}
+
+	tmpl.ParseFile("templates/website/navigation.html", false)
+	tmpl.ParseFile("templates/website/index.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func Menus(w http.ResponseWriter, r *http.Request) {
+	tmpl := plate.NewTemplate(w)
+
+	menus, _ := models.GetAllMenus()
+	tmpl.Bag["menus"] = menus
+
+	tmpl.ParseFile("templates/website/navigation.html", false)
+	tmpl.ParseFile("templates/website/menus.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func Menu(w http.ResponseWriter, r *http.Request) {
+
+	tmpl := plate.NewTemplate(w)
+
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	contents, _ := models.GetAllSiteContent()
+	menu, _ := models.GetMenu(id)
+
+	tmpl.FuncMap["formatDate"] = func(dt time.Time) string {
+		tlayout := "Mon, 01/02/06, 3:04PM MST"
+		Local, _ := time.LoadLocation("US/Central")
+		return dt.In(Local).Format(tlayout)
+	}
+
+	tmpl.Bag["menu"] = menu
+	tmpl.Bag["contents"] = contents
+
+	tmpl.HtmlTemplate.Parse(menu.GenerateHtml())
+
+	tmpl.FuncMap["addPublishedClass"] = func(itm models.MenuItem) bool {
+		if (itm.HasContent() && itm.Content.Published) || !itm.HasContent() {
+			return true
+		}
+		return false
 	}
 	tmpl.FuncMap["equalsOne"] = func(num int) bool {
 		return num == 1
 	}
 
+	tmpl.ParseFile("templates/website/navigation.html", false)
 	tmpl.ParseFile("templates/website/index.html", false)
 
-	err := tmpl.Display(w)
+	err = tmpl.Display(w)
 	if err != nil {
 		log.Println(err)
 	}

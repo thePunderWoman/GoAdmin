@@ -59,6 +59,8 @@ func main() {
 
 	// Website Routes
 	server.Get("/Website", website.Index)
+	server.Get("/Website/Menus", website.Menus)
+	server.Get("/Website/Menu/:id", website.Menu)
 
 	// Home page route
 	server.Get("/", controllers.Index)
