@@ -76,7 +76,6 @@ func Menu(w http.ResponseWriter, r *http.Request) {
 	menu := models.Menu{ID: id}
 	contents, _ := models.GetAllSiteContent()
 	err = menu.Get()
-	log.Println(menu.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -224,4 +223,72 @@ func SetPrimaryMenu(w http.ResponseWriter, r *http.Request) {
 		err = m.SetPrimary()
 	}
 	http.Redirect(w, r, "/Website/Menus", http.StatusFound)
+}
+
+func MenuSort(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get("id"))
+	if err == nil {
+		menu := models.Menu{ID: id}
+		pages := params["page"]
+		menu.UpdateSort(pages)
+	}
+	plate.ServeFormatted(w, r, "")
+}
+
+func AddContentToMenu(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	menuID, err := strconv.Atoi(params.Get("menuid"))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	contentID, err := strconv.Atoi(params.Get("contentid"))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	menu := models.Menu{ID: menuID}
+	menupage := menu.AddContent(contentID)
+	menustuff := struct {
+		MenuContentID int
+		MenuSort      int
+		ParentID      int
+		ContentID     int
+		PageTitle     string
+		Published     bool
+	}{
+		MenuContentID: menupage.ID,
+		MenuSort:      menupage.Sort,
+		ParentID:      menupage.ParentID,
+		ContentID:     menupage.ContentID,
+		PageTitle:     menupage.Content.PageTitle,
+		Published:     menupage.Content.Published,
+	}
+	plate.ServeFormatted(w, r, menustuff)
+
+}
+
+func RemoveContentAjax(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err == nil {
+		models.RemoveContentFromMenu(id)
+	}
+
+	plate.ServeFormatted(w, r, "")
+}
+
+func SetPrimaryContent(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err == nil {
+		menuid, err := strconv.Atoi(params.Get(":menuid"))
+		if err == nil {
+			models.SetPrimaryContent(id)
+			http.Redirect(w, r, "/Website/Menu/"+strconv.Itoa(menuid), http.StatusFound)
+			return
+		}
+	}
+	http.Redirect(w, r, "/Website", http.StatusFound)
 }

@@ -4,9 +4,10 @@ import (
 	"../helpers/database"
 	_ "errors"
 	"github.com/ziutek/mymysql/mysql"
-	_ "log"
+	"log"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -36,7 +37,7 @@ type MenuItem struct {
 	Title      string
 	Link       string
 	ParentID   int
-	LinkTarget string
+	LinkTarget bool
 	Content    Content
 }
 
@@ -381,7 +382,7 @@ func PopulateMenuItem(row mysql.Row, res mysql.Result, ch chan MenuItem) {
 			Title:      row.Str(menuTitle),
 			Link:       row.Str(menuLink),
 			ParentID:   row.Int(parentID),
-			LinkTarget: row.Str(linkTarget),
+			LinkTarget: row.Bool(linkTarget),
 			Content:    <-cch,
 		}
 	}
@@ -546,6 +547,216 @@ func (m *Menu) SetPrimary() error {
 		}
 	}
 	return nil
+}
+
+func (m *Menu) UpdateSort(pages []string) {
+	for _, page := range pages {
+		pdata := strings.Split(page, "-")
+		upd, err := database.GetStatement("updateMenuItemSortStmt")
+		if err != nil {
+			return
+		}
+		sort, _ := strconv.Atoi(pdata[2])
+		parentID, _ := strconv.Atoi(pdata[1])
+		id, _ := strconv.Atoi(pdata[0])
+
+		params := struct {
+			Sort     int
+			ParentID int
+			ID       int
+		}{
+			Sort:     sort,
+			ParentID: parentID,
+			ID:       id,
+		}
+
+		upd.Bind(&params)
+
+		_, _, err = upd.Exec()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	}
+}
+
+func (m *Menu) AddContent(contentID int) (item MenuItem) {
+	// get sort increment
+	sel, err := database.GetStatement("getMenuSortStmt")
+	if err != nil {
+		return item
+	}
+	sel.Bind(m.ID)
+	row, res, err := sel.ExecFirst()
+	if database.MysqlError(err) {
+		return item
+	}
+	msort := res.Map("menuSort")
+	sort := row.Int(msort)
+	sort += 1
+
+	// run insert statement
+	ins, err := database.GetStatement("addMenuContentItemStmt")
+	if err != nil {
+		return item
+	}
+	ins.Bind(m.ID, contentID, sort)
+	_, res, err = ins.Exec()
+	if err != nil {
+		log.Println(err)
+		return item
+	}
+	id := res.InsertId()
+
+	if id > 0 {
+		// get item
+		sel3, err := database.GetStatement("getMenuItemStmt")
+		if err != nil {
+			return item
+		}
+		sel3.Bind(id)
+		row, res, err = sel3.ExecFirst()
+		if err != nil {
+			log.Println(err)
+			return item
+		}
+		mch := make(chan MenuItem)
+		go PopulateMenuItem(row, res, mch)
+		item = <-mch
+	}
+
+	return item
+}
+
+func RemoveContentFromMenu(id int) {
+	sel1, err := database.GetStatement("getMenuItemStmt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	sel1.Bind(id)
+	row, res, err := sel1.ExecFirst()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	mch := make(chan MenuItem)
+	go PopulateMenuItem(row, res, mch)
+	item := <-mch
+
+	sel2, err := database.GetStatement("GetMenuParentsStmt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	sel2.Reset()
+	sel2.Bind(item.ParentID, item.MenuID)
+	rows, res, err := sel2.Exec()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	mID := res.Map("menuContentID")
+	pID := res.Map("parentID")
+	pitems := make([]MenuItem, 0)
+	citems := make([]MenuItem, 0)
+
+	for _, row = range rows {
+		mitem := MenuItem{
+			ID:       row.Int(mID),
+			ParentID: row.Int(pID),
+		}
+		pitems = append(pitems, mitem)
+	}
+
+	sel3, err := database.GetStatement("GetMenuParentsStmt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	sel3.Reset()
+	sel3.Bind(item.ID, item.MenuID)
+	rows, res, err = sel3.Exec()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	mID = res.Map("menuContentID")
+	pID = res.Map("parentID")
+
+	for _, row = range rows {
+		mitem := MenuItem{
+			ID:       row.Int(mID),
+			ParentID: row.Int(pID),
+		}
+		citems = append(citems, mitem)
+	}
+
+	sort := 0
+	for _, itm := range pitems {
+		sort += 1
+		if item.ID == itm.ID {
+			// adjust children
+			for _, citm := range citems {
+				sort += 1
+				citm.ParentID = itm.ParentID
+				citm.Sort = sort
+				go citm.SetSort()
+			}
+		} else {
+			// adjust sort
+			itm.Sort = sort
+			go itm.SetSort()
+		}
+	}
+
+	del, err := database.GetStatement("DeleteMenuItemStmt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	del.Reset()
+	del.Bind(item.ID)
+	_, _, err = del.Exec()
+	if err != nil {
+		log.Println(err)
+	}
+	return
+}
+
+func (m *MenuItem) SetSort() {
+	upd, err := database.GetStatement("updateMenuItemSortStmt")
+	if err != nil {
+		return
+	}
+	upd.Bind(m.Sort, m.ParentID, m.ID)
+	_, _, err = upd.Exec()
+	if err != nil {
+		log.Println(err)
+	}
+	return
+}
+
+func SetPrimaryContent(id int) {
+	upd, err := database.GetStatement("clearPrimaryContentStmt")
+	if err != nil {
+		return
+	}
+	_, _, err = upd.Exec()
+	if err != nil {
+		log.Println(err)
+	}
+	set, err := database.GetStatement("setPrimaryContentStmt")
+	if err != nil {
+		return
+	}
+	set.Bind(id)
+	_, _, err = set.Exec()
+	if err != nil {
+		log.Println(err)
+	}
+	return
 }
 
 func (m *MenuItems) SortItems() {

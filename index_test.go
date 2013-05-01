@@ -2,6 +2,7 @@ package main
 
 import (
 	"./controllers"
+	"./controllers/authenticate"
 	"./helpers/plate"
 	"errors"
 	"fmt"
@@ -82,8 +83,9 @@ func TestHandler(t *testing.T) {
 	server.AddFilter(CorsHandler)
 
 	server.Get("/", controllers.Index)
+	server.Get("/Authenticate", authenticate.Index).NoFilter()
 
-	recorder, req := run_test_request(t, server, "GET", "http://localhost:8080/", nil)
+	recorder, req := run_test_request(t, server, "GET", "http://localhost:8080/Authenticate", nil)
 	err := code_is(t, recorder, 200)
 	checkError(req, recorder, err, t)
 

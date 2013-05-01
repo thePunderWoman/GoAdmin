@@ -77,6 +77,18 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["deleteMenuStmt"] = "Update Menu set active = 0 WHERE menuID = ?"
 	UnPreparedStatements["clearPrimaryMenuStmt"] = "Update Menu set isPrimary = 0"
 	UnPreparedStatements["setPrimaryMenuStmt"] = "Update Menu set isPrimary = 1 WHERE menuID = ?"
+	UnPreparedStatements["updateMenuItemSortStmt"] = "Update Menu_SiteContent set menuSort = ?, parentID = ? WHERE menuContentID = ?"
+	UnPreparedStatements["getMenuSortStmt"] = "select menuSort from Menu_SiteContent WHERE menuID = ? order by menuSort DESC"
+	UnPreparedStatements["addMenuContentItemStmt"] = "INSERT INTO Menu_SiteContent (menuID,contentID,menuSort,parentID) VALUES (?,?,?,0)"
+	UnPreparedStatements["addMenuLinkItemStmt"] = "INSERT INTO Menu_SiteContent (menuID,menuTitle,menuLink,linkTarget,menuSort,contentID,parentID) VALUES (?,?,?,?,?,0,0)"
+	UnPreparedStatements["getMenuItemStmt"] = `select MSC.menuContentID, MSC.menuID, MSC.menuSort, MSC.menuTitle, MSC.menuLink, MSC.parentID, MSC.linkTarget, SC.* from Menu_SiteContent AS MSC 
+												INNER JOIN Menu AS M ON MSC.menuID = M.menuID
+												LEFT JOIN SiteContent AS SC ON MSC.contentID = SC.contentID
+												WHERE MSC.menuContentID = ?`
+	UnPreparedStatements["GetMenuParentsStmt"] = "select * from Menu_SiteContent where parentID = ? AND menuID = ? order by menuSort"
+	UnPreparedStatements["DeleteMenuItemStmt"] = "delete from Menu_SiteContent where menuContentID = ?"
+	UnPreparedStatements["clearPrimaryContentStmt"] = "update SiteContent set isPrimary = 0 WHERE isPrimary = 1"
+	UnPreparedStatements["setPrimaryContentStmt"] = "update SiteContent set isPrimary = 1 WHERE contentID = ?"
 
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()

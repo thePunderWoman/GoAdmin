@@ -4,7 +4,7 @@
         "bJQueryUI": true
     });
 
-    $('.menu_action').live('change', function () {
+    $(document).on('change','.menu_action', function () {
         var action = $(this).val();
         var menu_id = $(this).attr('id').split(':')[1];
         var table_row = $(this).parent().parent().get()[0];
@@ -33,7 +33,7 @@
         $(this).val(0);
     });
 
-    $('.isActive').live('click', function () {
+    $(document).on('click','.isActive', function () {
         var user_id = $(this).attr('id').split(':')[1];
         set_isActive(user_id);
     });

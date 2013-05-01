@@ -27,12 +27,12 @@
 var currentdepth = 1;
 $(document).ready(function () {
     bindStuff()
-    $("a.remove").live('click', function (event) {
+    $(document).on('click',"a.remove", function (event) {
         event.preventDefault();
         removeItem($(this));
     });
 
-    $("a.delete").live('click', function (event) {
+    $(document).on('click', "a.delete", function (event) {
         event.preventDefault();
         var idstr = $(this).attr('id').split('_')[1];
         $.getJSON("/Website/checkContent/" + idstr, function (data) {
@@ -78,8 +78,12 @@ $(document).ready(function () {
 
 var counter = 0;
 function bindStuff() {
-    $("ul#pages").sortable('destroy');
-    $("ul#allpages").sortable('destroy');
+    if ($("ul#pages").hasClass('ui-sortable')) {
+       $("ul#pages").sortable('destroy');
+    }
+    if ($("ul#allpages").hasClass('ui-sortable')) {
+        $("ul#allpages").sortable('destroy');
+    }
     $("ul#pages").sortable({ handle: 'span.handle', placeholder: "page-placeholder", cursor: 'move', start: function (event, ui) { moveChildren(ui); setDepthValue(ui); }, sort: function (event, ui) { updateClasses(ui); }, beforeStop: function (event, ui) { setClasses(ui) }, stop: function (event, ui) { restoreChildren(ui); finishSort(ui); } }).disableSelection();
     $("ul#allpages").sortable({ handle: 'span.title', helper: 'original', cursor: 'move' }).disableSelection();
     $("li#tab_menulist").droppable({
@@ -90,36 +94,35 @@ function bindStuff() {
             var obj = ui.draggable;
             contentid = obj.attr('id').split('_')[1];
             menuid = $('#menuid').val();
-            $.post("/Website/AddContentToMenu?menuid=" + menuid + "&contentid=" + contentid, function (data) {
-                var response = $.parseJSON(data);
+            $.post("/Website/AddContentToMenu?menuid=" + menuid + "&contentid=" + contentid, function (response) {
                 var published = "";
-                if (response.published == true) published = " published";
-                var liobj = "<li style=\"display:none;\" id=\"item_" + response.menuContentID + "\" class=\"level_1" + published + "\">" +
-                    "<span class=\"handle\">↕</span> <span class=\"title\">" + response.pagetitle + "</span>" +
+                if (response.Published == true) published = " published";
+                var liobj = "<li style=\"display:none;\" id=\"item_" + response.MenuContentID + "\" class=\"level_1" + published + "\">" +
+                    "<span class=\"handle\">↕</span> <span class=\"title\">" + response.PageTitle + "</span>" +
                     "<span class=\"controls\">" +
-                        "<a href=\"/Website/SetPrimaryContent/" + response.contentID + "/" + menuid + "\"><img src=\"/Content/img/makeprimary.png\" alt=\"Make This Page the Primary Page\" title=\"Make This Page the Primary Page\" /></a> " +
-                        "<a href=\"/Website/Content/Edit/" + response.contentID + "\"><img src=\"/Content/img/pencil.png\" alt=\"Edit Page\" title=\"Edit Page\" /></a> " +
-                        " <a href=\"/Website/RemoveContent/" + response.menuContentID + "\" class=\"remove\" id=\"remove_" + response.menuContentID + "\"><img src=\"/Content/img/delete.png\" alt=\"Remove Page From Menu\" title=\"Remove Page From Menu\" /></a>" +
+                        "<a href=\"/Website/SetPrimaryContent/" + response.ContentID + "/" + menuid + "\"><img src=\"/img/makeprimary.png\" alt=\"Make This Page the Primary Page\" title=\"Make This Page the Primary Page\" /></a> " +
+                        "<a href=\"/Website/Content/Edit/" + response.ContentID + "\"><img src=\"/img/pencil.png\" alt=\"Edit Page\" title=\"Edit Page\" /></a> " +
+                        " <a href=\"/Website/RemoveContent/" + response.MenuContentID + "\" class=\"remove\" id=\"remove_" + response.MenuContentID + "\"><img src=\"/img/delete.png\" alt=\"Remove Page From Menu\" title=\"Remove Page From Menu\" /></a>" +
                     "</span>" +
-                    "<span id=\"meta_" + response.menuContentID + "\">" +
-                        "<input type=\"hidden\" id=\"parent_" + response.menuContentID + "\" value=\"" + ((response.parentID == null) ? 0 : response.parentID) + "\" />" +
-                        "<input type=\"hidden\" id=\"children_" + response.menuContentID + "\" value=\"\" />" +
-                        "<input type=\"hidden\" id=\"count_" + response.menuContentID + "\" value=\"0\" />" +
-                        "<input type=\"hidden\" id=\"sort_" + response.menuContentID + "\" value=\"" + response.menuSort + "\" />" +
-                        "<input type=\"hidden\" id=\"depth_" + response.menuContentID + "\" value=\"" + 1 + "\" />" +
+                    "<span id=\"meta_" + response.MenuContentID + "\">" +
+                        "<input type=\"hidden\" id=\"parent_" + response.MenuContentID + "\" value=\"" + ((response.ParentID == null) ? 0 : response.ParentID) + "\" />" +
+                        "<input type=\"hidden\" id=\"children_" + response.MenuContentID + "\" value=\"\" />" +
+                        "<input type=\"hidden\" id=\"count_" + response.MenuContentID + "\" value=\"0\" />" +
+                        "<input type=\"hidden\" id=\"sort_" + response.MenuContentID + "\" value=\"" + response.MenuSort + "\" />" +
+                        "<input type=\"hidden\" id=\"depth_" + response.MenuContentID + "\" value=\"" + 1 + "\" />" +
                     "</span>" +
-                    "<ul id=\"transport_" + response.menuContentID + "\"></ul>" +
+                    "<ul id=\"transport_" + response.MenuContentID + "\"></ul>" +
                     "</li>";
                 $('#pages').append(liobj);
                 var childlist = $('#children_0').val();
                 if (childlist != "") {
                     childlist += ",";
                 }
-                childlist += response.menuContentID;
+                childlist += response.MenuContentID;
                 $('#children_0').val(childlist);
                 $('#tab_menulist').trigger('click');
-                $('#item_' + response.menuContentID).fadeIn();
-            })
+                $('#item_' + response.MenuContentID).fadeIn();
+            },"json")
         }
     });
 }
@@ -558,15 +561,11 @@ function saveItems() {
     $('ul#pages li').each(function () {
         count++;
         var idstr = $(this).attr('id').split('_')[1];
-        if (count == 1) {
-            datastring += "?";
-        } else {
-            datastring += "&";
-        }
-        datastring += "page[]=" + idstr + "-" + $("#parent_" + idstr).val() + "-" + $("#sort_" + idstr).val()
+        datastring += "&";
+        datastring += "page=" + idstr + "-" + $("#parent_" + idstr).val() + "-" + $("#sort_" + idstr).val()
     });
 
-    $.post("/Website/MenuSort/" + $('#menuid').val() + datastring)
+    $.post("/Website/Menu/Sort?id=" + $('#menuid').val() + datastring)
 }
 
 function removeItem(obj) {
