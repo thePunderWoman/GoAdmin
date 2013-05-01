@@ -581,19 +581,10 @@ func (m *Menu) UpdateSort(pages []string) {
 }
 
 func (m *Menu) AddContent(contentID int) (item MenuItem) {
-	// get sort increment
-	sel, err := database.GetStatement("getMenuSortStmt")
+	sort, err := m.GetNextSort()
 	if err != nil {
 		return item
 	}
-	sel.Bind(m.ID)
-	row, res, err := sel.ExecFirst()
-	if database.MysqlError(err) {
-		return item
-	}
-	msort := res.Map("menuSort")
-	sort := row.Int(msort)
-	sort += 1
 
 	// run insert statement
 	ins, err := database.GetStatement("addMenuContentItemStmt")
@@ -601,7 +592,7 @@ func (m *Menu) AddContent(contentID int) (item MenuItem) {
 		return item
 	}
 	ins.Bind(m.ID, contentID, sort)
-	_, res, err = ins.Exec()
+	_, res, err := ins.Exec()
 	if err != nil {
 		log.Println(err)
 		return item
@@ -615,7 +606,7 @@ func (m *Menu) AddContent(contentID int) (item MenuItem) {
 			return item
 		}
 		sel3.Bind(id)
-		row, res, err = sel3.ExecFirst()
+		row, res, err := sel3.ExecFirst()
 		if err != nil {
 			log.Println(err)
 			return item
@@ -725,6 +716,22 @@ func RemoveContentFromMenu(id int) {
 	return
 }
 
+func (m *Menu) GetNextSort() (int, error) {
+	sel, err := database.GetStatement("getMenuSortStmt")
+	if err != nil {
+		return 0, err
+	}
+	sel.Bind(m.ID)
+	row, res, err := sel.ExecFirst()
+	if database.MysqlError(err) {
+		return 0, err
+	}
+	msort := res.Map("menuSort")
+	sort := row.Int(msort)
+	sort += 1
+	return sort, nil
+}
+
 func (m *MenuItem) SetSort() {
 	upd, err := database.GetStatement("updateMenuItemSortStmt")
 	if err != nil {
@@ -736,6 +743,26 @@ func (m *MenuItem) SetSort() {
 		log.Println(err)
 	}
 	return
+}
+
+func (m *MenuItem) SaveLink() error {
+	menu := Menu{ID: m.MenuID}
+	sort, err := menu.GetNextSort()
+	if err != nil {
+		return err
+	}
+
+	ins, err := database.GetStatement("addMenuLinkItemStmt")
+	if err != nil {
+		return err
+	}
+
+	ins.Bind(m.MenuID, m.Title, m.Link, m.LinkTarget, sort)
+	_, _, err = ins.Exec()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func SetPrimaryContent(id int) {
@@ -761,6 +788,41 @@ func SetPrimaryContent(id int) {
 
 func (m *MenuItems) SortItems() {
 	sort.Sort(m)
+}
+
+func (c *Content) Check() (names []string) {
+	sel, err := database.GetStatement("checkContentStmt")
+	if err != nil {
+		log.Println(err)
+		return names
+	}
+	sel.Bind(c.ID)
+	rows, res, err := sel.Exec()
+	if err != nil {
+		log.Println(err)
+		return names
+	}
+	name := res.Map("menu_name")
+	for _, row := range rows {
+		names = append(names, row.Str(name))
+	}
+
+	return names
+}
+
+func (c *Content) Delete() bool {
+	del, err := database.GetStatement("deleteContentStmt")
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	del.Bind(c.ID)
+	_, _, err = del.Exec()
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 func (m MenuItems) Len() int           { return len(m) }

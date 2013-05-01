@@ -39,7 +39,7 @@ $(document).ready(function () {
             if (data.length == 0) {
                 if (confirm("Are you sure you want to delete this content page?")) {
                     $.post("/Website/DeleteContent/" + idstr, function (data) {
-                        if (data == "success") {
+                        if (data.Success) {
                             $('#page_' + idstr).fadeOut('fast', function () {
                                 $('#page_' + idstr).remove();
                             })
@@ -50,7 +50,7 @@ $(document).ready(function () {
             } else {
                 var alertmessage = "This content page is currently in " + data.length + " menus:";
                 for (var i = 0; i < data.length; i++) {
-                    alertmessage += "\n" + data[i].menuName
+                    alertmessage += "\n" + data[i].MenuName
                 }
                 alertmessage += "\nYou must remove this page from those menus before it can be deleted."
                 alert(alertmessage);

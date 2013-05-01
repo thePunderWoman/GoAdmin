@@ -1,0 +1,46 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/Website/Contents">Manage Content</a>
+    </li>
+    <li>
+        <a href="/Website/Menus">Manage Menus</a>
+    </li>
+    <li class="add">
+        <a href="/Website/Link/Add/{{ .menuID }}" class="active">Add Link</a>
+    </li>
+    <li class="add">
+        <a href="/Website/Content/Add/{{ .menuID }}">Add Content</a>
+    </li>
+</ul>
+
+<div id="content_container">
+    <h2>Add a Link to the Menu</h2>
+
+    {{ with .error }}
+        <p style="font-weight: bold; color: Red;">{{ . }}</p>
+    {{ end }}
+    <form action="/Website/Link/Add/{{ .menuID }}" Method="post" class="form_left">
+        <!-- Item Name -->
+        <label for="link_name">
+            Title
+            <input type="text" name="link_name" id="link_name" placeholder="Enter the title of the link..." />
+        </label>
+
+        <label for="link_value">
+            Value
+            <input type="text" name="link_value" id="link_value" placeholder="Enter the value of the link..." />
+        </label>
+
+        <label for="link_target">
+            Open in a New Window?
+            <input type="checkbox" name="link_target" id="link_target" value="true"  />
+        </label>
+
+        <div id="buttons">
+            <input type="submit" name="btnSave" id="btnSave" value="Save" />
+            <input type="reset" name="btnReset" id="btnReset" value="Reset" />
+        </div>
+    </form>
+</div>
+{{ end }}

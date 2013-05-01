@@ -5,9 +5,9 @@ import (
 	"../../models"
 	"log"
 	"net/http"
-	_ "net/url"
+	"net/url"
 	"strconv"
-	_ "strings"
+	"strings"
 	"time"
 )
 
@@ -291,4 +291,86 @@ func SetPrimaryContent(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	http.Redirect(w, r, "/Website", http.StatusFound)
+}
+
+func AddLink(w http.ResponseWriter, r *http.Request) {
+	tmpl := plate.NewTemplate(w)
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	error, _ := url.QueryUnescape(params.Get("error"))
+	if len(strings.TrimSpace(error)) > 0 {
+		tmpl.Bag["error"] = error
+	}
+	tmpl.Bag["menuID"] = id
+	tmpl.ParseFile("templates/website/navigation.html", false)
+	tmpl.ParseFile("templates/website/addlink.html", false)
+
+	err = tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func SaveLink(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	name := strings.TrimSpace(r.FormValue("link_name"))
+	value := strings.TrimSpace(r.FormValue("link_value"))
+	target, _ := strconv.ParseBool(r.FormValue("link_target"))
+	if name == "" || value == "" {
+		http.Redirect(w, r, "/Website/Link/Add/"+strconv.Itoa(id)+"?error="+url.QueryEscape("Title and Value are required"), http.StatusFound)
+	}
+	item := models.MenuItem{
+		MenuID:     id,
+		Title:      name,
+		Link:       value,
+		LinkTarget: target,
+	}
+	err = item.SaveLink()
+	if err != nil {
+		http.Redirect(w, r, "/Website/Link/Add/"+strconv.Itoa(id)+"?error="+url.QueryEscape(err.Error()), http.StatusFound)
+	}
+	http.Redirect(w, r, "/Website/Menu/"+strconv.Itoa(id), http.StatusFound)
+}
+
+func CheckContent(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	content := models.Content{ID: id}
+	menujson := make([]struct{ MenuName string }, 0)
+	menus := content.Check()
+	if len(menus) > 0 {
+		for _, menu := range menus {
+			m := struct {
+				MenuName string
+			}{MenuName: menu}
+			menujson = append(menujson, m)
+		}
+	}
+	plate.ServeFormatted(w, r, menujson)
+}
+
+func DeleteContent(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	content := models.Content{ID: id}
+	successobj := struct{ Success bool }{Success: content.Delete()}
+
+	plate.ServeFormatted(w, r, successobj)
 }

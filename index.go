@@ -70,6 +70,10 @@ func main() {
 	server.Post("/Website/AddContentToMenu", website.AddContentToMenu)
 	server.Post("/Website/RemoveContentAjax/:id", website.RemoveContentAjax)
 	server.Get("/Website/SetPrimaryContent/:id/:menuid", website.SetPrimaryContent)
+	server.Get("/Website/Link/Add/:id", website.AddLink)
+	server.Post("/Website/Link/Add/:id", website.SaveLink)
+	server.Get("/Website/checkContent/:id", website.CheckContent)
+	server.Post("/Website/DeleteContent/:id", website.DeleteContent)
 
 	// Home page route
 	server.Get("/", controllers.Index)

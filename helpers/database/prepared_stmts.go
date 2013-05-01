@@ -62,7 +62,7 @@ func PrepareCurtDev() error {
 	UnPreparedStatements := make(map[string]string, 0)
 
 	// Website Statements
-	UnPreparedStatements["getAllSiteContentStmt"] = "select * from SiteContent order by page_title"
+	UnPreparedStatements["getAllSiteContentStmt"] = "select * from SiteContent WHERE active = 1 order by page_title"
 	UnPreparedStatements["getPrimaryMenuStmt"] = "select * from Menu where isPrimary = 1"
 	UnPreparedStatements["getMenuByIDStmt"] = "select * from Menu where menuID = ?"
 	UnPreparedStatements["getMenuItemsStmt"] = `select MSC.menuContentID, MSC.menuID, MSC.menuSort, MSC.menuTitle, MSC.menuLink, MSC.parentID, MSC.linkTarget, SC.* from Menu_SiteContent AS MSC 
@@ -89,6 +89,10 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["DeleteMenuItemStmt"] = "delete from Menu_SiteContent where menuContentID = ?"
 	UnPreparedStatements["clearPrimaryContentStmt"] = "update SiteContent set isPrimary = 0 WHERE isPrimary = 1"
 	UnPreparedStatements["setPrimaryContentStmt"] = "update SiteContent set isPrimary = 1 WHERE contentID = ?"
+	UnPreparedStatements["deleteContentStmt"] = "update SiteContent set active = 0 WHERE contentID = ?"
+	UnPreparedStatements["checkContentStmt"] = `select M.menu_name FROM Menu AS M
+												INNER JOIN Menu_SiteContent AS MSC ON M.menuID = MSC.menuID
+												WHERE MSC.contentID = ?`
 
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()
