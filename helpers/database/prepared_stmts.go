@@ -89,10 +89,15 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["DeleteMenuItemStmt"] = "delete from Menu_SiteContent where menuContentID = ?"
 	UnPreparedStatements["clearPrimaryContentStmt"] = "update SiteContent set isPrimary = 0 WHERE isPrimary = 1"
 	UnPreparedStatements["setPrimaryContentStmt"] = "update SiteContent set isPrimary = 1 WHERE contentID = ?"
+	UnPreparedStatements["getContentStmt"] = "select * from SiteContent WHERE contentID = ?"
 	UnPreparedStatements["deleteContentStmt"] = "update SiteContent set active = 0 WHERE contentID = ?"
 	UnPreparedStatements["checkContentStmt"] = `select M.menu_name FROM Menu AS M
 												INNER JOIN Menu_SiteContent AS MSC ON M.menuID = MSC.menuID
 												WHERE MSC.contentID = ?`
+	UnPreparedStatements["addContentStmt"] = `insert into SiteContent (page_title,content_type,createdDate,lastModified,meta_title,meta_description,keywords,isPrimary,published,active,slug,requireAuthentication,canonical)
+											  VALUES (?,"",?,?,?,?,?,0,?,1,?,?,?)`
+	UnPreparedStatements["addContentRevisionStmt"] = `insert into SiteContentRevision (contentID,content_text,createdOn,active)
+													  VALUES (?,?,?,?)`
 
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()

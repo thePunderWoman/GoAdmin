@@ -5,6 +5,7 @@ import (
 	_ "errors"
 	"github.com/ziutek/mymysql/mysql"
 	"log"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -56,10 +57,9 @@ type Content struct {
 	Slug            string
 	RequireAuth     bool
 	Canonical       string
-	Revisions       []ContentRevision
+	Revisions       ContentRevisions
 	ActiveRevision  ContentRevision
 }
-
 type ContentRevision struct {
 	ID          int
 	ContentID   int
@@ -67,6 +67,7 @@ type ContentRevision struct {
 	CreatedOn   time.Time
 	Active      bool
 }
+type ContentRevisions []ContentRevision
 
 func GetAllSiteContent() (contents []Content, err error) {
 	sel, err := database.GetStatement("getAllSiteContentStmt")
@@ -109,9 +110,9 @@ func PopulateContent(row mysql.Row, res mysql.Result, ch chan Content) {
 	var content Content
 
 	id := row.Int(cid)
-	revCh := make(chan []ContentRevision)
+	revCh := make(chan ContentRevisions)
 	go GetContentRevisions(id, revCh)
-
+	revisions := <-revCh
 	content = Content{
 		ID:              id,
 		ContentType:     row.Str(contentType),
@@ -127,9 +128,9 @@ func PopulateContent(row mysql.Row, res mysql.Result, ch chan Content) {
 		Slug:            row.Str(slug),
 		RequireAuth:     row.Bool(requireAuth),
 		Canonical:       row.Str(canonical),
-		Revisions:       <-revCh,
+		Revisions:       revisions,
+		ActiveRevision:  revisions.GetActiveRevision(),
 	}
-
 	ch <- content
 }
 
@@ -394,8 +395,8 @@ func (i *MenuItem) HasContent() bool {
 	return i.ContentID > 0
 }
 
-func GetContentRevisions(id int, ch chan []ContentRevision) {
-	revisions := make([]ContentRevision, 0)
+func GetContentRevisions(id int, ch chan ContentRevisions) {
+	var revisions ContentRevisions
 	if id > 0 {
 		sel, err := database.GetStatement("GetContentRevisionsStmt")
 		if err != nil {
@@ -418,8 +419,28 @@ func GetContentRevisions(id int, ch chan []ContentRevision) {
 		}
 
 	}
-
+	revisions.Sort()
 	ch <- revisions
+}
+
+func (r ContentRevisions) GetActiveRevision() ContentRevision {
+	for _, revision := range r {
+		if revision.Active {
+			return revision
+		}
+	}
+	var active ContentRevision
+	return active
+}
+
+func (r ContentRevisions) GetRevision(id int) ContentRevision {
+	for _, revision := range r {
+		if revision.ID == id {
+			return revision
+		}
+	}
+	var active ContentRevision
+	return active
 }
 
 func PopulateRevision(row mysql.Row, res mysql.Result, ch chan ContentRevision) {
@@ -790,6 +811,10 @@ func (m *MenuItems) SortItems() {
 	sort.Sort(m)
 }
 
+func (r *ContentRevisions) Sort() {
+	sort.Sort(r)
+}
+
 func (c *Content) Check() (names []string) {
 	sel, err := database.GetStatement("checkContentStmt")
 	if err != nil {
@@ -810,6 +835,23 @@ func (c *Content) Check() (names []string) {
 	return names
 }
 
+func (c *Content) Get() (Content, error) {
+	var content Content
+	sel, err := database.GetStatement("getContentStmt")
+	if err != nil {
+		return content, err
+	}
+	sel.Bind(c.ID)
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return content, err
+	}
+	ch := make(chan Content)
+	go PopulateContent(row, res, ch)
+	content = <-ch
+	return content, nil
+}
+
 func (c *Content) Delete() bool {
 	del, err := database.GetStatement("deleteContentStmt")
 	if err != nil {
@@ -825,6 +867,72 @@ func (c *Content) Delete() bool {
 	return true
 }
 
-func (m MenuItems) Len() int           { return len(m) }
-func (m MenuItems) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
-func (m MenuItems) Less(i, j int) bool { return m[i].Sort < m[j].Sort }
+func (c *Content) Save(pagecontent string) error {
+	ins, err := database.GetStatement("addContentStmt")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	params := struct {
+		Title       string
+		Created     time.Time
+		Modified    time.Time
+		MetaTitle   string
+		MetaDesc    string
+		Keywords    string
+		Published   bool
+		Slug        string
+		RequireAuth bool
+		Canonical   string
+	}{
+		Title:       c.PageTitle,
+		Created:     time.Now().In(UTC),
+		Modified:    time.Now().In(UTC),
+		MetaTitle:   c.MetaTitle,
+		MetaDesc:    c.MetaDescription,
+		Keywords:    c.Keywords,
+		Published:   c.Published,
+		Slug:        GenerateSlug(c.PageTitle),
+		RequireAuth: c.RequireAuth,
+		Canonical:   c.Canonical,
+	}
+
+	ins.Bind(&params)
+	_, res, err := ins.Exec()
+	if err != nil {
+		return err
+	}
+	id := res.InsertId()
+	c.ID = int(id)
+
+	ins2, err := database.GetStatement("addContentRevisionStmt")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	ins2.Reset()
+	ins2.Bind(c.ID, pagecontent, time.Now().In(UTC), true)
+	_, _, err = ins2.Exec()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m MenuItems) Len() int                  { return len(m) }
+func (m MenuItems) Swap(i, j int)             { m[i], m[j] = m[j], m[i] }
+func (m MenuItems) Less(i, j int) bool        { return m[i].Sort < m[j].Sort }
+func (r ContentRevisions) Len() int           { return len(r) }
+func (r ContentRevisions) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
+func (r ContentRevisions) Less(i, j int) bool { return r[i].CreatedOn.Before(r[j].CreatedOn) }
+
+func GenerateSlug(title string) string {
+	slug := strings.ToLower(title)
+	invchars := regexp.MustCompile(`[^a-zA-Z0-9\s-]`)
+	underscores := regexp.MustCompile(`\s+`)
+
+	slug = invchars.ReplaceAllString(slug, "")
+	slug = underscores.ReplaceAllString(slug, "_")
+
+	return slug
+}

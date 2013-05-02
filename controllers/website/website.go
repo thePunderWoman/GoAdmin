@@ -421,6 +421,9 @@ func AddContent(w http.ResponseWriter, r *http.Request) {
 func SaveContent(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.FormValue("menuid"))
 	reqauth, _ := strconv.ParseBool(r.FormValue("requireAuthentication"))
+	publish, _ := strconv.ParseBool(r.FormValue("publish"))
+	addtomenu, _ := strconv.ParseBool(r.FormValue("addtomenu"))
+	pagecontent := r.FormValue("page_content")
 	content := models.Content{
 		PageTitle:       r.FormValue("page_title"),
 		Keywords:        r.FormValue("keywords"),
@@ -428,11 +431,68 @@ func SaveContent(w http.ResponseWriter, r *http.Request) {
 		MetaDescription: r.FormValue("meta_description"),
 		Canonical:       r.FormValue("canonical"),
 		RequireAuth:     reqauth,
+		Published:       publish,
 	}
-	cjson, _ := json.Marshal(&content)
-	session, _ := store.Get(r, "adminstuffs")
-	session.AddFlash(string(cjson), "content")
-	session.AddFlash(r.FormValue("page_content"), "htmlcontent")
-	session.Save(r, w)
-	http.Redirect(w, r, "/Website/Content/Add/"+strconv.Itoa(id), http.StatusFound)
+	err := content.Save(pagecontent)
+	if err != nil {
+		cjson, _ := json.Marshal(&content)
+		session, _ := store.Get(r, "adminstuffs")
+		session.AddFlash(string(cjson), "content")
+		session.AddFlash(pagecontent, "htmlcontent")
+		session.Save(r, w)
+		http.Redirect(w, r, "/Website/Content/Add/"+strconv.Itoa(id)+"?error="+url.QueryEscape("Page Title is required"), http.StatusFound)
+		return
+	}
+	if addtomenu && id > 0 {
+		menu := models.Menu{ID: id}
+		menu.AddContent(content.ID)
+	}
+	http.Redirect(w, r, "/Website/Menu/"+strconv.Itoa(id), http.StatusFound)
+}
+
+func EditContent(w http.ResponseWriter, r *http.Request) {
+	tmpl := plate.NewTemplate(w)
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	revid, err := strconv.Atoi(params.Get(":revisionid"))
+	if err != nil {
+		revid = 0
+	}
+	error, _ := url.QueryUnescape(params.Get("error"))
+	if len(strings.TrimSpace(error)) > 0 {
+		tmpl.Bag["error"] = error
+	}
+	tmpl.FuncMap["isNotZero"] = func(num int) bool {
+		return num != 0
+	}
+
+	content := models.Content{ID: id}
+	content, err = content.Get()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	tmpl.FuncMap["formatDate"] = func(dt time.Time) string {
+		tlayout := "Mon, 01/02/06, 3:04PM MST"
+		Local, _ := time.LoadLocation("US/Central")
+		return dt.In(Local).Format(tlayout)
+	}
+	revision := content.ActiveRevision
+	if revid != 0 {
+		revision = content.Revisions.GetRevision(revid)
+	}
+	tmpl.Bag["content"] = content
+	tmpl.Bag["revision"] = revision
+	tmpl.ParseFile("templates/website/navigation.html", false)
+	tmpl.ParseFile("templates/website/editcontent.html", false)
+
+	err = tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+
 }

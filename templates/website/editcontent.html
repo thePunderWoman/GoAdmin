@@ -1,0 +1,141 @@
+{{ define "content" }}
+<style type="text/css">
+    div#revisions {
+        display: block;
+        width: 600px;
+        padding-bottom: 10px;
+    }
+
+    #revisions .dataTables_wrapper {
+        min-height: 0;
+    }
+
+    #revisions table {
+        border-collapse: collapse;
+    }
+
+    #revisions table td {
+        padding: 4px 10px;
+    }
+
+    #revisions table tr.active {
+        background-color: #dedede;
+    }
+
+    #revisions table tr td:nth-child(3), table#revisions tr td:nth-child(2) {
+        text-align: center;
+    }
+
+    span.active {
+        color: Green;
+    }
+    span.inactive {
+        color: red;
+    }
+</style>
+
+<script type="text/javascript" src="http://ck.curtmfg.com/ckeditor.js"></script>
+<input type="hidden" id="revID" value="revision.revisionID" />
+<ul id="subNav">
+    <li>
+        <a href="/Website">Manage Content</a>
+    </li>
+    <li>
+        <a href="/Website/Menus">Manage Menus</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>Edit Page: {{ .content.PageTitle }}</h2>
+
+    {{ with .error }}
+        <p style="font-weight: bold; color: Red;">{{ . }}</p>
+    {{ end }}
+    {{ with .message }}
+        <p style="font-weight: bold; color: Green;">{{ . }}</p>
+    {{ end }}
+
+    <h3>Revisions</h3>
+    <div id="revisions">
+        <table>
+            <thead><tr><th>Revision Date</th><th>Active</th><th></th></tr></thead>
+            <tbody>
+                {{ range .content.Revisions }}
+                <tr {{ if .Active }} class="active" {{ end }} id="rev{{ .ID }}">
+                    <td>{{ formatDate .CreatedOn }}</td>
+                    <td>
+                        {{ if .Active }}
+                            Active
+                        {{ else }}
+                            <a class="activate" href="/Website/ActivateRevision/{{ .ID }}">Make Active</a>
+                        {{ end }}
+                    </td>
+                    <td>
+                        <a href="/Website/Content/Edit/{{ .ContentID }}/{{ .ID }}" data-id="{{ .ID }}" class="edit">Edit</a> <span class="editafter">|</span>
+                        <a href="/Website/CopyRevision/{{ .ID }}" data-id="{{ .ID }}" class="copy">Copy</a> <span class="delbefore">|</span>
+                        <a href="/Website/DeleteRevision/{{ .ID }}" data-id="{{ .ID }}" class="delete">Delete</a>
+                    </td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+    </div>
+
+    <form action="/Website/Content/Edit/{{ .content.ID }}/{{ .revision.ID }}" Method="post" id="saveform" class="form_left">
+
+        <!-- Item Name -->
+        <label for="page_title">
+            Title
+            <input type="text" name="page_title" id="page_title" placeholder="Enter the title of the page..." value="{{ .content.PageTitle }}" />
+        </label>
+
+        <label for="page_content" id="label_page_content">
+            Content: Revision <span id="revisionDate">{{ formatDate .revision.CreatedOn }} <span class="{{ if .revision.Active }}active{{ else }}inactive{{end}}">({{ if .revision.Active }}ACTIVE{{ else }}NOT ACTIVE{{end}})</span></span>
+            <br />
+            <textarea name="page_content" class="page_content" rows="10" cols="50" id="page_content" placeholder="Enter the Page Content">{{ .revision.ContentText }}</textarea>
+        </label>
+
+        <label for="keywords">
+            Keywords
+            <input type="text" name="keywords" id="keywords" placeholder="Enter the keywords" value="{{ .content.Keywords }}" />
+        </label>
+
+        <label for="meta_title">
+            Meta Title
+            <input type="text" name="meta_title" id="meta_title" placeholder="Enter the SEO Title" value="{{ .content.MetaTitle }}" />
+        </label>
+
+        <label for="meta_description">
+            Meta Description
+            <input type="text" name="meta_description" id="meta_description" placeholder="Enter the SEO Description" value="{{ .content.MetaDescription }}" />
+        </label>
+
+        <label for="canonical">
+            Canonical Link
+            <input type="text" name="canonical" id="canonical" placeholder="Enter the Canonical Link" value="{{ .content.Canonical }}" />
+        </label>
+
+        {{ if .content.Published }}
+            <input type="hidden" name="publish" id="publish" value="false" />
+        {{ else }}
+            <label for="publish">
+                Published
+                <input type="checkbox" name="publish" id="publish" value="true" checked />
+            </label>
+        {{ end }}
+
+        <label for="requireAuthentication">
+            Require User Login to View?
+            <input type="checkbox" name="requireAuthentication" id="requireAuthentication" value="true" {{ if .content.RequireAuth }} checked="checked" {{ end }} />
+        </label>
+
+        <div id="buttons">
+            <a href="/Website/" title="Cancel" id="btnCancel" class="cancel">Cancel</a>
+            {{ if not .content.Published }}
+                <input type="button" id="btnSubmitPublish" name="btnSubmitPublish" value="Save &amp; Publish" />
+            {{ end }}
+            <input type="submit" id="btnSave" name="btnSave" value="Save" />
+        </div>
+    </form>
+</div>
+<script src="/js/admin/editcontent.js"></script>
+{{ end }}
