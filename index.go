@@ -74,6 +74,8 @@ func main() {
 	server.Post("/Website/Link/Add/:id", website.SaveLink)
 	server.Get("/Website/checkContent/:id", website.CheckContent)
 	server.Post("/Website/DeleteContent/:id", website.DeleteContent)
+	server.Post("/Website/Content/Add", website.SaveContent)
+	server.Get("/Website/Content/Add/:id", website.AddContent)
 
 	// Home page route
 	server.Get("/", controllers.Index)

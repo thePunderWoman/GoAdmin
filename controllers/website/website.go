@@ -3,6 +3,8 @@ package website
 import (
 	"../../helpers/plate"
 	"../../models"
+	"encoding/json"
+	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,6 +12,8 @@ import (
 	"strings"
 	"time"
 )
+
+var store = sessions.NewCookieStore([]byte("adminstuffs"))
 
 func Index(w http.ResponseWriter, r *http.Request) {
 
@@ -373,4 +377,62 @@ func DeleteContent(w http.ResponseWriter, r *http.Request) {
 	successobj := struct{ Success bool }{Success: content.Delete()}
 
 	plate.ServeFormatted(w, r, successobj)
+}
+
+func AddContent(w http.ResponseWriter, r *http.Request) {
+	tmpl := plate.NewTemplate(w)
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	error, _ := url.QueryUnescape(params.Get("error"))
+	if len(strings.TrimSpace(error)) > 0 {
+		tmpl.Bag["error"] = error
+	}
+	tmpl.FuncMap["isNotZero"] = func(num int) bool {
+		return num != 0
+	}
+	content := models.Content{}
+	session, _ := store.Get(r, "adminstuffs")
+	if contents := session.Flashes("content"); len(contents) > 0 {
+		json.Unmarshal([]byte(contents[0].(string)), &content)
+	}
+	pagecontent := ""
+	if htmlcontent := session.Flashes("htmlcontent"); len(htmlcontent) > 0 {
+		pagecontent = htmlcontent[0].(string)
+	}
+	session.Save(r, w)
+
+	tmpl.Bag["content"] = content
+	tmpl.Bag["pagecontent"] = pagecontent
+	tmpl.Bag["menuID"] = id
+	tmpl.ParseFile("templates/website/navigation.html", false)
+	tmpl.ParseFile("templates/website/addcontent.html", false)
+
+	err = tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+
+}
+
+func SaveContent(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.FormValue("menuid"))
+	reqauth, _ := strconv.ParseBool(r.FormValue("requireAuthentication"))
+	content := models.Content{
+		PageTitle:       r.FormValue("page_title"),
+		Keywords:        r.FormValue("keywords"),
+		MetaTitle:       r.FormValue("meta_title"),
+		MetaDescription: r.FormValue("meta_description"),
+		Canonical:       r.FormValue("canonical"),
+		RequireAuth:     reqauth,
+	}
+	cjson, _ := json.Marshal(&content)
+	session, _ := store.Get(r, "adminstuffs")
+	session.AddFlash(string(cjson), "content")
+	session.AddFlash(r.FormValue("page_content"), "htmlcontent")
+	session.Save(r, w)
+	http.Redirect(w, r, "/Website/Content/Add/"+strconv.Itoa(id), http.StatusFound)
 }

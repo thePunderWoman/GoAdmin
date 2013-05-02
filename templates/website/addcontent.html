@@ -1,0 +1,97 @@
+{{ define "content" }}
+<script type="text/javascript" src="http://ck.curtmfg.com/ckeditor.js"></script>
+
+<ul id="subNav">
+    <li>
+        <a href="/Website/Contents">Manage Content</a>
+    </li>
+    <li>
+        <a href="/Website/Menus">Manage Menus</a>
+    </li>
+    <li class="add">
+        <a href="/Website/Link/Add/{{ .menuID }}">Add Link</a>
+    </li>
+    <li class="add">
+        <a href="/Website/Content/Add/{{ .menuID }}" class="active">Add Content</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>Add a Content Page</h2>
+
+    {{ with .error }}
+        <p style="font-weight: bold; color: Red;">{{ . }}</p>
+    {{ end }}
+    <form action="/Website/Content/Add" Method="post" id="saveform" class="form_left">
+        <input type="hidden" name="publish" id="publish" value="false" />
+        <input type="hidden" name="menuid" value="{{ .menuID }}" />
+
+        <!-- Item Name -->
+        <label for="page_title">
+            Title
+            <input type="text" name="page_title" id="page_title" placeholder="Enter the title of the page..." value="{{ .content.PageTitle }}" required title="Page Title is required"/>
+        </label>
+
+        <label for="page_content" id="label_page_content">
+            Content
+            <br />
+            <textarea name="page_content" class="page_content" rows="10" cols="50" id="page_content" placeholder="Enter the Page Content">{{ .pagecontent }}</textarea>
+        </label>
+
+        <label for="keywords">
+            Keywords
+            <input type="text" name="keywords" id="keywords" placeholder="Enter the keywords" value="{{ .content.Keywords }}" />
+        </label>
+
+        <label for="meta_title">
+            Meta Title
+            <input type="text" name="meta_title" id="meta_title" placeholder="Enter the SEO Title" value="{{ .content.MetaTitle }}" />
+        </label>
+
+        <label for="meta_description">
+            Meta Description
+            <input type="text" name="meta_description" id="meta_description" placeholder="Enter the SEO Description" value="{{ .content.MetaDescription }}" />
+        </label>
+
+        <label for="canonical">
+            Canonical Link
+            <input type="text" name="canonical" id="canonical" placeholder="Enter the Canonical Link" value="{{ .content.Canonical }}" />
+        </label>
+
+        {{ if isNotZero .menuID }}
+            <label for="addtomenu">
+                Add to Menu on Save?
+                <input type="checkbox" name="addtomenu" id="addtomenu" value="true" checked />
+            </label>
+        {{ end }}
+
+        <label for="requireAuthentication">
+            Require User Login to View?
+            <input type="checkbox" name="requireAuthentication" id="requireAuthentication" value="true" {{ if .content.RequireAuth }} checked="checked" {{ end }} />
+        </label>
+
+        <div id="buttons">
+            <a href="/Website/" title="Cancel" id="btnCancel" class="cancel">Cancel</a>
+            <input type="button" id="btnSubmitPublish" name="btnSubmitPublish" value="Save & Publish" />
+            <input type="submit" id="btnSave" name="btnSave" value="Save" />
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+
+        CKEDITOR.replace('page_content', {
+            filebrowserImageUploadUrl: '/File/CKUpload',
+            filebrowserImageBrowseUrl: '/File/CKIndex',
+            filebrowserImageWindowWidth: '640',
+            filebrowserImageWindowHeight: '480'
+        });
+
+        $('#btnSubmitPublish').click(function () {
+            $('#publish').val("true");
+            $('#saveform').submit();
+        });
+
+    });
+</script>
+{{ end }}
