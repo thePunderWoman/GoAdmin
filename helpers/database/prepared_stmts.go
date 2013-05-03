@@ -81,6 +81,7 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["getMenuSortStmt"] = "select menuSort from Menu_SiteContent WHERE menuID = ? order by menuSort DESC"
 	UnPreparedStatements["addMenuContentItemStmt"] = "INSERT INTO Menu_SiteContent (menuID,contentID,menuSort,parentID) VALUES (?,?,?,0)"
 	UnPreparedStatements["addMenuLinkItemStmt"] = "INSERT INTO Menu_SiteContent (menuID,menuTitle,menuLink,linkTarget,menuSort,contentID,parentID) VALUES (?,?,?,?,?,0,0)"
+	UnPreparedStatements["updateMenuLinkItemStmt"] = "UPDATE Menu_SiteContent set menuTitle = ?, menuLink = ?, linkTarget = ? WHERE menuContentID = ?"
 	UnPreparedStatements["getMenuItemStmt"] = `select MSC.menuContentID, MSC.menuID, MSC.menuSort, MSC.menuTitle, MSC.menuLink, MSC.parentID, MSC.linkTarget, SC.* from Menu_SiteContent AS MSC 
 												INNER JOIN Menu AS M ON MSC.menuID = M.menuID
 												LEFT JOIN SiteContent AS SC ON MSC.contentID = SC.contentID
@@ -96,8 +97,17 @@ func PrepareCurtDev() error {
 												WHERE MSC.contentID = ?`
 	UnPreparedStatements["addContentStmt"] = `insert into SiteContent (page_title,content_type,createdDate,lastModified,meta_title,meta_description,keywords,isPrimary,published,active,slug,requireAuthentication,canonical)
 											  VALUES (?,"",?,?,?,?,?,0,?,1,?,?,?)`
+	UnPreparedStatements["updateContentStmt"] = `update SiteContent set page_title = ?, meta_title = ?, meta_description = ?,keywords = ?, published = ?, slug = ?, requireAuthentication = ?, canonical = ?
+											     where contentID = ?`
 	UnPreparedStatements["addContentRevisionStmt"] = `insert into SiteContentRevision (contentID,content_text,createdOn,active)
 													  VALUES (?,?,?,?)`
+	UnPreparedStatements["updateContentRevisionStmt"] = `update SiteContentRevision Set content_text = ? WHERE revisionID = ?`
+	UnPreparedStatements["copyContentRevisionStmt"] = `insert into SiteContentRevision (contentID,content_text,createdOn,active)
+													   (select contentID,content_text,?,0 from SiteContentRevision WHERE revisionID = ?)`
+	UnPreparedStatements["getRevisionContentIDStmt"] = `select contentID from SiteContentRevision WHERE revisionID = ?`
+	UnPreparedStatements["deactivateContentRevisionStmt"] = `update SiteContentRevision set active = 0 WHERE contentID = ? and active = 1`
+	UnPreparedStatements["activateContentRevisionStmt"] = `update SiteContentRevision set active = 1 WHERE revisionID = ?`
+	UnPreparedStatements["deleteContentRevisionStmt"] = `delete from SiteContentRevision WHERE revisionID = ?`
 
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()

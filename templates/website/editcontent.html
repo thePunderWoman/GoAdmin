@@ -35,7 +35,7 @@
 </style>
 
 <script type="text/javascript" src="http://ck.curtmfg.com/ckeditor.js"></script>
-<input type="hidden" id="revID" value="revision.revisionID" />
+<input type="hidden" id="revID" value="{{ .revision.ID }}" />
 <ul id="subNav">
     <li>
         <a href="/Website">Manage Content</a>
@@ -115,7 +115,7 @@
         </label>
 
         {{ if .content.Published }}
-            <input type="hidden" name="publish" id="publish" value="false" />
+            <input type="hidden" name="publish" id="publish" value="true" />
         {{ else }}
             <label for="publish">
                 Published

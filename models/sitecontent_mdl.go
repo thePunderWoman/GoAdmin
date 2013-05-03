@@ -395,6 +395,26 @@ func (i *MenuItem) HasContent() bool {
 	return i.ContentID > 0
 }
 
+func (i *MenuItem) Get() (MenuItem, error) {
+	var item MenuItem
+	if i.ID > 0 {
+		sel, err := database.GetStatement("getMenuItemStmt")
+		if err != nil {
+			return item, err
+		}
+		sel.Bind(i.ID)
+		row, res, err := sel.ExecFirst()
+		if err != nil {
+			return item, err
+		}
+		mch := make(chan MenuItem)
+		go PopulateMenuItem(row, res, mch)
+		item = <-mch
+
+	}
+	return item, nil
+}
+
 func GetContentRevisions(id int, ch chan ContentRevisions) {
 	var revisions ContentRevisions
 	if id > 0 {
@@ -767,21 +787,37 @@ func (m *MenuItem) SetSort() {
 }
 
 func (m *MenuItem) SaveLink() error {
-	menu := Menu{ID: m.MenuID}
-	sort, err := menu.GetNextSort()
-	if err != nil {
-		return err
-	}
+	if m.ID > 0 {
+		// update item
+		upd, err := database.GetStatement("updateMenuLinkItemStmt")
+		if err != nil {
+			return err
+		}
 
-	ins, err := database.GetStatement("addMenuLinkItemStmt")
-	if err != nil {
-		return err
-	}
+		upd.Bind(m.Title, m.Link, m.LinkTarget, m.ID)
+		_, _, err = upd.Exec()
+		if err != nil {
+			return err
+		}
 
-	ins.Bind(m.MenuID, m.Title, m.Link, m.LinkTarget, sort)
-	_, _, err = ins.Exec()
-	if err != nil {
-		return err
+	} else {
+		// new item
+		menu := Menu{ID: m.MenuID}
+		sort, err := menu.GetNextSort()
+		if err != nil {
+			return err
+		}
+
+		ins, err := database.GetStatement("addMenuLinkItemStmt")
+		if err != nil {
+			return err
+		}
+
+		ins.Bind(m.MenuID, m.Title, m.Link, m.LinkTarget, sort)
+		_, _, err = ins.Exec()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -867,52 +903,185 @@ func (c *Content) Delete() bool {
 	return true
 }
 
-func (c *Content) Save(pagecontent string) error {
-	ins, err := database.GetStatement("addContentStmt")
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	params := struct {
-		Title       string
-		Created     time.Time
-		Modified    time.Time
-		MetaTitle   string
-		MetaDesc    string
-		Keywords    string
-		Published   bool
-		Slug        string
-		RequireAuth bool
-		Canonical   string
-	}{
-		Title:       c.PageTitle,
-		Created:     time.Now().In(UTC),
-		Modified:    time.Now().In(UTC),
-		MetaTitle:   c.MetaTitle,
-		MetaDesc:    c.MetaDescription,
-		Keywords:    c.Keywords,
-		Published:   c.Published,
-		Slug:        GenerateSlug(c.PageTitle),
-		RequireAuth: c.RequireAuth,
-		Canonical:   c.Canonical,
+func (c *Content) Save(revision ContentRevision) error {
+	if c.ID == 0 {
+		// new content
+		ins, err := database.GetStatement("addContentStmt")
+		if err != nil {
+			return err
+		}
+		params := struct {
+			Title       string
+			Created     time.Time
+			Modified    time.Time
+			MetaTitle   string
+			MetaDesc    string
+			Keywords    string
+			Published   bool
+			Slug        string
+			RequireAuth bool
+			Canonical   string
+		}{
+			Title:       c.PageTitle,
+			Created:     time.Now().In(UTC),
+			Modified:    time.Now().In(UTC),
+			MetaTitle:   c.MetaTitle,
+			MetaDesc:    c.MetaDescription,
+			Keywords:    c.Keywords,
+			Published:   c.Published,
+			Slug:        GenerateSlug(c.PageTitle),
+			RequireAuth: c.RequireAuth,
+			Canonical:   c.Canonical,
+		}
+
+		ins.Bind(&params)
+		_, res, err := ins.Exec()
+		if err != nil {
+			return err
+		}
+		id := res.InsertId()
+		c.ID = int(id)
+	} else {
+		// update content
+		upd, err := database.GetStatement("updateContentStmt")
+		if err != nil {
+			return err
+		}
+		params := struct {
+			Title       string
+			MetaTitle   string
+			MetaDesc    string
+			Keywords    string
+			Published   bool
+			Slug        string
+			RequireAuth bool
+			Canonical   string
+			ID          int
+		}{
+			Title:       c.PageTitle,
+			MetaTitle:   c.MetaTitle,
+			MetaDesc:    c.MetaDescription,
+			Keywords:    c.Keywords,
+			Published:   c.Published,
+			Slug:        GenerateSlug(c.PageTitle),
+			RequireAuth: c.RequireAuth,
+			Canonical:   c.Canonical,
+			ID:          c.ID,
+		}
+		upd.Bind(&params)
+		_, _, err = upd.Exec()
+		if err != nil {
+			return err
+		}
 	}
 
-	ins.Bind(&params)
+	if revision.ID == 0 {
+		// new revision
+		ins2, err := database.GetStatement("addContentRevisionStmt")
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		ins2.Reset()
+		ins2.Bind(c.ID, revision.ContentText, time.Now().In(UTC), true)
+		_, _, err = ins2.Exec()
+		if err != nil {
+			return err
+		}
+	} else {
+		// update revision
+		upd2, err := database.GetStatement("updateContentRevisionStmt")
+		if err != nil {
+			return err
+		}
+		upd2.Bind(revision.ContentText, revision.ID)
+		_, _, err = upd2.Exec()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *ContentRevision) Copy() error {
+	ins, err := database.GetStatement("copyContentRevisionStmt")
+	if err != nil {
+		return err
+	}
+	utcnow := time.Now().In(UTC)
+	ins.Bind(utcnow, r.ID)
 	_, res, err := ins.Exec()
-	if err != nil {
-		return err
-	}
 	id := res.InsertId()
-	c.ID = int(id)
-
-	ins2, err := database.GetStatement("addContentRevisionStmt")
+	sel, err := database.GetStatement("getRevisionContentIDStmt")
 	if err != nil {
-		log.Println(err)
 		return err
 	}
-	ins2.Reset()
-	ins2.Bind(c.ID, pagecontent, time.Now().In(UTC), true)
-	_, _, err = ins2.Exec()
+	sel.Reset()
+	sel.Bind(id)
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return err
+	}
+	r.ContentID = row.Int(res.Map("contentID"))
+	return nil
+}
+
+func (r *ContentRevision) Activate() error {
+	sel, err := database.GetStatement("getRevisionContentIDStmt")
+	if err != nil {
+		return err
+	}
+	sel.Bind(r.ID)
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return err
+	}
+	r.ContentID = row.Int(res.Map("contentID"))
+
+	upd1, err := database.GetStatement("deactivateContentRevisionStmt")
+	if err != nil {
+		return err
+	}
+	upd1.Reset()
+	upd1.Bind(r.ContentID)
+	_, _, err = upd1.Exec()
+	if err != nil {
+		return err
+	}
+
+	upd2, err := database.GetStatement("activateContentRevisionStmt")
+	if err != nil {
+		return err
+	}
+	upd2.Reset()
+	upd2.Bind(r.ID)
+	_, _, err = upd2.Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *ContentRevision) Delete() error {
+	sel, err := database.GetStatement("getRevisionContentIDStmt")
+	if err != nil {
+		return err
+	}
+	sel.Bind(r.ID)
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return err
+	}
+	r.ContentID = row.Int(res.Map("contentID"))
+
+	del, err := database.GetStatement("deleteContentRevisionStmt")
+	if err != nil {
+		return err
+	}
+	del.Reset()
+	del.Bind(r.ID)
+	_, _, err = del.Exec()
 	if err != nil {
 		return err
 	}

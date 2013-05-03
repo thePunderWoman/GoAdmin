@@ -20,21 +20,21 @@
     {{ with .error }}
         <p style="font-weight: bold; color: Red;">{{ . }}</p>
     {{ end }}
-    <form action="/Website/Link/Add/{{ .menuID }}" Method="post" class="form_left">
+    <form action="/Website/Link/Edit/{{ .item.ID }}" Method="post" class="form_left">
         <!-- Item Name -->
         <label for="link_name">
             Title
-            <input type="text" name="link_name" id="link_name" placeholder="Enter the title of the link..." />
+            <input type="text" name="link_name" id="link_name" placeholder="Enter the title of the link..." value="{{ .item.Title }}" />
         </label>
 
         <label for="link_value">
             Value
-            <input type="text" name="link_value" id="link_value" placeholder="Enter the value of the link..." />
+            <input type="text" name="link_value" id="link_value" placeholder="Enter the value of the link..." value="{{ .item.Link }}" />
         </label>
 
         <label for="link_target">
             Open in a New Window?
-            <input type="checkbox" name="link_target" id="link_target" value="true"  />
+            <input type="checkbox" name="link_target" id="link_target" value="true" {{ if .item.LinkTarget }} checked="checked" {{ end }} />
         </label>
 
         <div id="buttons">

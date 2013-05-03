@@ -319,7 +319,34 @@ func AddLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func SaveLink(w http.ResponseWriter, r *http.Request) {
+func EditLink(w http.ResponseWriter, r *http.Request) {
+	tmpl := plate.NewTemplate(w)
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	error, _ := url.QueryUnescape(params.Get("error"))
+	if len(strings.TrimSpace(error)) > 0 {
+		tmpl.Bag["error"] = error
+	}
+	mi := models.MenuItem{ID: id}
+	item, err := mi.Get()
+	if err != nil {
+		tmpl.Bag["error"] = err.Error()
+	}
+	tmpl.Bag["item"] = item
+	tmpl.ParseFile("templates/website/navigation.html", false)
+	tmpl.ParseFile("templates/website/editlink.html", false)
+
+	err = tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func SaveNewLink(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	id, err := strconv.Atoi(params.Get(":id"))
 	if err != nil {
@@ -331,6 +358,7 @@ func SaveLink(w http.ResponseWriter, r *http.Request) {
 	target, _ := strconv.ParseBool(r.FormValue("link_target"))
 	if name == "" || value == "" {
 		http.Redirect(w, r, "/Website/Link/Add/"+strconv.Itoa(id)+"?error="+url.QueryEscape("Title and Value are required"), http.StatusFound)
+		return
 	}
 	item := models.MenuItem{
 		MenuID:     id,
@@ -341,8 +369,43 @@ func SaveLink(w http.ResponseWriter, r *http.Request) {
 	err = item.SaveLink()
 	if err != nil {
 		http.Redirect(w, r, "/Website/Link/Add/"+strconv.Itoa(id)+"?error="+url.QueryEscape(err.Error()), http.StatusFound)
+		return
 	}
 	http.Redirect(w, r, "/Website/Menu/"+strconv.Itoa(id), http.StatusFound)
+}
+
+func SaveLink(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	name := strings.TrimSpace(r.FormValue("link_name"))
+	value := strings.TrimSpace(r.FormValue("link_value"))
+	target, _ := strconv.ParseBool(r.FormValue("link_target"))
+	if name == "" || value == "" {
+		http.Redirect(w, r, "/Website/Link/Edit/"+strconv.Itoa(id)+"?error="+url.QueryEscape("Title and Value are required"), http.StatusFound)
+		return
+	}
+	item := models.MenuItem{
+		ID:         id,
+		Title:      name,
+		Link:       value,
+		LinkTarget: target,
+	}
+	err = item.SaveLink()
+	if err != nil {
+		http.Redirect(w, r, "/Website/Link/Edit/"+strconv.Itoa(id)+"?error="+url.QueryEscape(err.Error()), http.StatusFound)
+		return
+	}
+	item, err = item.Get()
+	if err != nil {
+		http.Redirect(w, r, "/Website/Link/Edit/"+strconv.Itoa(id)+"?error="+url.QueryEscape(err.Error()), http.StatusFound)
+		return
+	}
+	http.Redirect(w, r, "/Website/Menu/"+strconv.Itoa(item.MenuID), http.StatusFound)
+
 }
 
 func CheckContent(w http.ResponseWriter, r *http.Request) {
@@ -418,7 +481,7 @@ func AddContent(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func SaveContent(w http.ResponseWriter, r *http.Request) {
+func SaveNewContent(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.FormValue("menuid"))
 	reqauth, _ := strconv.ParseBool(r.FormValue("requireAuthentication"))
 	publish, _ := strconv.ParseBool(r.FormValue("publish"))
@@ -433,7 +496,10 @@ func SaveContent(w http.ResponseWriter, r *http.Request) {
 		RequireAuth:     reqauth,
 		Published:       publish,
 	}
-	err := content.Save(pagecontent)
+	revision := models.ContentRevision{
+		ContentText: pagecontent,
+	}
+	err := content.Save(revision)
 	if err != nil {
 		cjson, _ := json.Marshal(&content)
 		session, _ := store.Get(r, "adminstuffs")
@@ -458,13 +524,17 @@ func EditContent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	revid, err := strconv.Atoi(params.Get(":revisionid"))
+	revid, err := strconv.Atoi(params.Get(":revid"))
 	if err != nil {
 		revid = 0
 	}
 	error, _ := url.QueryUnescape(params.Get("error"))
 	if len(strings.TrimSpace(error)) > 0 {
 		tmpl.Bag["error"] = error
+	}
+	message, _ := url.QueryUnescape(params.Get("message"))
+	if len(strings.TrimSpace(message)) > 0 {
+		tmpl.Bag["message"] = message
 	}
 	tmpl.FuncMap["isNotZero"] = func(num int) bool {
 		return num != 0
@@ -495,4 +565,88 @@ func EditContent(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
+}
+
+func SaveContent(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, _ := strconv.Atoi(params.Get(":id"))
+	revid, _ := strconv.Atoi(params.Get(":revid"))
+
+	reqauth, _ := strconv.ParseBool(r.FormValue("requireAuthentication"))
+	publish, _ := strconv.ParseBool(r.FormValue("publish"))
+	pagecontent := r.FormValue("page_content")
+	content := models.Content{
+		ID:              id,
+		PageTitle:       r.FormValue("page_title"),
+		Keywords:        r.FormValue("keywords"),
+		MetaTitle:       r.FormValue("meta_title"),
+		MetaDescription: r.FormValue("meta_description"),
+		Canonical:       r.FormValue("canonical"),
+		RequireAuth:     reqauth,
+		Published:       publish,
+	}
+	revision := models.ContentRevision{
+		ID:          revid,
+		ContentID:   id,
+		ContentText: pagecontent,
+	}
+	err := content.Save(revision)
+	if err != nil {
+		cjson, _ := json.Marshal(&content)
+		session, _ := store.Get(r, "adminstuffs")
+		session.AddFlash(string(cjson), "content")
+		session.AddFlash(pagecontent, "htmlcontent")
+		session.Save(r, w)
+		http.Redirect(w, r, "/Website/Content/Add/"+strconv.Itoa(id)+"?error="+url.QueryEscape("Page Title is required"), http.StatusFound)
+		return
+	}
+	http.Redirect(w, r, "/Website/Content/Edit/"+strconv.Itoa(id)+"/"+strconv.Itoa(revid)+"?message="+url.QueryEscape("Content Page Updated Successfully!"), http.StatusFound)
+}
+
+func CopyRevision(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	revision := models.ContentRevision{ID: id}
+	err = revision.Copy()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/Website/Content/Edit/"+strconv.Itoa(revision.ContentID), http.StatusFound)
+}
+
+func ActivateRevision(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	revision := models.ContentRevision{ID: id}
+	err = revision.Activate()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/Website/Content/Edit/"+strconv.Itoa(revision.ContentID), http.StatusFound)
+}
+
+func DeleteRevision(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	id, err := strconv.Atoi(params.Get(":id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	revision := models.ContentRevision{ID: id}
+	err = revision.Delete()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/Website/Content/Edit/"+strconv.Itoa(revision.ContentID), http.StatusFound)
 }

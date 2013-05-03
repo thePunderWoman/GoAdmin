@@ -25,7 +25,7 @@
 */
 
 var currentdepth = 1;
-$(document).ready(function () {
+$(function () {
     bindStuff()
     $(document).on('click',"a.remove", function (event) {
         event.preventDefault();
