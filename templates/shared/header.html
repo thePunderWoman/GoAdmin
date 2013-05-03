@@ -12,6 +12,7 @@
 	    <ul id="sidebar">
 	        {{ with .user.Modules }}
 	        	{{ range . }}
+	        		{{ if .Display }}
 	                <li>
 	                    <a href="{{.Module_path}}">
 	                        {{ if isNotNull .Img_path }}
@@ -22,6 +23,7 @@
 	                        {{ .Module }}
 	                    </a>
 	                </li>
+	                {{ end }}
 	            {{ end }}
 	        {{ end }}
 	    </ul>

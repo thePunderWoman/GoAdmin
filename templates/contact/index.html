@@ -1,0 +1,70 @@
+{{ define "content" }}
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<ul id="subNav">
+    <li>
+        <a href="/Contact" class="active">Contacts</a>
+    </li>
+    <li>
+        <a href="/Contact/Receivers">Receivers</a>
+    </li>
+    <li>
+        <a href="/Contact/Types">Types</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/AddType">Add Type</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/AddReceiver">Add Receiver</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/Export">Export</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>Manage Website Contacts</h2>
+    <table style="width: 100% !important">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Type</th>
+                <th>Created</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .contacts }}
+                <tr id="contact:{{ .ID }}">
+                    <td>{{ .FirstName }}</td>
+                    <td>{{ .LastName }}</td>
+                    <td>{{ .Email }}</td>
+                    <td>{{ .Type }}</td>
+                    <td>{{ formatDate .Created }}</td>
+                    <td class="center">
+                        <a href="/Contact/ViewContact/{{ .ID }}">View</a>
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+
+        var contacttable = $('table').dataTable({
+            "bJQueryUI": true,
+            "aoColumns": [
+            null,
+            null,
+            null,
+            null,
+            { "sType": "date" },
+            null
+        ],
+            "aaSorting": [[4, "desc"]]
+        });
+    });
+</script>
+{{ end }}

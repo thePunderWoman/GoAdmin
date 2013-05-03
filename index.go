@@ -4,6 +4,7 @@ import (
 	"./controllers"
 	"./controllers/authenticate"
 	"./controllers/base"
+	"./controllers/contact"
 	"./controllers/users"
 	"./controllers/website"
 	"./helpers/database"
@@ -84,6 +85,10 @@ func main() {
 	server.Get("/Website/CopyRevision/:id", website.CopyRevision)
 	server.Get("/Website/ActivateRevision/:id", website.ActivateRevision)
 	server.Get("/Website/DeleteRevision/:id", website.DeleteRevision)
+
+	// Contact Manager
+	server.Get("/Contact", contact.Index)
+	server.Get("/Contact/ViewContact/:id", contact.View)
 
 	// Home page route
 	server.Get("/", controllers.Index)

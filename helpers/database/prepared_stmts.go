@@ -109,6 +109,11 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["activateContentRevisionStmt"] = `update SiteContentRevision set active = 1 WHERE revisionID = ?`
 	UnPreparedStatements["deleteContentRevisionStmt"] = `delete from SiteContentRevision WHERE revisionID = ?`
 
+	// Contact Manager Statements
+	UnPreparedStatements["getAllContactsStmt"] = `select * from Contact`
+	UnPreparedStatements["getContactStmt"] = `select * from Contact WHERE contactID = ?`
+	UnPreparedStatements["getAllContactTypesStmt"] = `select * from ContactType`
+
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()
 	}

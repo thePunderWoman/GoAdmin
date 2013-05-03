@@ -1,0 +1,88 @@
+{{ define "content" }}
+<style type="text/css">
+    #contact_box {
+	    display: block;
+    }
+	#contact_box strong {
+		font-weight: bold;
+		float: left;
+		width: 100px;
+		clear: left;
+		padding: 3px 0;
+    }
+	#contact_box p {
+		margin: 0;
+		float: left;
+		clear: none;
+		width: 600px;
+		padding: 3px 0;
+	}
+	#contact_box a {
+	    margin-top: 10px;
+	}
+</style>
+
+<ul id="subNav">
+    <li>
+        <a href="/Contact">Contacts</a>
+    </li>
+    <li>
+        <a href="/Contact/Receivers">Receivers</a>
+    </li>
+    <li>
+        <a href="/Contact/Types">Types</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/AddType">Add Type</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/AddReceiver">Add Receiver</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/Export">Export</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>View Contact</h2>
+    <div id="contact_box">
+        {{ with .contact }}
+            <strong>Name:</strong>
+            <p>{{ .FirstName }} {{ .LastName }}</p>
+        
+            <strong>Email:</strong>
+            <p>{{ .Email }}</p>
+
+            {{ if isNotNull .Phone }}
+                <strong>Phone:</strong>
+                <p>{{ .Phone }}</p>
+            {{ end }}
+            {{ if isNotNull .Address1 }}
+                <strong>Address:</strong>
+                <p>{{ .Address1 }} <br />
+                    {{ if isNotNull .Address2 }}
+                        {{ .Address2 }}<br />
+                    {{ end }}
+                    {{ if isNotNull .City }}
+                        {{ .City }}
+                    {{ end }}
+                    {{ if isNotNull .State }}
+                        {{ if isNotNull .City }}, {{ end}} {{ .State }}
+                    {{ end }}
+                    {{ if isNotNull .PostalCode }}
+                        &nbsp;{{ .PostalCode}}
+                    {{ end }}
+                </p>
+            {{ end }}
+            <strong>Reason:</strong>
+            <p>{{ .Type }}</p>
+
+            <strong>Subject:</strong>
+            <p>{{ .Subject }}</p>
+
+            <strong>Message:</strong>
+            <p>{{ .Message }}</p>
+        {{ end }}
+        <div class="clear"></div>    <a href="javascript:history.back(1);">&lt; Back</a>
+    </div>
+</div>
+{{ end }}

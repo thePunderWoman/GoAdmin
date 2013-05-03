@@ -38,6 +38,7 @@ type Module struct {
 	Module      string
 	Module_path string
 	Img_path    string
+	Display     bool
 }
 
 func Authenticate(username string, password string) (user User, err error) {
@@ -587,6 +588,7 @@ func (u *User) GetModules() error {
 	mod := res.Map("module")
 	modPath := res.Map("module_path")
 	imgPath := res.Map("img_path")
+	display := res.Map("display")
 
 	var modules []Module
 
@@ -596,6 +598,7 @@ func (u *User) GetModules() error {
 			Module:      row.Str(mod),
 			Module_path: row.Str(modPath),
 			Img_path:    row.Str(imgPath),
+			Display:     row.Bool(display),
 		}
 		modules = append(modules, m)
 	}
@@ -618,6 +621,7 @@ func GetAllModules() (modules []Module, err error) {
 	mod := res.Map("module")
 	modPath := res.Map("module_path")
 	imgPath := res.Map("img_path")
+	display := res.Map("display")
 
 	for _, row := range rows {
 		m := Module{
@@ -625,6 +629,7 @@ func GetAllModules() (modules []Module, err error) {
 			Module:      row.Str(mod),
 			Module_path: row.Str(modPath),
 			Img_path:    row.Str(imgPath),
+			Display:     row.Bool(display),
 		}
 		modules = append(modules, m)
 	}
