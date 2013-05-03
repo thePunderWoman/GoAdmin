@@ -11,6 +11,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	tmpl := plate.NewTemplate(w)
 
+	tmpl.Bag["PageTitle"] = "Home"
 	tmpl.ParseFile("templates/index.html", false)
 
 	err := tmpl.Display(w)

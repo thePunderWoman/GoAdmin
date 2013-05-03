@@ -1,5 +1,5 @@
 {{define "head"}}
-<title>{{.PageTitle}}</title>
+<title>{{ with .PageTitle }}{{.}} | {{end}}{{.PageTitleSuffix}}</title>
 <meta http-equiv="content-language" content="en">
 <link href="/css/admin.css" rel="stylesheet" type="text/css" />
 <link href="/css/demo_table_jui.css" rel="stylesheet" type="text/css" />

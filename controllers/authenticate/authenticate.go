@@ -35,6 +35,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tmpl.Bag["PageTitle"] = "Log In"
 	tmpl.Bag["Error"] = strings.ToTitle(error)
 	tmpl.Bag["CurrentYear"] = time.Now().Year()
 	tmpl.Bag["userID"] = 0
@@ -70,6 +71,7 @@ func Forgot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tmpl.Bag["PageTitle"] = "Forgot Password"
 	tmpl.Bag["Error"] = strings.ToTitle(error)
 	tmpl.Bag["CurrentYear"] = time.Now().Year()
 	tmpl.Bag["userID"] = 0
@@ -221,6 +223,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tmpl.Bag["PageTitle"] = "Register"
 	tmpl.Bag["Error"] = strings.ToTitle(error)
 	tmpl.Bag["Fname"] = strings.TrimSpace(fname)
 	tmpl.Bag["Lname"] = strings.TrimSpace(lname)

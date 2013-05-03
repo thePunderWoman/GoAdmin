@@ -28,6 +28,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return dt.In(Local).Format(tlayout)
 	}
 
+	tmpl.Bag["PageTitle"] = "Main Menu"
 	tmpl.Bag["menu"] = menu
 	tmpl.Bag["contents"] = contents
 
@@ -57,6 +58,7 @@ func Menus(w http.ResponseWriter, r *http.Request) {
 
 	menus, _ := models.GetAllMenus()
 	tmpl.Bag["menus"] = menus
+	tmpl.Bag["PageTitle"] = "Menus"
 
 	tmpl.ParseFile("templates/website/navigation.html", false)
 	tmpl.ParseFile("templates/website/menus.html", false)
@@ -91,6 +93,7 @@ func Menu(w http.ResponseWriter, r *http.Request) {
 		return dt.In(Local).Format(tlayout)
 	}
 
+	tmpl.Bag["PageTitle"] = menu.Name + " Menu Contents"
 	tmpl.Bag["menu"] = menu
 	tmpl.Bag["contents"] = contents
 
@@ -129,6 +132,7 @@ func Add(w http.ResponseWriter, r *http.Request) {
 	if len(error) > 0 {
 		tmpl.Bag["error"] = error
 	}
+	tmpl.Bag["PageTitle"] = "Add Menu"
 	tmpl.Bag["menu"] = menu
 
 	tmpl.ParseFile("templates/website/navigation.html", false)
@@ -164,6 +168,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	if len(error) > 0 {
 		tmpl.Bag["error"] = error
 	}
+	tmpl.Bag["PageTitle"] = "Edit " + menu.Name + " Menu Details"
 	tmpl.Bag["menu"] = menu
 
 	tmpl.ParseFile("templates/website/navigation.html", false)
@@ -309,6 +314,7 @@ func AddLink(w http.ResponseWriter, r *http.Request) {
 	if len(strings.TrimSpace(error)) > 0 {
 		tmpl.Bag["error"] = error
 	}
+	tmpl.Bag["PageTitle"] = "Add Link To Menu"
 	tmpl.Bag["menuID"] = id
 	tmpl.ParseFile("templates/website/navigation.html", false)
 	tmpl.ParseFile("templates/website/addlink.html", false)
@@ -336,6 +342,7 @@ func EditLink(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		tmpl.Bag["error"] = err.Error()
 	}
+	tmpl.Bag["PageTitle"] = "Edit Link"
 	tmpl.Bag["item"] = item
 	tmpl.ParseFile("templates/website/navigation.html", false)
 	tmpl.ParseFile("templates/website/editlink.html", false)
@@ -468,6 +475,7 @@ func AddContent(w http.ResponseWriter, r *http.Request) {
 	}
 	session.Save(r, w)
 
+	tmpl.Bag["PageTitle"] = "Add Content"
 	tmpl.Bag["content"] = content
 	tmpl.Bag["pagecontent"] = pagecontent
 	tmpl.Bag["menuID"] = id
@@ -555,6 +563,7 @@ func EditContent(w http.ResponseWriter, r *http.Request) {
 	if revid != 0 {
 		revision = content.Revisions.GetRevision(revid)
 	}
+	tmpl.Bag["PageTitle"] = "Edit Content"
 	tmpl.Bag["content"] = content
 	tmpl.Bag["revision"] = revision
 	tmpl.ParseFile("templates/website/navigation.html", false)

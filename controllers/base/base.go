@@ -55,6 +55,7 @@ func Base(w http.ResponseWriter, r *http.Request) {
 	tmpl.Bag["user"] = user
 	tmpl.Bag["CurrentYear"] = time.Now().Year()
 	tmpl.Bag["userID"] = userID
+	tmpl.Bag["PageTitleSuffix"] = "CURT Admin"
 
 	tmpl.FuncMap["isNotNull"] = func(str string) bool {
 		if strings.TrimSpace(str) != "" && len(strings.TrimSpace(str)) > 0 {

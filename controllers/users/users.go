@@ -24,6 +24,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return dt.In(Local).Format(tlayout)
 	}
 
+	tmpl.Bag["PageTitle"] = "All Users"
 	tmpl.Bag["Users"] = users
 	tmpl.Bag["Count"] = len(users)
 
@@ -57,6 +58,7 @@ func Add(w http.ResponseWriter, r *http.Request) {
 		return false
 	}
 
+	tmpl.Bag["PageTitle"] = "Add User"
 	tmpl.Bag["u"] = u
 	tmpl.Bag["error"] = error
 	tmpl.Bag["modules"] = modules
@@ -101,6 +103,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		return false
 	}
 
+	tmpl.Bag["PageTitle"] = "Edit User"
 	tmpl.Bag["error"] = error
 	tmpl.Bag["modules"] = modules
 	tmpl.Bag["u"] = u
@@ -216,6 +219,7 @@ func MyAccount(w http.ResponseWriter, r *http.Request) {
 
 	params := r.URL.Query()
 	error, _ := url.QueryUnescape(params.Get("error"))
+	tmpl.Bag["PageTitle"] = "My Account"
 	tmpl.Bag["error"] = error
 	tmpl.ParseFile("templates/account/index.html", false)
 
