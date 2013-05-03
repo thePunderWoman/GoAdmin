@@ -5,6 +5,7 @@ import (
 	_ "errors"
 	"github.com/ziutek/mymysql/mysql"
 	_ "log"
+	"sort"
 	"time"
 )
 
@@ -28,9 +29,8 @@ type Contact struct {
 }
 
 type ContactType struct {
-	ID        int
-	Name      string
-	Receivers ContactReceivers
+	ID   int
+	Name string
 }
 
 type ContactReceiver struct {
@@ -38,9 +38,10 @@ type ContactReceiver struct {
 	FirstName string
 	LastName  string
 	Email     string
+	Types     ContactTypes
 }
 
-type ContactReceivers []ContactReceiver
+type ContactTypes []ContactType
 
 func (c Contact) GetAll() ([]Contact, error) {
 	contacts := make([]Contact, 0)
@@ -122,7 +123,7 @@ func (t ContactType) GetAll() ([]ContactType, error) {
 
 	ch := make(chan ContactType)
 	for _, row := range rows {
-		go t.PopulateContactType(row, res, ch)
+		go PopulateContactType(row, res, ch)
 	}
 	for _, _ = range rows {
 		types = append(types, <-ch)
@@ -131,10 +132,76 @@ func (t ContactType) GetAll() ([]ContactType, error) {
 	return types, nil
 }
 
-func (t ContactType) PopulateContactType(row mysql.Row, res mysql.Result, ch chan ContactType) {
+func PopulateContactType(row mysql.Row, res mysql.Result, ch chan ContactType) {
 	ctype := ContactType{
 		ID:   row.Int(res.Map("contactTypeID")),
 		Name: row.Str(res.Map("name")),
 	}
 	ch <- ctype
+}
+
+func (r ContactReceiver) GetAll() ([]ContactReceiver, error) {
+	receivers := make([]ContactReceiver, 0)
+	sel, err := database.GetStatement("getAllContactReceiversStmt")
+	if err != nil {
+		return receivers, err
+	}
+	rows, res, err := sel.Exec()
+	if err != nil {
+		return receivers, err
+	}
+
+	ch := make(chan ContactReceiver)
+	for _, row := range rows {
+		go r.PopulateContactReceiver(row, res, ch)
+	}
+	for _, _ = range rows {
+		receivers = append(receivers, <-ch)
+	}
+
+	return receivers, nil
+}
+
+func (r ContactReceiver) PopulateContactReceiver(row mysql.Row, res mysql.Result, ch chan ContactReceiver) {
+	receiver := ContactReceiver{
+		ID:        row.Int(res.Map("contactReceiverID")),
+		FirstName: row.Str(res.Map("first_name")),
+		LastName:  row.Str(res.Map("last_name")),
+		Email:     row.Str(res.Map("email")),
+	}
+	receiver.GetTypes()
+	ch <- receiver
+}
+
+func (r *ContactReceiver) GetTypes() {
+	var types ContactTypes
+	sel, err := database.GetStatement("getReceiverContactTypesStmt")
+	if err != nil {
+		r.Types = types
+		return
+	}
+	sel.Reset()
+	sel.Bind(r.ID)
+	rows, res, err := sel.Exec()
+	if err != nil {
+		r.Types = types
+		return
+	}
+	ch := make(chan ContactType)
+	for _, row := range rows {
+		go PopulateContactType(row, res, ch)
+	}
+	for _, _ = range rows {
+		types = append(types, <-ch)
+	}
+	types.Sort()
+	r.Types = types
+}
+
+func (t ContactTypes) Len() int           { return len(t) }
+func (t ContactTypes) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
+func (t ContactTypes) Less(i, j int) bool { return t[i].Name < (t[j].Name) }
+
+func (t *ContactTypes) Sort() {
+	sort.Sort(t)
 }

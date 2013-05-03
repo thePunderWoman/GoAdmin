@@ -89,6 +89,8 @@ func main() {
 	// Contact Manager
 	server.Get("/Contact", contact.Index)
 	server.Get("/Contact/ViewContact/:id", contact.View)
+	server.Get("/Contact/Receivers", contact.Receivers)
+	server.Get("/Contact/Types", contact.Types)
 
 	// Home page route
 	server.Get("/", controllers.Index)

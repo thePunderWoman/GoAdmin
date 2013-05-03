@@ -1,0 +1,59 @@
+{{ define "content" }}
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<ul id="subNav">
+    <li>
+        <a href="/Contact">Contacts</a>
+    </li>
+    <li>
+        <a href="/Contact/Receivers" class="active">Receivers</a>
+    </li>
+    <li>
+        <a href="/Contact/Types">Types</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/AddType">Add Type</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/AddReceiver">Add Receiver</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/Export">Export</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>Manage Contact Receivers</h2>
+    <table style="width: 100% !important">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Contact Types</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .receivers }}
+                <tr id="receiver:{{ .ID }}">
+                    <td>{{ .FirstName }}</td>
+                    <td>{{ .LastName }}</td>
+                    <td>{{ .Email }}</td>
+                    <td>{{ range $index, $type := .Types }}{{if isZero $index }}{{else}}, {{ end }}{{ $type.Name }}{{end}}</td>
+                    <td class="center">
+                        <a href="/Contact/EditReceiver/{{ .ID }}">Edit</a> |
+                        <a href="/Contact/DeleteReceiver/{{ .ID }}">Delete</a>
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        var contacttable = $('table').dataTable({
+            "bJQueryUI": true
+        });
+    });
+</script>
+{{ end }}

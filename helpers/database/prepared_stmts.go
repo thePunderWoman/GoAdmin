@@ -113,6 +113,10 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["getAllContactsStmt"] = `select * from Contact`
 	UnPreparedStatements["getContactStmt"] = `select * from Contact WHERE contactID = ?`
 	UnPreparedStatements["getAllContactTypesStmt"] = `select * from ContactType`
+	UnPreparedStatements["getAllContactReceiversStmt"] = `select * from ContactReceiver`
+	UnPreparedStatements["getReceiverContactTypesStmt"] = `select CT.* from ContactType AS CT
+														   INNER JOIN ContactReceiver_ContactType AS CR ON CT.contactTypeID = CR.contactTypeID
+														   WHERE CR.contactReceiverID = ?`
 
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()
