@@ -5,6 +5,7 @@ import (
 	"./controllers/authenticate"
 	"./controllers/base"
 	"./controllers/contact"
+	"./controllers/faq"
 	"./controllers/users"
 	"./controllers/website"
 	"./helpers/database"
@@ -98,6 +99,13 @@ func main() {
 	server.Get("/Contact/AddType", contact.AddType)
 	server.Post("/Contact/SaveType", contact.SaveType)
 	server.Get("/Contact/DeleteType/:id", contact.DeleteType)
+
+	// FAQ
+	server.Get("/FAQ", faq.Index)
+	server.Get("/FAQ/Add", faq.Add)
+	server.Get("/FAQ/Edit/:id", faq.Edit)
+	server.Post("/FAQ/Save", faq.Save)
+	server.Get("/FAQ/Delete/:id", faq.Delete)
 
 	// Home page route
 	server.Get("/", controllers.Index)

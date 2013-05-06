@@ -1,0 +1,31 @@
+{{ define "content" }}
+<script src="/js/jquery.dataTables.min.js"></script>
+<ul id="subNav">
+    <li>
+        <a href="/FAQ/Add">Add Question/Answer</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2 id="index_title">Frequently Asked Questions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Question</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .faqs }}
+                <tr>
+                    <td>{{ .Question }}</td>
+                    <td>
+                        <a href="/FAQ/Edit/{{ .ID }}" title="Edit">Edit</a> | 
+                        <a href="/FAQ/Delete/{{ .ID }}" title="Delete" class="delete">Delete</a>
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+<script src="/js/admin/faq.js"></script>
+{{ end }}

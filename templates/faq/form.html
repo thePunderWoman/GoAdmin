@@ -1,0 +1,38 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/FAQ/Add">Add Question/Answer</a>
+    </li>
+</ul>
+<div id="content_container">
+    {{ if isZero .faq.ID }}
+    <h2>Add a Question</h2>
+    {{ else }}
+    <h2>Edit {{ .faq.Question }}</h2>
+    {{ end }}
+
+    {{ with .error }}
+    <p id="err">{{ . }}</p>
+    {{ end }}
+    {{ with .faq }}
+    <form class="form_left" id="add_form" method="post" action="/FAQ/Save">
+        <input type="hidden" name="id" value="{{ .ID }}" />
+        <label for="question">
+            Question
+            <textarea cols="100" rows="5" id="question" name="question" placeholder="Enter the question here...">{{ .Question }}</textarea>
+        </label>
+        <span class="clear"></span>
+        <label>
+            Answer
+            <textarea cols="100" rows="10" id="answer" name="answer" placeholder="Enter the answer here...">{{ .Answer }}</textarea>
+        </label>
+
+        <div id="buttons">
+            <a href="/FAQ/" title="Cancel" id="btnCancel" class="cancel">Cancel</a>
+            <input type="submit" id="btnSave" name="btnSave" value="Save" />
+        </div>
+    </form>
+    {{ end }}
+</div>
+<script src="/Scripts/admin/faq.js" type="text/javascript"></script>
+{{ end }}

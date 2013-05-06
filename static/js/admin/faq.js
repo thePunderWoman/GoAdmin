@@ -1,8 +1,9 @@
-﻿$(document).ready(function () {
+﻿$(function () {
 
     var faq_table = $('table').dataTable({ 'bJQueryUI': true });
 
-    $('.delete').live('click', function () {
+    $(document).on('click','.delete', function (e) {
+        e.Prevent
         if (confirm('Are you sure you want to remove this question and answer?')) {
             var path = $(this).attr('href');
             var table_row = $(this).parent().parent().get()[0];

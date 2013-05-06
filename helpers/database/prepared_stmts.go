@@ -126,6 +126,13 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["addContactTypeStmt"] = `insert into ContactType (name) VALUE (?)`
 	UnPreparedStatements["deleteContactTypeStmt"] = `delete from ContactType WHERE contactTypeID = ?`
 
+	// FAQ Manager Statements
+	UnPreparedStatements["GetAllFAQStmt"] = `select * from FAQ`
+	UnPreparedStatements["GetFAQStmt"] = `select * from FAQ WHERE faqID = ?`
+	UnPreparedStatements["UpdateFAQStmt"] = `UPDATE FAQ SET question = ?, answer = ? WHERE faqID = ?`
+	UnPreparedStatements["AddFAQStmt"] = `INSERT INTO FAQ (question, answer) VALUES (?,?)`
+	UnPreparedStatements["DeleteFAQStmt"] = `DELETE FROM FAQ WHERE faqID = ?`
+
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()
 	}

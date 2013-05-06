@@ -2,7 +2,6 @@ package models
 
 import (
 	"../helpers/database"
-	_ "errors"
 	"github.com/ziutek/mymysql/mysql"
 	_ "log"
 	"sort"
