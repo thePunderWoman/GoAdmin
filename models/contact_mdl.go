@@ -6,6 +6,7 @@ import (
 	"github.com/ziutek/mymysql/mysql"
 	_ "log"
 	"sort"
+	"strconv"
 	"time"
 )
 
@@ -162,6 +163,89 @@ func (r ContactReceiver) GetAll() ([]ContactReceiver, error) {
 	return receivers, nil
 }
 
+func (r ContactReceiver) Get() (ContactReceiver, error) {
+	receiver := ContactReceiver{}
+	sel, err := database.GetStatement("getContactReceiversStmt")
+	if err != nil {
+		return receiver, err
+	}
+	sel.Bind(r.ID)
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return receiver, err
+	}
+
+	ch := make(chan ContactReceiver)
+	go r.PopulateContactReceiver(row, res, ch)
+	receiver = <-ch
+
+	return receiver, nil
+}
+
+func (r *ContactReceiver) Save(types []string) error {
+	if r.ID > 0 {
+		// update receiver
+		upd, err := database.GetStatement("updateContactReceiverStmt")
+		if err != nil {
+			return err
+		}
+		upd.Bind(r.FirstName, r.LastName, r.Email, r.ID)
+		_, _, err = upd.Exec()
+		if err != nil {
+			return err
+		}
+
+		del, err := database.GetStatement("clearReceiverTypesStmt")
+		if err != nil {
+			return err
+		}
+		del.Reset()
+		del.Bind(r.ID)
+		_, _, err = del.Exec()
+		if err != nil {
+			return err
+		}
+
+	} else {
+		// new contact receiver
+		ins, err := database.GetStatement("addContactReceiverStmt")
+		if err != nil {
+			return err
+		}
+		ins.Bind(r.FirstName, r.LastName, r.Email)
+		_, res, err := ins.Exec()
+		if err != nil {
+			return err
+		}
+		id := res.InsertId()
+		r.ID = int(id)
+	}
+	if r.ID > 0 {
+		// add types
+		ch := make(chan int)
+		for _, t := range types {
+			tid, _ := strconv.Atoi(t)
+			go r.AddType(tid, ch)
+		}
+		for _, _ = range types {
+			<-ch
+		}
+	}
+	return nil
+}
+
+func (r *ContactReceiver) AddType(typeID int, ch chan int) {
+	ins, err := database.GetStatement("addReceiverTypeStmt")
+	if err != nil {
+		ch <- 1
+		return
+	}
+	ins.Reset()
+	ins.Bind(r.ID, typeID)
+	ins.Exec()
+	ch <- 1
+}
+
 func (r ContactReceiver) PopulateContactReceiver(row mysql.Row, res mysql.Result, ch chan ContactReceiver) {
 	receiver := ContactReceiver{
 		ID:        row.Int(res.Map("contactReceiverID")),
@@ -171,6 +255,19 @@ func (r ContactReceiver) PopulateContactReceiver(row mysql.Row, res mysql.Result
 	}
 	receiver.GetTypes()
 	ch <- receiver
+}
+
+func (r *ContactReceiver) Delete() error {
+	del, err := database.GetStatement("deleteContactReceiverStmt")
+	if err != nil {
+		return err
+	}
+	del.Bind(r.ID)
+	_, _, err = del.Exec()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *ContactReceiver) GetTypes() {

@@ -114,9 +114,15 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["getContactStmt"] = `select * from Contact WHERE contactID = ?`
 	UnPreparedStatements["getAllContactTypesStmt"] = `select * from ContactType`
 	UnPreparedStatements["getAllContactReceiversStmt"] = `select * from ContactReceiver`
+	UnPreparedStatements["getContactReceiversStmt"] = `select * from ContactReceiver WHERE contactReceiverID = ?`
 	UnPreparedStatements["getReceiverContactTypesStmt"] = `select CT.* from ContactType AS CT
 														   INNER JOIN ContactReceiver_ContactType AS CR ON CT.contactTypeID = CR.contactTypeID
 														   WHERE CR.contactReceiverID = ?`
+	UnPreparedStatements["clearReceiverTypesStmt"] = `delete from ContactReceiver_ContactType WHERE contactReceiverID = ?`
+	UnPreparedStatements["addReceiverTypeStmt"] = `insert into ContactReceiver_ContactType (contactReceiverID,contactTypeID) VALUES (?,?)`
+	UnPreparedStatements["addContactReceiverStmt"] = `INSERT INTO ContactReceiver (first_name,last_name,email) VALUES (?,?,?)`
+	UnPreparedStatements["updateContactReceiverStmt"] = `update ContactReceiver SET first_name = ?, last_name = ?, email = ? where contactReceiverID = ?`
+	UnPreparedStatements["deleteContactReceiverStmt"] = `delete from ContactReceiver where contactReceiverID = ?`
 
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()

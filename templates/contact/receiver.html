@@ -1,0 +1,81 @@
+{{ define "content" }}
+{{ $types := .types }}
+<link href="/css/jquery.multiselect.css" rel="stylesheet" type="text/css" />
+<script src="/js/jquery.dataTables.min.js"></script>
+<script src="/js/jquery.multiselect.min.js"></script>
+<ul id="subNav">
+    <li>
+        <a href="/Contact">Contacts</a>
+    </li>
+    <li>
+        <a href="/Contact/Receivers">Receivers</a>
+    </li>
+    <li>
+        <a href="/Contact/Types">Types</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/AddType">Add Type</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/AddReceiver">Add Receiver</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/Export">Export</a>
+    </li>
+</ul>
+<div id="content_container">
+    {{ if isZero .receiver.ID }}
+    <h2>Add a Receiver</h2>
+    {{ else }}
+    <h2>Edit Receiver</h2>
+    {{ end }}
+
+    {{ with .error }}
+        <p style="font-weight: bold; color: Red;">{{ . }}</p>
+    {{ end }}
+    {{ with .receiver }}
+    <form action="/Contact/SaveReceiver" Method="post" class="form_left">
+        <input type="hidden" name="receiverID" value="{{ .ID }}" />
+        <!-- Item Name -->
+        <label for="first_name">
+            First Name
+            <input type="text" name="first_name" id="first_name" placeholder="Enter first name..." value="{{ .FirstName }}" />
+        </label>
+
+        <label for="last_name">
+            Last Name
+            <input type="text" name="last_name" id="last_name" placeholder="Enter last name..." value="{{ .LastName }}" />
+        </label>
+
+        <label for="email">
+            Email
+            <input type="email" name="email" id="email" placeholder="Enter email address..." value="{{ .Email }}" />
+        </label>
+
+        <label for="types">
+            Contact Types
+            <select name="types" id="types" multiple="true">
+                {{ range $types }}
+                    <option value="{{ .ID }}" {{ if hasType .ID }} selected="selected" {{ end }}>{{ .Name }}</option>
+                {{ end }}
+            </select>
+        </label>
+
+        <div id="buttons">
+            <input type="submit" name="btnSave" id="btnSave" value="Save" />
+            <input type="reset" name="btnReset" id="btnReset" value="Reset" />
+        </div>
+    </form>
+    {{ end }}
+</div>
+
+<script type="text/javascript">
+    $(function () {
+
+        $("#types").multiselect({
+            noneSelectedText: 'Select types',
+            selectedList: 6
+        });
+    });
+</script>
+{{ end }}
