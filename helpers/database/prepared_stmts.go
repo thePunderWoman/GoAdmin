@@ -123,6 +123,8 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["addContactReceiverStmt"] = `INSERT INTO ContactReceiver (first_name,last_name,email) VALUES (?,?,?)`
 	UnPreparedStatements["updateContactReceiverStmt"] = `update ContactReceiver SET first_name = ?, last_name = ?, email = ? where contactReceiverID = ?`
 	UnPreparedStatements["deleteContactReceiverStmt"] = `delete from ContactReceiver where contactReceiverID = ?`
+	UnPreparedStatements["addContactTypeStmt"] = `insert into ContactType (name) VALUE (?)`
+	UnPreparedStatements["deleteContactTypeStmt"] = `delete from ContactType WHERE contactTypeID = ?`
 
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()

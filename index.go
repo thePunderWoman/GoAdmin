@@ -95,6 +95,9 @@ func main() {
 	server.Get("/Contact/EditReceiver/:id", contact.EditReceiver)
 	server.Post("/Contact/SaveReceiver", contact.SaveReceiver)
 	server.Get("/Contact/DeleteReceiver/:id", contact.DeleteReceiver)
+	server.Get("/Contact/AddType", contact.AddType)
+	server.Post("/Contact/SaveType", contact.SaveType)
+	server.Get("/Contact/DeleteType/:id", contact.DeleteType)
 
 	// Home page route
 	server.Get("/", controllers.Index)

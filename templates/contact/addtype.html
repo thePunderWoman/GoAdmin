@@ -1,0 +1,39 @@
+{{ define "content" }}
+<script type="text/javascript" src="/Scripts/jquery.dataTables.min.js"></script>
+<ul id="subNav">
+    <li>
+        <a href="/Contact">Contacts</a>
+    </li>
+    <li>
+        <a href="/Contact/Receivers">Receivers</a>
+    </li>
+    <li>
+        <a href="/Contact/Types">Types</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/AddType" class="active">Add Type</a>
+    </li>
+    <li class="add">
+        <a href="/Contact/AddReceiver">Add Receiver</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>Add a Contact Type</h2>
+
+    {{ with .error }}
+        <p style="font-weight: bold; color: Red;">{{ . }}</p>
+    {{ end }}
+    <form action="/Contact/SaveType" Method="post" class="form_left">
+        <!-- Item Name -->
+        <label for="name">
+            Name
+            <input type="text" name="name" id="name" placeholder="Enter name..." value="{{ .name }}" />
+        </label>
+
+        <div id="buttons">
+            <input type="submit" name="btnSave" id="btnSave" value="Save" />
+            <input type="reset" name="btnReset" id="btnReset" value="Reset" />
+        </div>
+    </form>
+</div>
+{{ end }}

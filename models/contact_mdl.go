@@ -133,6 +133,32 @@ func (t ContactType) GetAll() ([]ContactType, error) {
 	return types, nil
 }
 
+func (t *ContactType) Save() error {
+	ins, err := database.GetStatement("addContactTypeStmt")
+	if err != nil {
+		return err
+	}
+	ins.Bind(t.Name)
+	_, _, err = ins.Exec()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *ContactType) Delete() error {
+	del, err := database.GetStatement("deleteContactTypeStmt")
+	if err != nil {
+		return err
+	}
+	del.Bind(t.ID)
+	_, _, err = del.Exec()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func PopulateContactType(row mysql.Row, res mysql.Result, ch chan ContactType) {
 	ctype := ContactType{
 		ID:   row.Int(res.Map("contactTypeID")),

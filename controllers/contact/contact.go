@@ -225,3 +225,50 @@ func DeleteReceiver(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, "/Contact/Receivers"+urlsuffix, http.StatusFound)
 }
+
+func AddType(w http.ResponseWriter, r *http.Request) {
+	tmpl := plate.NewTemplate(w)
+	params := r.URL.Query()
+	error, _ := url.QueryUnescape(params.Get("error"))
+	name, _ := url.QueryUnescape(params.Get("name"))
+
+	if strings.TrimSpace(error) != "" {
+		tmpl.Bag["error"] = error
+	}
+	tmpl.Bag["name"] = name
+	tmpl.Bag["PageTitle"] = "Add Contact Type"
+
+	tmpl.ParseFile("templates/website/navigation.html", false)
+	tmpl.ParseFile("templates/contact/addtype.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func SaveType(w http.ResponseWriter, r *http.Request) {
+	name := strings.TrimSpace(r.FormValue("name"))
+	if name == "" {
+		http.Redirect(w, r, "/Contact/AddType?error="+url.QueryEscape("name is required"), http.StatusFound)
+		return
+	}
+	typeobj := models.ContactType{Name: name}
+	err := typeobj.Save()
+	if err != nil {
+		http.Redirect(w, r, "/Contact/AddType?name="+url.QueryEscape(name)+"&error="+url.QueryEscape(err.Error()), http.StatusFound)
+		return
+	}
+
+	http.Redirect(w, r, "/Contact/Types", http.StatusFound)
+}
+
+func DeleteType(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+	typeobj := models.ContactType{ID: id}
+	err := typeobj.Delete()
+	if err != nil {
+		log.Println(err)
+	}
+	http.Redirect(w, r, "/Contact/Types", http.StatusFound)
+}
