@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+var CentralTime, _ = time.LoadLocation("US/Central")
+
 type NewsItem struct {
 	ID           int
 	Title        string
@@ -74,6 +76,7 @@ func (n NewsItem) Get() (NewsItem, error) {
 }
 
 func (n *NewsItem) Save() error {
+	n.SetZones()
 	if n.ID > 0 {
 		// update
 		upd, err := database.GetStatement("UpdateNewsItemStmt")
@@ -81,7 +84,7 @@ func (n *NewsItem) Save() error {
 			return err
 		}
 
-		upd.Bind(n.Title, n.Lead, n.Content, n.PublishStart.In(UTC), n.PublishEnd.In(UTC), GenerateSlug(n.Title), n.ID)
+		upd.Bind(n.Title, n.Lead, n.Content, n.PublishStart, n.PublishEnd, GenerateSlug(n.Title), n.ID)
 		_, _, err = upd.Exec()
 		return err
 	} else {
@@ -90,7 +93,7 @@ func (n *NewsItem) Save() error {
 		if err != nil {
 			return err
 		}
-		ins.Bind(n.Title, n.Lead, n.Content, n.PublishStart.In(UTC), n.PublishEnd.In(UTC), GenerateSlug(n.Title))
+		ins.Bind(n.Title, n.Lead, n.Content, n.PublishStart, n.PublishEnd, GenerateSlug(n.Title))
 		_, _, err = ins.Exec()
 		return err
 	}
@@ -105,4 +108,20 @@ func (n NewsItem) Delete() error {
 	del.Bind(n.ID)
 	_, _, err = del.Exec()
 	return err
+}
+
+func (n *NewsItem) SetZones() {
+	if !n.PublishStart.IsZero() {
+		n.PublishStart = ChangeZone(n.PublishStart, CentralTime)
+	}
+	if !n.PublishEnd.IsZero() {
+		n.PublishEnd = ChangeZone(n.PublishEnd, CentralTime)
+	}
+}
+
+func ChangeZone(t time.Time, zone *time.Location) time.Time {
+	if !t.IsZero() {
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), zone).In(UTC)
+	}
+	return t
 }

@@ -88,7 +88,6 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 
 func Save(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.FormValue("id"))
-	loc, _ := time.LoadLocation("US/Central")
 	pubstart, _ := time.Parse("01/02/2006 3:04 pm", r.FormValue("publishStart"))
 	pubend, _ := time.Parse("01/02/2006 3:04 pm", r.FormValue("publishEnd"))
 	newsitem := models.NewsItem{
@@ -96,8 +95,8 @@ func Save(w http.ResponseWriter, r *http.Request) {
 		Title:        r.FormValue("title"),
 		Lead:         r.FormValue("lead"),
 		Content:      r.FormValue("content"),
-		PublishStart: ChangeZone(pubstart, loc),
-		PublishEnd:   ChangeZone(pubend, loc),
+		PublishStart: pubstart,
+		PublishEnd:   pubend,
 	}
 	err := newsitem.Save()
 	if err != nil {
@@ -122,11 +121,4 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	} else {
 		plate.ServeFormatted(w, r, err.Error())
 	}
-}
-
-func ChangeZone(t time.Time, zone *time.Location) time.Time {
-	if !t.IsZero() {
-		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), zone)
-	}
-	return t
 }
