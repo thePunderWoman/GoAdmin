@@ -80,7 +80,8 @@ func (n *NewsItem) Save() error {
 		if err != nil {
 			return err
 		}
-		upd.Bind(n.Title, n.Lead, n.Content, n.PublishStart, n.PublishEnd, GenerateSlug(n.Title), n.ID)
+
+		upd.Bind(n.Title, n.Lead, n.Content, n.PublishStart.In(UTC), n.PublishEnd.In(UTC), GenerateSlug(n.Title), n.ID)
 		_, _, err = upd.Exec()
 		return err
 	} else {
@@ -89,7 +90,7 @@ func (n *NewsItem) Save() error {
 		if err != nil {
 			return err
 		}
-		ins.Bind(n.Title, n.Lead, n.Content, n.PublishStart, n.PublishEnd, GenerateSlug(n.Title))
+		ins.Bind(n.Title, n.Lead, n.Content, n.PublishStart.In(UTC), n.PublishEnd.In(UTC), GenerateSlug(n.Title))
 		_, _, err = ins.Exec()
 		return err
 	}
