@@ -140,6 +140,9 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["AddNewsItemStmt"] = `INSERT INTO NewsItem (title,lead,content,publishStart,publishEnd,slug,active) VALUES (?,?,?,?,?,?,1)`
 	UnPreparedStatements["DeleteNewsItemStmt"] = `Update NewsItem SET active = 0 WHERE newsItemID = ?`
 
+	// Video Manager Statements
+	UnPreparedStatements["GetAllVideosStmt"] = `select * from Video`
+
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()
 	}

@@ -9,7 +9,7 @@
             createSortable();
         });
     });
-    $('a.deleteVideo').live("click", function (event) {
+    $(document).on('click','a.deleteVideo', function (event) {
         event.preventDefault();
         if (confirm("Are you sure you want to remove this video?")) {
             var idstr = $(this).attr('id').split('_')[1];

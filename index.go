@@ -8,6 +8,7 @@ import (
 	"./controllers/faq"
 	"./controllers/news"
 	"./controllers/users"
+	"./controllers/video"
 	"./controllers/website"
 	"./helpers/database"
 	"./helpers/globals"
@@ -114,6 +115,9 @@ func main() {
 	server.Get("/News/Edit/:id", news.Edit)
 	server.Post("/News/Save", news.Save)
 	server.Get("/News/Delete/:id", news.Delete)
+
+	// Video
+	server.Get("/Video", video.Index)
 
 	// Home page route
 	server.Get("/", controllers.Index)

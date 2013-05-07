@@ -1,0 +1,74 @@
+﻿ul#liveVideos, ul#allVideos {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    float: left;
+    width: 40%;
+}
+
+ul#allVideos {
+    float: right;
+}
+
+ul li.title {
+    display: block;
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+ul li.sortableVideo {
+    display: block;
+    padding: 3px 0;
+}
+
+ul li.sortableVideo img {
+    float: left;
+    padding-right: 10px;
+    width: 120px;
+    height: auto;
+}
+
+ul#liveVideos img {
+    cursor: pointer;
+}
+
+ul li.sortableVideo span.videotitle {
+    font-size: 11px;
+}
+
+ul li.sortableVideo a.addVideo, ul li.sortableVideo a.deleteVideo {
+    font-size: 11px;
+}
+
+.clear {
+    display: block;
+    clear: both;
+    height: 0;
+    width: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#pagination {
+	display: block;
+	clear: both;
+	border-top: 1px solid #ccc;
+	padding-top: 10px;
+	margin-top: 10px;
+	text-align: center;
+}
+
+#pagination a {
+	float: left;
+	text-decoration: none;
+}
+
+#pagination a:hover {
+	text-decoration: underline;
+}
+
+#pagination a#nextpage {
+	float: right;
+}
