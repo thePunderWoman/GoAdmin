@@ -70,7 +70,6 @@ func (n NewsItem) Get() (NewsItem, error) {
 	ch := make(chan NewsItem)
 	go n.PopulateNewsItem(row, res, ch)
 	newsitem = <-ch
-
 	return newsitem, nil
 }
 

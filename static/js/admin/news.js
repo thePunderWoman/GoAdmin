@@ -11,7 +11,7 @@
     });
 
 
-    $('.delete').live('click', function () {
+    $(document).on('click','.delete', function () {
         if (confirm('Are you sure you want to remove this news item?')) {
             var path = $(this).attr('href');
             var table_row = $(this).parent().parent().get()[0];
