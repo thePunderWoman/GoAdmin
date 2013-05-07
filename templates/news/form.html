@@ -1,0 +1,75 @@
+{{ define "content" }}
+
+<script src="http://ck.curtmfg.com/ckeditor.js"></script>
+
+<ul id="subNav">
+    <li>
+        <a href="/News/Add">Add News</a>
+    </li>
+</ul>
+<div id="content_container">
+    {{ if isZero .newsitem.ID }}
+    <h2>Add News Item</h2>
+    {{ else }}
+    <h2>Edit News Item</h2>
+    {{ end }}
+
+    {{ with .error }}
+    <p id="err">{{ . }}</p>
+    {{ end }}
+    {{ with .newsitem }}
+    <form class="form_left" id="add_form" method="post" action="/News/Save">
+        <input type="hidden" name="id" value="{{ .ID }}" />
+        <label for="title">
+            Title
+            <input type="text" id="title" name="title" placeholder="Enter the title here..." value="{{ .Title }}" />
+        </label>
+        <span class="clear"></span>
+        <label for="lead">
+            Lead
+            <textarea cols="100" rows="10" id="lead" name="lead" placeholder="Enter the answer here...">{{ .Lead }}</textarea>
+        </label>
+        <label for="content">
+            Body
+            <textarea cols="100" rows="10" id="content" name="content" placeholder="Enter the body here...">{{ .Content }}</textarea>
+        </label>
+
+        <label for="publishStart">
+            Publish Start
+            <input type="text" id="publishStart" name="publishStart" placeholder="Enter the publish date here..." value="{{ if not .PublishStart.IsZero}}{{ formatDate .PublishStart }}{{ end }}" />
+        </label>
+
+        <label for="publishEnd">
+            Publish End (Optional)
+            <input type="text" id="publishEnd" name="publishEnd" placeholder="Enter the publish end date here..." value="{{ if not .PublishEnd.IsZero}}{{ formatDate .PublishEnd }}{{ end }}" />
+        </label>
+
+        <div id="buttons">
+            <a href="/News/" title="Cancel" id="btnCancel" class="cancel">Cancel</a>
+            <input type="submit" id="btnSave" name="btnSave" value="Save" />
+        </div>
+    </form>
+    {{ end }}
+</div>
+<script src="/js/admin/jquery-ui-timepicker-addon.js"></script>
+<script src="/js/admin/news.js"></script>
+<script>
+    $(function () {
+
+        $('#publishStart').datetimepicker({
+            ampm: true
+        });
+
+        $('#publishEnd').datetimepicker({
+            ampm: true
+        });
+
+        CKEDITOR.replace('content', {
+            filebrowserImageUploadUrl: '/File/CKUpload',
+            filebrowserImageBrowseUrl: '/File/CKIndex',
+            filebrowserWindowWidth: '640',
+            filebrowserWindowHeight: '480'
+        });
+    });
+</script>
+{{ end }}

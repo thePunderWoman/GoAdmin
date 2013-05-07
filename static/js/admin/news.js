@@ -1,6 +1,15 @@
-﻿$(document).ready(function () {
+﻿$(function () {
+   var news_table = $('table').dataTable({
+        "bJQueryUI": true,
+        "aoColumns": [
+        null,
+        { "sType": "date" },
+        { "sType": "date" },
+        null
+    ],
+        "aaSorting": [[1, "desc"]]
+    });
 
-    var news_table = $('table').dataTable({ 'bJQueryUI': true });
 
     $('.delete').live('click', function () {
         if (confirm('Are you sure you want to remove this news item?')) {

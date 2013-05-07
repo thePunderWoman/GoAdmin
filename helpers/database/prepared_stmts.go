@@ -133,6 +133,13 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["AddFAQStmt"] = `INSERT INTO FAQ (question, answer) VALUES (?,?)`
 	UnPreparedStatements["DeleteFAQStmt"] = `DELETE FROM FAQ WHERE faqID = ?`
 
+	// News Manager Statements
+	UnPreparedStatements["GetAllNewsStmt"] = `select * from NewsItem WHERE active = 1`
+	UnPreparedStatements["GetNewsItemStmt"] = `select * from NewsItem WHERE newsItemID = ?`
+	UnPreparedStatements["UpdateNewsItemStmt"] = `Update NewsItem SET title = ?, lead = ?, content = ?, publishStart = ?, publishEnd = ?, slug = ? WHERE newsItemID = ?`
+	UnPreparedStatements["AddNewsItemStmt"] = `INSERT INTO NewsItem (title,lead,content,publishStart,publishEnd,slug,active) VALUES (?,?,?,?,?,?,1)`
+	UnPreparedStatements["DeleteNewsItemStmt"] = `Update NewsItem SET active = 0 WHERE newsItemID = ?`
+
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()
 	}
