@@ -88,7 +88,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 
 func Save(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.FormValue("id"))
-	loc, _ := time.LoadLocation("US/Central")
+	loc, _ := time.LoadLocation("UTC")
 	pubstart, _ := time.Parse("01/02/2006 3:04 pm", r.FormValue("publishStart"))
 	pubend, _ := time.Parse("01/02/2006 3:04 pm", r.FormValue("publishEnd"))
 	newsitem := models.NewsItem{
