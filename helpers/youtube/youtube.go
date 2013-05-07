@@ -3,7 +3,7 @@ package youtube
 import (
 	"../rest"
 	"encoding/xml"
-	"log"
+	_ "log"
 	"math"
 	"strconv"
 )

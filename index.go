@@ -118,6 +118,7 @@ func main() {
 
 	// Video
 	server.Get("/Video", video.Index)
+	server.Post("/Video/UpdateSort", video.Sort)
 
 	// Home page route
 	server.Get("/", controllers.Index)

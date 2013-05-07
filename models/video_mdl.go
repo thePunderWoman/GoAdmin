@@ -3,7 +3,9 @@ package models
 import (
 	"../helpers/database"
 	"github.com/ziutek/mymysql/mysql"
+	"log"
 	"sort"
+	"strconv"
 	"time"
 )
 
@@ -40,6 +42,22 @@ func (v Video) GetAll() (Videos, error) {
 	}
 	videos.Sort()
 	return videos, nil
+}
+
+func (v Video) UpdateSort(videos []string) {
+	sort := 0
+	for _, video := range videos {
+		sort += 1
+		upd, err := database.GetStatement("UpdateVideoSortStmt")
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		videoID, _ := strconv.Atoi(video)
+		upd.Reset()
+		upd.Bind(sort, videoID)
+		upd.Exec()
+	}
 }
 
 func (v Video) PopulateVideo(row mysql.Row, res mysql.Result, ch chan Video) {

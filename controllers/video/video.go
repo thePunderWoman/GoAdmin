@@ -38,3 +38,9 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 }
+
+func Sort(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	videos := r.Form["video[]"]
+	models.Video{}.UpdateSort(videos)
+}

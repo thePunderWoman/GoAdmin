@@ -142,6 +142,7 @@ func PrepareCurtDev() error {
 
 	// Video Manager Statements
 	UnPreparedStatements["GetAllVideosStmt"] = `select * from Video`
+	UnPreparedStatements["UpdateVideoSortStmt"] = `Update Video Set sort = ? where videoID = ?`
 
 	if !CurtDevDb.IsConnected() {
 		CurtDevDb.Connect()
