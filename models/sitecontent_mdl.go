@@ -681,7 +681,7 @@ func RemoveContentFromMenu(id int) {
 		log.Println(err)
 		return
 	}
-	sel2.Reset()
+	sel2.Raw.Reset()
 	sel2.Bind(item.ParentID, item.MenuID)
 	rows, res, err := sel2.Exec()
 	if err != nil {
@@ -706,7 +706,7 @@ func RemoveContentFromMenu(id int) {
 		log.Println(err)
 		return
 	}
-	sel3.Reset()
+	sel3.Raw.Reset()
 	sel3.Bind(item.ID, item.MenuID)
 	rows, res, err = sel3.Exec()
 	if err != nil {
@@ -748,7 +748,7 @@ func RemoveContentFromMenu(id int) {
 		log.Println(err)
 		return
 	}
-	del.Reset()
+	del.Raw.Reset()
 	del.Bind(item.ID)
 	_, _, err = del.Exec()
 	if err != nil {
@@ -982,7 +982,7 @@ func (c *Content) Save(revision ContentRevision) error {
 			log.Println(err)
 			return err
 		}
-		ins2.Reset()
+		ins2.Raw.Reset()
 		ins2.Bind(c.ID, revision.ContentText, time.Now().In(UTC), true)
 		_, _, err = ins2.Exec()
 		if err != nil {
@@ -1016,7 +1016,7 @@ func (r *ContentRevision) Copy() error {
 	if err != nil {
 		return err
 	}
-	sel.Reset()
+	sel.Raw.Reset()
 	sel.Bind(id)
 	row, res, err := sel.ExecFirst()
 	if err != nil {
@@ -1042,7 +1042,7 @@ func (r *ContentRevision) Activate() error {
 	if err != nil {
 		return err
 	}
-	upd1.Reset()
+	upd1.Raw.Reset()
 	upd1.Bind(r.ContentID)
 	_, _, err = upd1.Exec()
 	if err != nil {
@@ -1053,7 +1053,7 @@ func (r *ContentRevision) Activate() error {
 	if err != nil {
 		return err
 	}
-	upd2.Reset()
+	upd2.Raw.Reset()
 	upd2.Bind(r.ID)
 	_, _, err = upd2.Exec()
 	if err != nil {
@@ -1079,7 +1079,7 @@ func (r *ContentRevision) Delete() error {
 	if err != nil {
 		return err
 	}
-	del.Reset()
+	del.Raw.Reset()
 	del.Bind(r.ID)
 	_, _, err = del.Exec()
 	if err != nil {

@@ -531,7 +531,7 @@ func (u *User) AddUserModule(mID int, ch chan int) {
 		return
 	}
 
-	ins.Reset()
+	ins.Raw.Reset()
 	ins.Bind(u.ID, mID)
 
 	_, _, err = ins.Exec()

@@ -224,7 +224,7 @@ func (r *ContactReceiver) Save(types []string) error {
 		if err != nil {
 			return err
 		}
-		del.Reset()
+		del.Raw.Reset()
 		del.Bind(r.ID)
 		_, _, err = del.Exec()
 		if err != nil {
@@ -265,7 +265,7 @@ func (r *ContactReceiver) AddType(typeID int, ch chan int) {
 		ch <- 1
 		return
 	}
-	ins.Reset()
+	ins.Raw.Reset()
 	ins.Bind(r.ID, typeID)
 	ins.Exec()
 	ch <- 1
@@ -302,7 +302,7 @@ func (r *ContactReceiver) GetTypes() {
 		r.Types = types
 		return
 	}
-	sel.Reset()
+	sel.Raw.Reset()
 	sel.Bind(r.ID)
 	rows, res, err := sel.Exec()
 	if err != nil {

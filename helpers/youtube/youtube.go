@@ -18,6 +18,10 @@ type Feed struct {
 	Pages   int
 }
 
+type Entry struct {
+	Video Video `xml:"entry"`
+}
+
 type Video struct {
 	Published string    `xml:"published"`
 	Updated   string    `xml:"updated"`
@@ -63,6 +67,17 @@ func GetAll(page int, perpage int) (Feed, error) {
 	return videos, nil
 }
 
+func Get(ytID string) (Entry, error) {
+	var video Entry
+	url := "https://gdata.youtube.com/feeds/api/videos/" + ytID + "?v=2"
+	res, err := rest.Get(url)
+	if err != nil {
+		return video, err
+	}
+	err = xml.Unmarshal(res, &video)
+	return video, err
+}
+
 func (v *Video) GetThumb() string {
 	for _, img := range v.Details.Images {
 		if img.Size == "default" {
@@ -70,6 +85,16 @@ func (v *Video) GetThumb() string {
 		}
 	}
 	return ""
+}
+
+func (v *Video) GetScreenshot() string {
+	for _, img := range v.Details.Images {
+		if img.Size == "mqdefault" {
+			return img.URL
+		}
+	}
+	return ""
+
 }
 
 func (f *Feed) GetPageCount() {

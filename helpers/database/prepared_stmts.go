@@ -3,13 +3,15 @@ package database
 import (
 	"errors"
 	"expvar"
-	"github.com/ziutek/mymysql/mysql"
+	"github.com/ziutek/mymysql/autorc"
+	_ "github.com/ziutek/mymysql/mysql"
+	_ "github.com/ziutek/mymysql/thrsafe"
 	"log"
 )
 
 // prepared statements go here
 var (
-	Statements = make(map[string]mysql.Stmt, 0)
+	Statements = make(map[string]*autorc.Stmt, 0)
 )
 
 func PrepareAll() error {
@@ -41,8 +43,8 @@ func PrepareAdmin() error {
 	UnPreparedStatements["updateUserStmt"] = "update user set username=?, email=?, fname=?, lname=?, biography=?, photo=?, isActive=?, superUser=? WHERE id = ?"
 	UnPreparedStatements["addModuleToUserStmt"] = "insert into user_module (userID,moduleID) VALUES (?,?)"
 
-	if !AdminDb.IsConnected() {
-		AdminDb.Connect()
+	if !AdminDb.Raw.IsConnected() {
+		AdminDb.Raw.Connect()
 	}
 
 	c := make(chan int)
@@ -142,10 +144,14 @@ func PrepareCurtDev() error {
 
 	// Video Manager Statements
 	UnPreparedStatements["GetAllVideosStmt"] = `select * from Video`
+	UnPreparedStatements["GetVideoStmt"] = `select * from Video where videoID = ?`
 	UnPreparedStatements["UpdateVideoSortStmt"] = `Update Video Set sort = ? where videoID = ?`
+	UnPreparedStatements["DeleteVideoStmt"] = `DELETE FROM Video where videoID = ?`
+	UnPreparedStatements["GetLastVideoSortStmt"] = `select sort from Video Order By sort desc`
+	UnPreparedStatements["AddVideoStmt"] = `INSERT INTO Video (embed_link,dateAdded,sort,title,description,youtubeID,watchpage,screenshot) VALUES (?,?,?,?,?,?,?,?)`
 
-	if !CurtDevDb.IsConnected() {
-		CurtDevDb.Connect()
+	if !CurtDevDb.Raw.IsConnected() {
+		CurtDevDb.Raw.Connect()
 	}
 
 	c := make(chan int)
@@ -183,7 +189,7 @@ func PrepareCurtDevStatement(name string, sql string, ch chan int) {
 
 }
 
-func GetStatement(key string) (stmt mysql.Stmt, err error) {
+func GetStatement(key string) (stmt *autorc.Stmt, err error) {
 	stmt, ok := Statements[key]
 	if !ok {
 		qry := expvar.Get(key)

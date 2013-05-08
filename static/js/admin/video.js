@@ -5,7 +5,7 @@
         var idstr = $(this).attr('id').split(':')[1];
         $.getJSON("/Video/AddVideo", { 'ytID': idstr }, function (data) {
             $("#liveVideos").sortable("destroy");
-            $('#liveVideos').append('<li class="sortableVideo" id="video_' + data.videoID + '"><img src="' + data.thumb + '" alt="' + data.videoTitle + '" /><span class="videotitle">' + data.videoTitle + '</span><br /><a class="deleteVideo" href="#" id="delete_' + data.videoID + '">Remove</a><span class="clear"></span></li>');
+            $('#liveVideos').append('<li class="sortableVideo" id="video_' + data.ID + '"><img src="' + data.Screenshot + '" alt="' + data.Title + '" /><span class="videotitle">' + data.Title + '</span><br /><a class="deleteVideo" href="#" id="delete_' + data.ID + '">Remove</a><span class="clear"></span></li>');
             createSortable();
         });
     });

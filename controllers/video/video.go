@@ -44,3 +44,19 @@ func Sort(w http.ResponseWriter, r *http.Request) {
 	videos := r.Form["video[]"]
 	models.Video{}.UpdateSort(videos)
 }
+
+func Delete(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.FormValue("id"))
+	err := models.Video{ID: id}.Delete()
+	if err != nil {
+		plate.ServeFormatted(w, r, "fail")
+		return
+	}
+	plate.ServeFormatted(w, r, "success")
+}
+
+func Add(w http.ResponseWriter, r *http.Request) {
+	ytid := r.URL.Query().Get("ytID")
+	video, _ := models.Video{}.Add(ytid)
+	plate.ServeFormatted(w, r, video)
+}
