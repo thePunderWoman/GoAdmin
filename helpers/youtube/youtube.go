@@ -3,7 +3,7 @@ package youtube
 import (
 	"../rest"
 	"encoding/xml"
-	_ "log"
+	//"log"
 	"math"
 	"strconv"
 )
@@ -16,10 +16,6 @@ type Feed struct {
 	PerPage int     `xml:"itemsPerPage"`
 	Videos  []Video `xml:"entry"`
 	Pages   int
-}
-
-type Entry struct {
-	Video Video `xml:"entry"`
 }
 
 type Video struct {
@@ -67,8 +63,8 @@ func GetAll(page int, perpage int) (Feed, error) {
 	return videos, nil
 }
 
-func Get(ytID string) (Entry, error) {
-	var video Entry
+func Get(ytID string) (Video, error) {
+	var video Video
 	url := "https://gdata.youtube.com/feeds/api/videos/" + ytID + "?v=2"
 	res, err := rest.Get(url)
 	if err != nil {
@@ -89,7 +85,7 @@ func (v *Video) GetThumb() string {
 
 func (v *Video) GetScreenshot() string {
 	for _, img := range v.Details.Images {
-		if img.Size == "mqdefault" {
+		if img.Size == "hqdefault" {
 			return img.URL
 		}
 	}

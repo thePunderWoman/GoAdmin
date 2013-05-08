@@ -14,7 +14,7 @@
         if (confirm("Are you sure you want to remove this video?")) {
             var idstr = $(this).attr('id').split('_')[1];
             $.post("/Video/Delete", { "id": idstr }, function (data) {
-                if (data == "success") {
+                if (data) {
                     $('#video_' + idstr).remove();
                 }
             }, "text");

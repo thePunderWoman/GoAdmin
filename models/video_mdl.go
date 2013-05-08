@@ -55,7 +55,25 @@ func (v Video) Add(ytID string) (Video, error) {
 			return video, err
 		}
 		ins.Raw.Reset()
-		ins.Bind(ytvideo.Video.Details.VideoID, time.Now().In(UTC), sort, ytvideo.Video.Title, ytvideo.Video.Details.Description, ytvideo.Video.Details.VideoID, ytvideo.Video.Details.WatchPage, ytvideo.Video.GetScreenshot())
+		params := struct {
+			ID          string
+			Created     time.Time
+			Sort        int
+			Title       string
+			Description string
+			YTID        string
+			WatchPage   string
+			Screenshot  string
+		}{
+			ID:          ytvideo.Details.VideoID,
+			Created:     time.Now().In(UTC),
+			Sort:        sort,
+			Title:       ytvideo.Title,
+			Description: ytvideo.Details.Description,
+			WatchPage:   ytvideo.Details.WatchPage.URL,
+			Screenshot:  ytvideo.GetScreenshot(),
+		}
+		ins.Bind(&params)
 		_, res, err := ins.Exec()
 		if err != nil {
 			return video, err
