@@ -150,6 +150,11 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["GetLastVideoSortStmt"] = `select sort from Video Order By sort desc`
 	UnPreparedStatements["AddVideoStmt"] = `INSERT INTO Video (embed_link,dateAdded,sort,title,description,youtubeID,watchpage,screenshot) VALUES (?,?,?,?,?,?,?,?)`
 
+	//Testimonial Manager Statements
+	UnPreparedStatements["GetAllTestimonialsStmt"] = `SELECT * from Testimonial WHERE active = 1 AND approved = ?`
+	UnPreparedStatements["DeleteTestimonialStmt"] = `UPDATE Testimonial SET active = 0 WHERE testimonialID = ?`
+	UnPreparedStatements["SetTestimonialApprovalStmt"] = `UPDATE Testimonial SET approved = ? WHERE testimonialID = ?`
+
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()
 	}

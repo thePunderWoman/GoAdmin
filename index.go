@@ -7,6 +7,7 @@ import (
 	"./controllers/contact"
 	"./controllers/faq"
 	"./controllers/news"
+	"./controllers/testimonial"
 	"./controllers/users"
 	"./controllers/video"
 	"./controllers/website"
@@ -121,6 +122,10 @@ func main() {
 	server.Post("/Video/UpdateSort", video.Sort)
 	server.Post("/Video/Delete", video.Delete)
 	server.Get("/Video/AddVideo", video.Add)
+
+	// Testimonials
+	server.Get("/Testimonial", testimonial.Index)
+	server.Get("/Testimonial/Approved", testimonial.Approved)
 
 	// Home page route
 	server.Get("/", controllers.Index)

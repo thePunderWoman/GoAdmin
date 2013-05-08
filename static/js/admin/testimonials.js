@@ -12,10 +12,10 @@ $(function () {
             null,
             null
         ],
-        "aaSorting": [[2, "asc"]]
+        "aaSorting": [[5, "desc"]]
     });
 
-    $('.isApproved').live('click', function () {
+    $(document).on('click','.isApproved', function () {
         var testimonialID = $(this).attr('id').split(':')[1];
         if (testimonialID > 0) {
             $.getJSON('/Testimonial/Approve', { 'id': testimonialID }, function (response) {
@@ -34,7 +34,7 @@ $(function () {
         }
     });
 
-    $('.remove').live('click', function (event) {
+    $(document).on('click','.remove', function (event) {
         event.preventDefault();
         var testimonialID = $(this).attr('id');
         if (testimonialID > 0 && confirm('Are you sure you want to remove this testimonial?')) {

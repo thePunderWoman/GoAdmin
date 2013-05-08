@@ -1,0 +1,65 @@
+{{ define "content" }}
+<style type="text/css">
+    
+    #buttons
+    {
+        margin-top: 0px;
+    }
+    
+    input[type=checkbox]
+    {
+        text-align:center;
+    }
+    
+    tr td:nth-child(5), tr td:nth-child(6), tr td:nth-child(7)
+    {
+        text-align:center;
+    }
+</style>
+<ul id="subNav">
+    <li>
+        <a href="/Testimonial">Unapproved Testimonials</a>
+    </li>
+    <li>
+        <a href="/Testimonial/Approved">Approved Testimonials</a>
+    </li>
+</ul>
+
+<div id="content_container">
+    <h2>{{ .type }} Testimonials</h2>
+
+    <table id="testimonialTable">
+        <thead>
+            <tr>
+                <th>Reviewer</th>
+                <th>Location</th>
+                <th>Rating</th>
+                <th>Title</th>
+                <th>Testimonial</th>
+                <th>Date Added</th>
+                <th>Approved</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .testimonials }}
+                <tr id="testimonial:{{ .ID }}">
+                    <td>{{ .FirstName }} {{ .LastName }}</td>
+                    <td>{{ .Location }}</td>
+                    <td><div class="starrating"><span style="width: {{ .Percent }}%;"></div></td>
+                    <td>{{ .Title }}</td>
+                    <td style="text-align: left;">{{ .Content }}</td>
+                    <td>{{ formatDate .DateAdded }}</td>
+                    <td>
+                        <input type="checkbox" name="approved" id="approved:{{ .ID }}" class="isApproved" value="true" {{ if .Approved }} checked="checked" {{ end }} />
+                    </td>
+                    <td>
+                        <a href="/Testiminial/Remove" id="{{ .ID }}" class="remove">Delete</a>
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+<script src="/js/admin/testimonials.js"></script>
+{{ end }}

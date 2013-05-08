@@ -898,7 +898,7 @@ ul#menutabs li.dropper a {
     display: block;
     height: 15px;
     width: 85px;
-    background: url('img/star.png') bottom left repeat-x;
+    background: url('/img/star.png') bottom left repeat-x;
     overflow: hidden;
     position: relative;
 }
@@ -906,7 +906,7 @@ ul#menutabs li.dropper a {
 .starrating span {
     display: block;
     height: 15px;
-    background: url('img/star.png') top left repeat-x;
+    background: url('/img/star.png') top left repeat-x;
 }
 
 .tabbed_content {
