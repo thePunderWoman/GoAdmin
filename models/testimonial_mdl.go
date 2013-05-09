@@ -3,7 +3,7 @@ package models
 import (
 	"../helpers/database"
 	"github.com/ziutek/mymysql/mysql"
-	_ "log"
+	"log"
 	"time"
 )
 
@@ -64,6 +64,27 @@ func (t Testimonial) GetApproved() ([]Testimonial, error) {
 
 func (t *Testimonial) Percent() int {
 	return int((t.Rating / 5) * 100)
+}
+
+func (t Testimonial) Remove() {
+	upd, err := database.GetStatement("DeleteTestimonialStmt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	upd.Bind(t.ID)
+	upd.Exec()
+}
+
+func (t Testimonial) SetApproval() bool {
+	upd, err := database.GetStatement("SetTestimonialApprovalStmt")
+	if err != nil {
+		log.Println(err)
+		return !t.Approved
+	}
+	upd.Bind(t.Approved, t.ID)
+	upd.Exec()
+	return t.Approved
 }
 
 func (t Testimonial) PopulateTestimonial(row mysql.Row, res mysql.Result, ch chan Testimonial) {

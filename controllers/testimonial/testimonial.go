@@ -5,6 +5,7 @@ import (
 	"../../models"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -52,4 +53,22 @@ func Approved(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func Remove(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
+	if id > 0 {
+		models.Testimonial{ID: id}.Remove()
+	}
+	plate.ServeFormatted(w, r, true)
+}
+
+func SetApproval(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
+	approved := false
+	if id > 0 {
+		approval, _ := strconv.ParseBool(r.URL.Query().Get("approval"))
+		approved = models.Testimonial{ID: id, Approved: approval}.SetApproval()
+	}
+	plate.ServeFormatted(w, r, approved)
 }

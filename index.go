@@ -126,6 +126,8 @@ func main() {
 	// Testimonials
 	server.Get("/Testimonial", testimonial.Index)
 	server.Get("/Testimonial/Approved", testimonial.Approved)
+	server.Get("/Testimonial/Remove", testimonial.Remove)
+	server.Get("/Testimonial/SetApproval", testimonial.SetApproval)
 
 	// Home page route
 	server.Get("/", controllers.Index)
