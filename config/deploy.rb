@@ -76,9 +76,6 @@ namespace :deploy do
   task :compile do
   	run "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/go/bin/go build -o #{deploy_to}/current/go-admin #{deploy_to}/current/index.go"
   end
-  task :own do
-    run "sudo chown -R deployer:deployers #{deploy_to}"
-  end
   task :start do ; end
   task :stop do 
       kill_processes_matching "go-admin"
@@ -90,5 +87,9 @@ namespace :deploy do
 end
 
 def kill_processes_matching(name)
-  run "ps -ef | grep #{name} | grep -v grep | awk '{print $2}' | sudo xargs kill -2 || echo 'no process with name #{name} found'"
+  begin
+    run "killall -q #{name}"
+  rescue Exception => error
+    puts "No processes to kill"
+  end
 end
