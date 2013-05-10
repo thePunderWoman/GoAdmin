@@ -1,0 +1,135 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/LandingPages">Active Pages</a>
+    </li>
+    <li>
+        <a href="/LandingPages/Past">Past Pages</a>
+    </li>
+    <li class="add">
+        <a href="/LandingPages/Add">Add Page</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>Edit Landing Page</h2>
+
+    {{ with .error }}
+        <p style="font-weight: bold; color: Red;">{{ . }}</p>
+    {{ end }}
+    {{ with .page }}
+    <form action="/LandingPages/Save" method="post" class="form">
+        <input type="hidden" name="id" id="pageID" value="{{ .ID }}" />
+        <div id="tabs">
+            <ul class="tabs">
+                <li><a href="#Info">Info</a></li>
+                <li><a href="#Content">Content</a></li>
+                <li><a href="#Images">Images</a></li>
+                <li><a href="#Advanced">Advanced</a></li>
+            </ul>
+            <div id="Info">
+                <div class="form_left">
+                    <label for="name">
+                        Name
+                        <input type="text" name="name" id="name" value="{{ .Name }}" required placeholder="Enter a name for this page..."/>
+                    </label>
+
+                    <label for="startDate">
+                        Start Date
+                        <input type="text" name="startDate" id="startDate" value="{{ formatDate .Start }}" required placeholder="Choose a start date..." />
+                    </label>
+
+                    <label for="endDate">
+                        End Date
+                        <input type="text" name="endDate" id="endDate" value="{{ formatDate .End }}" required placeholder="Choose an end date..." />
+                    </label>
+
+                    <label for="url">
+                        URL
+                        <input type="text" name="url" id="url" value="{{ .URL }}" placeholder="Enter a target URL..." />
+                    </label>
+
+                    <label for="newWindow">
+                        Open Link in New Window?
+                        <input type="checkbox" name="newWindow" id="newWindow" value="true" {{ if .NewWindow }} checked="checked" {{ end }} />
+                    </label>
+
+                    <label for="menuPosition">
+                        Chicklet Menu position
+                        <select id="menuPosition" name="menuPosition">
+                            <option value="top" {{ if equalsPosition "top" }} selected="selected" {{ end }}>top</option>
+                            <option value="middle" {{ if equalsPosition "middle" }} selected="selected" {{ end }}>middle</option>
+                            <option value="bottom" {{ if equalsPosition "bottom" }} selected="selected" {{ end }}>bottom</option>
+                        </select>
+                    </label>
+                </div>
+                <span class="clear"></span>
+            </div>
+            <div id="Content">
+                <label for="page_content" id="label_page_content">
+                    Content
+                    <br />
+                    <textarea name="page_content" class="page_content" rows="10" cols="50" id="page_content" placeholder="Enter the Page Content">{{ .Content }}</textarea>
+                </label>
+            </div>
+            <div id="Images">
+                <button id="addImage" class="button">Add Image</button>
+                <ul id="pageImages">
+                    {{ range .Images }}
+                        <li id="img_{{ .ID }}">
+                            <img src="{{ .URL }}" alt="page image" />
+                            <a href="/LandingPages/RemoveImage/{{ .ID }}" class="removeimage">&times;</a>
+                            <span class="clear"></span>
+                        </li>
+                    {{ end }}
+                </ul>
+            </div>
+            <div id="Advanced">
+                <div class="form_left">
+                    <label for="linkClasses">
+                        Link CSS Classes (separate with spaces)
+                        <br />
+                        <input type="text" style="float: left;" name="linkClasses" id="linkClasses" value="{{ .LinkClasses }}" placeholder="Enter classes to be applied to the link..." />
+                        <span class="clear"></span>
+                    </label>
+                    <label for="conversionID">
+                        AdWords ConversionID
+                        <br />
+                        <input type="text" style="float: left;" name="conversionID" id="conversionID" value="{{ .ConversionID }}" placeholder="Enter Google Adwords ConversionID..." />
+                        <span class="clear"></span>
+                    </label>
+                    <label for="conversionLabel">
+                        AdWords Conversion Label
+                        <br />
+                        <input type="text" style="float: left;" name="conversionLabel" id="conversionLabel" value="{{ .ConversionLabel }}" placeholder="Enter Google Adwords Conversion Label..." />
+                        <span class="clear"></span>
+                    </label>
+                    <label>
+                        Custom Data Attributes
+                        <br />
+                        <input type="text" id="dataKey" placeholder="key" />
+                        <input type="text" id="dataValue" placeholder="Value" />
+                        <button class="button" id="addData">Add</button>
+                    </label>
+                    <ul id="dataList">
+                        {{ range .Data }}
+                            <li>{{ .Key }}: {{ .Value }} <a href="/LandingPages/RemoveData/{{ .ID }}" class="removeData">&times;</a></li>
+                        {{ end }}
+                    </ul>
+                </div>
+                <span class="clear"></span>
+            </div>
+        </div>
+        <div id="buttons">
+            <input type="submit" name="btnSubmit" id="btnSubmit" value="Save" />
+            <input type="reset" name="btnReset" id="btnReset" value="Clear" />
+        </div>
+    </form>
+    {{ end }}
+</div>
+<div id="file-dialog"></div>
+
+<script src="/js/fileiframe.js"></script>
+<script src="http://ck.curtmfg.com/ckeditor.js"></script>
+<script src="/js/admin/jquery-ui-timepicker-addon.js"></script>
+<script src="/js/admin/LandingPages/edit.js"></script>
+{{ end }}

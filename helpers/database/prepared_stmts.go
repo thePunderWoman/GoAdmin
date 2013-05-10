@@ -155,6 +155,18 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["DeleteTestimonialStmt"] = `UPDATE Testimonial SET active = 0 WHERE testimonialID = ?`
 	UnPreparedStatements["SetTestimonialApprovalStmt"] = `UPDATE Testimonial SET approved = ? WHERE testimonialID = ?`
 
+	//Landing Page Manager Statements
+	UnPreparedStatements["GetActiveLandingPagesStmt"] = `SELECT * from LandingPage WHERE endDate > UTC_TIMESTAMP()`
+	UnPreparedStatements["GetPastLandingPagesStmt"] = `SELECT * from LandingPage WHERE endDate < UTC_TIMESTAMP()`
+	UnPreparedStatements["GetLandingPageImagesStmt"] = `SELECT * from LandingPageImages WHERE landingPageID = ?`
+	UnPreparedStatements["GetLandingPageDataStmt"] = `SELECT * from LandingPageData WHERE landingPageID = ?`
+	UnPreparedStatements["AddLandingPageStmt"] = `INSERT INTO LandingPage (name,startDate,endDate,url,newWindow,menuPosition) VALUES (?,?,?,?,?,?)`
+	UnPreparedStatements["UpdateLandingPageStmt"] = `UPDATE LandingPage SET name = ?, startDate = ?, endDate = ?, url = ?, pageContent = ?, linkClasses = ?, conversionID = ?, conversionLabel = ?, newWindow = ?, menuPosition = ? WHERE id = ?`
+	UnPreparedStatements["GetLandingPageStmt"] = `SELECT * from LandingPage WHERE id = ?`
+	UnPreparedStatements["AddLandingPageDataStmt"] = `INSERT INTO LandingPageData (landingPageID,dataKey,dataValue) VALUES (?,?,?)`
+	UnPreparedStatements["DeleteLandingPageDataStmt"] = `DELETE FROM LandingPageData WHERE id = ?`
+	UnPreparedStatements["DeleteLandingPageStmt"] = `DELETE FROM LandingPage WHERE id = ?`
+
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()
 	}

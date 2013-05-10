@@ -1,0 +1,65 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/LandingPages">Active Pages</a>
+    </li>
+    <li>
+        <a href="/LandingPages/Past">Past Pages</a>
+    </li>
+    <li class="add">
+        <a href="/LandingPages/Add" class="active">Add Page</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>Add New Landing Page</h2>
+
+    {{ with .error }}
+        <p style="font-weight: bold; color: Red;">{{ . }}</p>
+    {{ end }}
+    
+    <form action="/LandingPages/Add" method="post" class="form">
+        <div class="form_left">
+            <label for="name">
+                Name
+                <input type="text" name="name" id="name" required placeholder="Enter a name for this page..."/>
+            </label>
+
+            <label for="startDate">
+                Start Date
+                <input type="text" name="startDate" id="startDate" required placeholder="Choose a start date..." />
+            </label>
+
+            <label for="endDate">
+                End Date
+                <input type="text" name="endDate" id="endDate" required placeholder="Choose an end date..." />
+            </label>
+
+            <label for="url">
+                URL
+                <input type="text" name="url" id="url" placeholder="Enter a target URL..." />
+            </label>
+
+            <label for="newWindow">
+                Open Link in New Window?
+                <input type="checkbox" name="newWindow" id="newWindow" value="true" />
+            </label>
+
+            <label for="menuPosition">
+                Chicklet Menu position
+                <select id="menuPosition" name="menuPosition">
+                    <option value="top">top</option>
+                    <option value="middle">middle</option>
+                    <option value="bottom">bottom</option>
+                </select>
+            </label>
+
+            <div id="buttons">
+                <input type="submit" name="btnSubmit" id="btnSubmit" value="Save" />
+                <input type="reset" name="btnReset" id="btnReset" value="Clear" />
+            </div>
+        </div>
+    </form>
+</div>
+<script src="/js/admin/jquery-ui-timepicker-addon.js" type="text/javascript"></script>
+<script src="/js/admin/LandingPages/add.js"></script>
+{{ end }}

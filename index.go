@@ -6,6 +6,7 @@ import (
 	"./controllers/base"
 	"./controllers/contact"
 	"./controllers/faq"
+	"./controllers/landingpage"
 	"./controllers/news"
 	"./controllers/testimonial"
 	"./controllers/users"
@@ -128,6 +129,17 @@ func main() {
 	server.Get("/Testimonial/Approved", testimonial.Approved)
 	server.Get("/Testimonial/Remove", testimonial.Remove)
 	server.Get("/Testimonial/SetApproval", testimonial.SetApproval)
+
+	// Landing Pages
+	server.Get("/LandingPages", landingpage.Index)
+	server.Get("/LandingPages/Past", landingpage.Past)
+	server.Get("/LandingPages/Add", landingpage.Add)
+	server.Get("/LandingPages/Edit/:id", landingpage.Edit)
+	server.Get("/LandingPages/AddData", landingpage.AddData)
+	server.Get("/LandingPages/RemoveData/:id", landingpage.RemoveData)
+	server.Post("/LandingPages/Add", landingpage.New)
+	server.Post("/LandingPages/Save", landingpage.Save)
+	server.Get("/LandingPages/Remove/:id", landingpage.Remove)
 
 	// Home page route
 	server.Get("/", controllers.Index)

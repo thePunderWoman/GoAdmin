@@ -1,0 +1,79 @@
+{{ define "content" }}
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<ul id="subNav">
+    <li>
+        <a href="/LandingPages" {{ if isZero .type }}{{ else }}class="active"{{ end }}>Active Pages</a>
+    </li>
+    <li>
+        <a href="/LandingPages/Past" {{ if isZero .type }}class="active"{{ end }}>Past Pages</a>
+    </li>
+    <li class="add">
+        <a href="/LandingPages/Add">Add Page</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>{{ if isZero .type }}Past{{ else }}Manage{{ end }} Landing Pages</h2>
+    <table style="width: 100% !important">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>url</th>
+                <th>images</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ $website := .website }}
+            {{ range .pages }}
+                <tr id="page:{{ .ID }}">
+                    <td>{{ .Name }}</td>
+                    <td>{{ formatDate .Start }}</td>
+                    <td>{{ formatDate .End }}</td>
+                    <td>{{ .URL }}</td>
+                    <td>{{ len .Images }}</td>
+                    <td class="center">
+                        <a href="{{ $website }}lp/{{ .ID }}/{{ .Name }}" target="_blank" title="View">View</a> | 
+                        <a href="/LandingPages/edit/{{ .ID }}">Edit</a> | 
+                        <a class="deletepage" href="/LandingPages/Remove/{{ .ID }}">Delete</a>
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        var pagetable = $('table').dataTable({
+            "bJQueryUI": true,
+            "aoColumns": [
+            null,
+            { "sType": "date" },
+            { "sType": "date" },
+            null,
+            null,
+            null
+        ],
+            "aaSorting": [[1, "desc"]]
+        });
+
+        $(document).on('click', '.deletepage', function (e) {
+            e.preventDefault();
+            var table_row = $(this).parent().parent().get()[0];
+            var href = $(this).attr('href');
+            if (confirm('Are you sure you want to delete this page?')) {
+                $.getJSON(href, function (data) {
+                    if (data) {
+                        pagetable.fnDeleteRow(table_row);
+                        showMessage('Page Removed.');
+                    } else {
+                        showMessage('There was a problem removing the page');
+                    }
+                });
+            }
+        });
+    });
+</script>
+{{ end }}

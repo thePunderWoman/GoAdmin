@@ -1,7 +1,20 @@
 ﻿var selectFile, imageSort;
 
 $(function () {
-    $("#tabs").tabs();
+    $("#tabs").tabs({
+        activate: function (event, ui) {
+            var hashval = ui.newTab.context.hash;
+            var act = $('form.form').attr('action');
+            if (act.indexOf('#') == -1) {
+                act += hashval
+            } else {
+                // replace hash
+                rhash = act.substring(act.indexOf('#'));
+                act = act.replace(rhash,hashval)
+            }
+            $('form.form').attr('action', act)
+        }
+    });
 
     $('#startDate,#endDate').datetimepicker({
         ampm: true
@@ -24,7 +37,7 @@ $(function () {
                 $('#dataList').empty();
                 var datalist = "";
                 $(data).each(function (i, obj) {
-                    datalist += '<li>' + obj.dataKey + ': ' + obj.dataValue + ' <a href="/LandingPages/RemoveData/' + obj.id + '" class="removeData">&times;</a></li>';
+                    datalist += '<li>' + obj.Key + ': ' + obj.Value + ' <a href="/LandingPages/RemoveData/' + obj.ID + '" class="removeData">&times;</a></li>';
                 });
                 $('#dataList').append(datalist);
             });
@@ -82,7 +95,9 @@ selectFile = function(url) {
 }
 
 imageSort = function () {
-    $("#pageImages").sortable("destroy")
+    if ($("#pageImages").hasClass('ui-sortable')) {
+        $("#pageImages").sortable("destroy")
+    }
     $("#pageImages").sortable({
         handle: "img",
         axis: "y",
