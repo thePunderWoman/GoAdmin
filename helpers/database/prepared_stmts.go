@@ -167,6 +167,13 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["DeleteLandingPageDataStmt"] = `DELETE FROM LandingPageData WHERE id = ?`
 	UnPreparedStatements["DeleteLandingPageStmt"] = `DELETE FROM LandingPage WHERE id = ?`
 
+	// Sales Reps
+	UnPreparedStatements["GetAllSalesRepsStmt"] = `SELECT salesRepID, name, code, (select COUNT(cust_id) from Customer WHERE Customer.salesRepID = SalesRepresentative.salesRepID) AS customercount from SalesRepresentative`
+	UnPreparedStatements["GetSalesRepStmt"] = `SELECT salesRepID, name, code, (select COUNT(cust_id) from Customer WHERE Customer.salesRepID = SalesRepresentative.salesRepID) AS customercount from SalesRepresentative WHERE salesRepID = ?`
+	UnPreparedStatements["UpdateSalesRepStmt"] = `UPDATE SalesRepresentative set name = ?, code = ? WHERE salesRepID = ?`
+	UnPreparedStatements["AddSalesRepStmt"] = `INSERT INTO SalesRepresentative (name,code) VALUES (?,?)`
+	UnPreparedStatements["DeleteSalesRepStmt"] = `DELETE FROM SalesRepresentative WHERE salesRepID = ?`
+
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()
 	}

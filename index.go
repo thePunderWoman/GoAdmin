@@ -8,6 +8,7 @@ import (
 	"./controllers/faq"
 	"./controllers/landingpage"
 	"./controllers/news"
+	"./controllers/salesrep"
 	"./controllers/testimonial"
 	"./controllers/users"
 	"./controllers/video"
@@ -140,6 +141,13 @@ func main() {
 	server.Post("/LandingPages/Add", landingpage.New)
 	server.Post("/LandingPages/Save", landingpage.Save)
 	server.Get("/LandingPages/Remove/:id", landingpage.Remove)
+
+	// Sales Reps
+	server.Get("/SalesRep", salesrep.Index)
+	server.Get("/SalesRep/Add", salesrep.Add)
+	server.Get("/SalesRep/Edit/:id", salesrep.Edit)
+	server.Post("/SalesRep/Save", salesrep.Save)
+	server.Get("/SalesRep/Delete/:id", salesrep.Delete)
 
 	// Home page route
 	server.Get("/", controllers.Index)

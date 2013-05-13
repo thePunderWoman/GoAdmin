@@ -1,0 +1,30 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/SalesRep/Add" class="active">Add Rep</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>{{ .Type }} Sales Rep</h2>
+
+    {{ with .error }}
+    <p id="err">{{ . }}</p>
+    {{ end }}
+    {{ with .rep }}
+    <form class="form_left" id="add_form" method="post" action="/SalesRep/Save">
+        <input type="hidden" name="id" value="{{ .ID }}" />
+        <label for="name">
+            Name
+            <input type="text" id="name" name="name" placeholder="Enter the rep's name..." value="{{ .Name }}" />
+        </label>
+        <label for="code">
+            MAPICS Code
+            <input type="text" id="code" name="code" placeholder="Enter the rep's code in MAPICS..." value="{{ .Code }}" />
+        </label>
+        <div id="buttons">
+            <input type="submit" id="btnSave" name="btnSave" value="Save" />
+        </div>
+    </form>
+    {{ end }}
+</div>
+{{ end }}

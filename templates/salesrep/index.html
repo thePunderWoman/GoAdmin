@@ -1,0 +1,38 @@
+{{ define "content" }}
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<ul id="subNav">
+    <li>
+        <a href="/SalesRep/Add">Add Rep</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2 id="index_title">Sales Reps</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>MAPICS Code</th>
+                <th>Customers</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .reps }}
+                <tr>
+                    <td>{{ .Name }}</td>
+                    <td>{{ .Code }}</td>
+                    <td>{{ .CustomerCount }}</td>
+                    <td>
+                        <a href="/Customers/ViewBySalesRep?salesRepID={{ .ID }}" title="View Customers">Customers</a> | 
+                        <a href="/SalesRep/Edit/{{ .ID }}" title="Edit">Edit</a>
+                        {{ if isZero .CustomerCount }}
+                        | <a href="/SalesRep/Delete/{{ .ID }}" title="Delete" data-id="{{ .ID }}" class="delete">Delete</a>
+                        {{ end }}
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+<script src="/js/admin/salesReps.js" type="text/javascript"></script>
+{{ end }}
