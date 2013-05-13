@@ -174,6 +174,13 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["AddSalesRepStmt"] = `INSERT INTO SalesRepresentative (name,code) VALUES (?,?)`
 	UnPreparedStatements["DeleteSalesRepStmt"] = `DELETE FROM SalesRepresentative WHERE salesRepID = ?`
 
+	// Blog
+	UnPreparedStatements["GetAllPostsStmt"] = `SELECT * from BlogPosts WHERE active = 1`
+	UnPreparedStatements["GetPostCategoriesStmt"] = `SELECT BC.* from BlogCategories AS BC
+													 INNER JOIN BlogPost_BlogCategory AS BPBC ON BC.blogCategoryID = BPBC.blogCategoryID
+													 WHERE blogPostID = ? AND BC.active = 1`
+	UnPreparedStatements["GetPostCommentsStmt"] = `SELECT * from Comments WHERE blogPostID = ? AND BC.active = 1`
+
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()
 	}
