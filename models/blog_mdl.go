@@ -5,11 +5,10 @@ import (
 	"github.com/ziutek/mymysql/mysql"
 	_ "log"
 	"sort"
-	"strconv"
 	"time"
 )
 
-type Posts []Posts
+type Posts []Post
 type Post struct {
 	ID           int
 	Title        string
@@ -17,18 +16,18 @@ type Post struct {
 	Content      string
 	Published    time.Time
 	Created      time.Time
-	lastModified time.Time
+	LastModified time.Time
 	UserID       int
 	MetaTitle    string
 	MetaDesc     string
 	Keywords     string
 	Active       bool
-	Categories   Categories
+	Categories   BlogCategories
 	Comments     Comments
 	Author       User
 }
 
-type BlogCategories []Category
+type BlogCategories []BlogCategory
 type BlogCategory struct {
 	ID     int
 	Name   string
@@ -36,7 +35,11 @@ type BlogCategory struct {
 	Active bool
 }
 
-type Comments []Comment
+type Comments struct {
+	Approved   CommentList
+	Unapproved CommentList
+}
+type CommentList []Comment
 type Comment struct {
 	ID       int
 	PostID   int
@@ -68,6 +71,82 @@ func (p Post) GetAll() (Posts, error) {
 	return posts, nil
 }
 
+func (c BlogCategory) GetAll() (BlogCategories, error) {
+	var categories BlogCategories
+	sel, err := database.GetStatement("GetAllBlogCategoriesStmt")
+	if err != nil {
+		return categories, err
+	}
+	rows, res, err := sel.Exec()
+	if err != nil {
+		return categories, err
+	}
+	ch := make(chan BlogCategory)
+	for _, row := range rows {
+		go c.PopulateCategory(row, res, ch)
+	}
+	for _, _ = range rows {
+		categories = append(categories, <-ch)
+	}
+	return categories, nil
+}
+
+func (c BlogCategory) Get() (BlogCategory, error) {
+	sel, err := database.GetStatement("GetBlogCategoryStmt")
+	if err != nil {
+		return BlogCategory{}, err
+	}
+	sel.Bind(c.ID)
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return BlogCategory{}, err
+	}
+	ch := make(chan BlogCategory)
+	go c.PopulateCategory(row, res, ch)
+	cat := <-ch
+	return cat, nil
+}
+
+func (c *BlogCategory) Save() error {
+	c.Slug = GenerateSlug(c.Name)
+	if c.ID > 0 {
+		// update
+		upd, err := database.GetStatement("UpdateBlogCategoryStmt")
+		if err != nil {
+			return err
+		}
+		upd.Bind(c.Name, c.Slug, c.ID)
+		_, _, err = upd.Exec()
+		return err
+	} else {
+		// new
+		ins, err := database.GetStatement("AddBlogCategoryStmt")
+		if err != nil {
+			return err
+		}
+		ins.Bind(c.Name, c.Slug)
+		_, res, err := ins.Exec()
+		if err != nil {
+			return err
+		}
+		c.ID = int(res.InsertId())
+	}
+	return nil
+}
+
+func (c BlogCategory) Delete() bool {
+	del, err := database.GetStatement("DeleteBlogCategoryStmt")
+	if err != nil {
+		return false
+	}
+	del.Bind(c.ID)
+	_, _, err = del.Exec()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func (p Post) PopulatePost(row mysql.Row, res mysql.Result, ch chan Post) {
 	post := Post{
 		ID:           row.Int(res.Map("blogPostID")),
@@ -86,15 +165,15 @@ func (p Post) PopulatePost(row mysql.Row, res mysql.Result, ch chan Post) {
 	catchan := make(chan BlogCategories)
 	comchan := make(chan Comments)
 	authchan := make(chan User)
-	go func(ch User) {
+	go func(ch chan User) {
 		author, _ := GetUserByID(post.UserID)
 		ch <- author
 	}(authchan)
-	go func(ch Comments) {
+	go func(ch chan Comments) {
 		comments, _ := p.GetComments()
 		ch <- comments
 	}(comchan)
-	go func(ch BlogCategories) {
+	go func(ch chan BlogCategories) {
 		categories, _ := p.GetCategories()
 		ch <- categories
 	}(catchan)
@@ -139,6 +218,8 @@ func (c BlogCategory) PopulateCategory(row mysql.Row, res mysql.Result, ch chan 
 
 func (p Post) GetComments() (Comments, error) {
 	var comments Comments
+	var approved CommentList
+	var unapproved CommentList
 	sel, err := database.GetStatement("GetPostCategoriesStmt")
 	if err != nil {
 		return comments, err
@@ -153,9 +234,17 @@ func (p Post) GetComments() (Comments, error) {
 		go Comment{}.PopulateComment(row, res, ch)
 	}
 	for _, _ = range rows {
-		comments = append(comments, <-ch)
+		c := <-ch
+		if c.Approved {
+			approved = append(approved, c)
+		} else {
+			unapproved = append(unapproved, c)
+		}
 	}
-	comments.Sort()
+	approved.Sort()
+	unapproved.Sort()
+	comments.Approved = approved
+	comments.Unapproved = unapproved
 	return comments, nil
 }
 
@@ -181,11 +270,11 @@ func (c *BlogCategories) Sort() {
 	sort.Sort(c)
 }
 
-func (c Comments) Len() int           { return len(c) }
-func (c Comments) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
-func (c Comments) Less(i, j int) bool { return c[i].Created.Before(c[j].Created) }
+func (c CommentList) Len() int           { return len(c) }
+func (c CommentList) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
+func (c CommentList) Less(i, j int) bool { return c[i].Created.Before(c[j].Created) }
 
-func (c *Comments) Sort() {
+func (c *CommentList) Sort() {
 	sort.Sort(c)
 }
 

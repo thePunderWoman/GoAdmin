@@ -1,0 +1,56 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/Blog/AddCategory">Add Category</a>
+    </li>
+</ul>
+
+<div id="content_container">
+
+    <h2>Blog Categories</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .categories }}
+                <tr>
+                    <td>{{ .Name }}</td>
+                    <td>
+                        <a href="/Blog/EditCategory/{{ .ID }}" title="Edit">Edit</a> | 
+                        <a href="/Blog/DeleteCategory/{{ .ID }}" title="Delete Category" data-id="{{ .ID }}" class="delete_category">Delete</a>
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript" src="/js/admin/blog.js"></script>
+<script type="text/javascript">
+    $(function () {
+
+        var categoryTable = $('table').dataTable({ "bJQueryUI": true });
+
+        $(document).on('click','.delete_category', function () {
+            var category_id = $(this).attr('data-id');
+            var table_row = $(this).parent().parent().get()[0];
+            if (category_id > 0 && confirm("Are you sure you want to remove this Category?")) {
+                $.getJSON('/Blog/DeleteCategory/' + category_id, function (resp) {
+                    if (resp) {
+                        categoryTable.fnDeleteRow(table_row);
+                        showMessage('Category removed.');
+                    } else {
+                        showMessage("There was a problem deleting the category");
+                    }
+                });
+            }
+            return false;
+        });
+
+    });
+</script>
+{{ end }}

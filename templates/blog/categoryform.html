@@ -1,0 +1,27 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/Blog/AddCategory">Add Category</a>
+    </li>
+</ul>
+
+<div id="content_container">
+    <h2>{{ .Type }} Category</h2>
+    {{ with .error }}
+        <p>{{ . }}</p>
+    {{ end }}
+    {{ with .category }}
+    <form method="post" action="/Blog/SaveCategory" class="form_left">
+        <input type="hidden" name="id" value="{{ .ID }}" />
+        <label for="name">
+            Name
+            <input type="text" name="name" id="name" placeholder="Enter the Category Name" value="{{ .Name }}" />
+        </label>
+
+        <div class="buttons">
+            <input type="submit" id="btnSubmit" name="btnSubmit" value="Save" />
+        </div>
+    </form>
+    {{ end }}
+</div>
+{{ end }}

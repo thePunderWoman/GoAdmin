@@ -4,6 +4,7 @@ import (
 	"./controllers"
 	"./controllers/authenticate"
 	"./controllers/base"
+	"./controllers/blog"
 	"./controllers/contact"
 	"./controllers/faq"
 	"./controllers/landingpage"
@@ -148,6 +149,14 @@ func main() {
 	server.Get("/SalesRep/Edit/:id", salesrep.Edit)
 	server.Post("/SalesRep/Save", salesrep.Save)
 	server.Get("/SalesRep/Delete/:id", salesrep.Delete)
+
+	// Blog
+	server.Get("/Blog", blog.Index)
+	server.Get("/Blog/Categories", blog.Categories)
+	server.Get("/Blog/AddCategory", blog.AddCategory)
+	server.Get("/Blog/EditCategory/:id", blog.EditCategory)
+	server.Post("/Blog/SaveCategory", blog.SaveCategory)
+	server.Get("/Blog/DeleteCategory/:id", blog.DeleteCategory)
 
 	// Home page route
 	server.Get("/", controllers.Index)

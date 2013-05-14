@@ -176,10 +176,15 @@ func PrepareCurtDev() error {
 
 	// Blog
 	UnPreparedStatements["GetAllPostsStmt"] = `SELECT * from BlogPosts WHERE active = 1`
+	UnPreparedStatements["GetAllBlogCategoriesStmt"] = `SELECT * from BlogCategories WHERE active = 1`
+	UnPreparedStatements["GetBlogCategoryStmt"] = `SELECT * from BlogCategories WHERE blogCategoryID = ?`
+	UnPreparedStatements["AddBlogCategoryStmt"] = `INSERT INTO BlogCategories (name,slug,active) VALUES (?,?,1)`
+	UnPreparedStatements["UpdateBlogCategoryStmt"] = `Update BlogCategories set name = ?, slug = ? WHERE blogCategoryID = ?`
+	UnPreparedStatements["DeleteBlogCategoryStmt"] = `Update BlogCategories set active = 0 WHERE blogCategoryID = ?`
 	UnPreparedStatements["GetPostCategoriesStmt"] = `SELECT BC.* from BlogCategories AS BC
 													 INNER JOIN BlogPost_BlogCategory AS BPBC ON BC.blogCategoryID = BPBC.blogCategoryID
 													 WHERE blogPostID = ? AND BC.active = 1`
-	UnPreparedStatements["GetPostCommentsStmt"] = `SELECT * from Comments WHERE blogPostID = ? AND BC.active = 1`
+	UnPreparedStatements["GetPostCommentsStmt"] = `SELECT * from Comments WHERE blogPostID = ? AND active = 1`
 
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()
