@@ -1,0 +1,110 @@
+{{ define "content" }}
+
+<link href="/css/jquery.multiselect.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="http://ck.curtmfg.com/ckeditor.js"></script>
+<script type="text/javascript" src="http://ck.curtmfg.com/adapters/jquery.js"></script>
+<script type="text/javascript" src="/js/jquery.multiselect.min.js"></script>
+
+<ul id="subNav">
+    <li>
+        <a href="/Blog/Add">Add Post</a>
+    </li>
+</ul>
+
+<div id="content_container">
+    <h2>{{ .type }} Post</h2>
+    {{ with .error }}
+        <p>{{ . }}</p>
+    {{ end }}
+    <form method="post" id="saveform" action="/Blog/Save" class="form_left">
+        <input type="hidden" name="id" value="{{ .post.ID }}" />
+        <input type="hidden" name="published" value="{{ if not .post.Published.IsZero }}{{ .post.Published }}{{ end }}" />
+        <label for="title">
+            Title
+            <input type="text" name="title" id="title" placeholder="Enter the title of the post" value="{{ .post.Title }}" />
+        </label>
+
+        <label for="userid">
+            Author
+            <select name="userid" id="userid">
+                <option value="0">Choose an Author</option>
+                {{ range .users }}
+                    <option value="{{ .ID }}" {{ if isUser .ID }} selected="selected" {{ end }}>{{ .Fname }} {{ .Lname }}</option>
+                {{ end }}
+            </select>
+        </label>
+
+        <label for="content">
+            Content
+            <br />
+            <textarea name="content" class="post_content" rows="10" cols="50" id="content" placeholder="Enter the Post Content">{{ .post.Content }}</textarea>
+        </label>
+
+        <label for="categories">
+            Categories
+            <select name="categories" id="categories" multiple="true">
+                <option value="">No Category</option>
+                {{ range .categories }}
+                    <option value="{{ .ID }}" {{ if hasCategory .ID }} selected="selected" {{ end }}>{{ .Name }}</option>
+                {{ end }}
+            </select>
+        </label>
+
+        <label for="keywords">
+            Keywords
+            <input type="text" name="keywords" id="keywords" placeholder="Enter the keywords" value="{{ .post.Keywords }}" />
+        </label>
+
+        <label for="meta_title">
+            Meta Title
+            <input type="text" name="meta_title" id="meta_title" placeholder="Enter the SEO Title" value="{{ .post.MetaTitle }}" />
+        </label>
+
+        <label for="meta_description">
+            Meta Description
+            <input type="text" name="meta_description" id="meta_description" placeholder="Enter the SEO Description" value="{{ .post.MetaDesc }}" />
+        </label>
+        {{ if not .post.Published.IsZero }}
+            <label for="published">
+                <span class="subtext">(Published on {{ formatDate .post.Published }})</span>
+                <input type="checkbox" name="publish" id="publish" value="true" checked="checked" />
+                Published? 
+            </label>
+        {{ else}}
+            <input type="hidden" name="publish" id="publish" value="false" />
+        {{ end }}
+
+        <div class="buttons">
+            <a href="/Admin/Blog" title="Cancel" class="cancel">Cancel</a>
+            {{ if .post.Published.IsZero }}
+            <input type="button" id="btnSubmitPublish" name="btnSubmitPublish" value="Save & Publish" />
+            {{ end }}
+            <input type="submit" id="btnSubmit" name="btnSubmit" value="Save" />
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+    $(function () {
+    {{ with .message }}
+        showMessage("{{ . }}");
+    {{ end }}
+
+        CKEDITOR.replace('content', {
+            filebrowserImageUploadUrl: '/File/CKUpload',
+            filebrowserImageBrowseUrl: '/File/CKIndex',
+            filebrowserImageWindowWidth: '640',
+            filebrowserImageWindowHeight: '480'
+        });
+
+        $('#btnSubmitPublish').click(function () {
+            $('#publish').val('true');
+            $('#saveform').submit();
+        });
+
+        $("#categories").multiselect({
+            noneSelectedText: 'Select categories',
+            selectedList: 6
+        });
+    });
+</script>
+{{ end }}

@@ -176,6 +176,7 @@ func PrepareCurtDev() error {
 
 	// Blog
 	UnPreparedStatements["GetAllPostsStmt"] = `SELECT * from BlogPosts WHERE active = 1`
+	UnPreparedStatements["GetPostStmt"] = `SELECT * from BlogPosts WHERE blogPostID = ?`
 	UnPreparedStatements["GetAllBlogCategoriesStmt"] = `SELECT * from BlogCategories WHERE active = 1`
 	UnPreparedStatements["GetBlogCategoryStmt"] = `SELECT * from BlogCategories WHERE blogCategoryID = ?`
 	UnPreparedStatements["AddBlogCategoryStmt"] = `INSERT INTO BlogCategories (name,slug,active) VALUES (?,?,1)`
@@ -185,6 +186,17 @@ func PrepareCurtDev() error {
 													 INNER JOIN BlogPost_BlogCategory AS BPBC ON BC.blogCategoryID = BPBC.blogCategoryID
 													 WHERE blogPostID = ? AND BC.active = 1`
 	UnPreparedStatements["GetPostCommentsStmt"] = `SELECT * from Comments WHERE blogPostID = ? AND active = 1`
+	UnPreparedStatements["AddPostStmt"] = `INSERT INTO BlogPosts (post_title,slug,post_text,createdDate,userID,meta_title,meta_description,keywords,active) VALUES (?,?,?,UTC_TIMESTAMP(),?,?,?,?,1)`
+	UnPreparedStatements["UpdatePostStmt"] = `UPDATE BlogPosts SET post_title = ?, slug = ?, post_text = ?, userID = ?, meta_title = ?, meta_description = ?, keywords = ? WHERE blogPostID = ?`
+	UnPreparedStatements["PublishPostStmt"] = `UPDATE BlogPosts SET publishedDate = UTC_TIMESTAMP() WHERE blogPostID = ?`
+	UnPreparedStatements["UnPublishPostStmt"] = `UPDATE BlogPosts SET publishedDate = null WHERE blogPostID = ?`
+	UnPreparedStatements["ClearPostCategoriesStmt"] = `DELETE FROM BlogPost_BlogCategory WHERE blogPostID = ?`
+	UnPreparedStatements["AddPostCategoryStmt"] = `INSERT INTO BlogPost_BlogCategory (blogPostID,blogCategoryID) VALUES (?,?)`
+	UnPreparedStatements["DeletePostStmt"] = `UPDATE BlogPosts SET active = 0 WHERE blogPostID = ?`
+	UnPreparedStatements["GetBlogCommentsStmt"] = `SELECT * from Comments WHERE active = 1 AND approved = 0`
+	UnPreparedStatements["GetBlogCommentStmt"] = `SELECT * from Comments WHERE commentID = ?`
+	UnPreparedStatements["ApproveBlogCommentStmt"] = `UPDATE Comments set approved = 1 WHERE commentID = ?`
+	UnPreparedStatements["DeleteBlogCommentStmt"] = `UPDATE Comments set active = 0 WHERE commentID = ?`
 
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()

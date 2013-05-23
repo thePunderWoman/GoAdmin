@@ -2,8 +2,9 @@ package models
 
 import (
 	"../helpers/database"
+	"errors"
 	"github.com/ziutek/mymysql/mysql"
-	_ "log"
+	//"log"
 	"sort"
 	"time"
 )
@@ -69,6 +70,21 @@ func (p Post) GetAll() (Posts, error) {
 		posts = append(posts, <-ch)
 	}
 	return posts, nil
+}
+
+func (p Post) Get() (Post, error) {
+	sel, err := database.GetStatement("GetPostStmt")
+	if err != nil {
+		return p, err
+	}
+	sel.Bind(p.ID)
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return p, err
+	}
+	ch := make(chan Post)
+	go p.PopulatePost(row, res, ch)
+	return <-ch, nil
 }
 
 func (c BlogCategory) GetAll() (BlogCategories, error) {
@@ -147,6 +163,98 @@ func (c BlogCategory) Delete() bool {
 	return true
 }
 
+func (c BlogCategory) AddToPost(postID int) {
+	ins, err := database.GetStatement("AddPostCategoryStmt")
+	if err != nil {
+		return
+	}
+	ins.Raw.Reset()
+	ins.Bind(postID, c.ID)
+	ins.Exec()
+}
+
+func (p *Post) Save() error {
+	if p.UserID == 0 {
+		return errors.New("You must select an author")
+	}
+	if p.ID > 0 {
+		// update post
+		upd, err := database.GetStatement("UpdatePostStmt")
+		if err != nil {
+			return err
+		}
+		upd.Bind(p.Title, GenerateSlug(p.Title), p.Content, p.UserID, p.MetaTitle, p.MetaDesc, p.Keywords, p.ID)
+		_, _, err = upd.Exec()
+		if err != nil {
+			return err
+		}
+		err = p.ClearCategories()
+		if err != nil {
+			return err
+		}
+	} else {
+		// new post
+		ins, err := database.GetStatement("AddPostStmt")
+		if err != nil {
+			return err
+		}
+		ins.Bind(p.Title, GenerateSlug(p.Title), p.Content, p.UserID, p.MetaTitle, p.MetaDesc, p.Keywords)
+		_, res, err := ins.Exec()
+		if err != nil {
+			return err
+		}
+		p.ID = int(res.InsertId())
+	}
+	for i, _ := range p.Categories {
+		go p.Categories[i].AddToPost(p.ID)
+	}
+	return nil
+}
+
+func (p Post) ClearCategories() error {
+	del, err := database.GetStatement("ClearPostCategoriesStmt")
+	if err != nil {
+		return err
+	}
+	del.Bind(p.ID)
+	_, _, err = del.Exec()
+	return err
+}
+
+func (p *Post) Publish() error {
+	upd, err := database.GetStatement("PublishPostStmt")
+	if err != nil {
+		return err
+	}
+	upd.Bind(p.ID)
+	_, _, err = upd.Exec()
+	return err
+}
+
+func (p *Post) UnPublish() error {
+	upd, err := database.GetStatement("UnPublishPostStmt")
+	if err != nil {
+		return err
+	}
+	upd.Bind(p.ID)
+	_, _, err = upd.Exec()
+	p.Published = time.Time{}
+	return err
+}
+
+func (p Post) Delete() bool {
+	upd, err := database.GetStatement("DeletePostStmt")
+	if err != nil {
+		return false
+	}
+	upd.Bind(p.ID)
+	_, _, err = upd.Exec()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func (p Post) PopulatePost(row mysql.Row, res mysql.Result, ch chan Post) {
 	post := Post{
 		ID:           row.Int(res.Map("blogPostID")),
@@ -170,11 +278,11 @@ func (p Post) PopulatePost(row mysql.Row, res mysql.Result, ch chan Post) {
 		ch <- author
 	}(authchan)
 	go func(ch chan Comments) {
-		comments, _ := p.GetComments()
+		comments, _ := post.GetComments()
 		ch <- comments
 	}(comchan)
 	go func(ch chan BlogCategories) {
-		categories, _ := p.GetCategories()
+		categories, _ := post.GetCategories()
 		ch <- categories
 	}(catchan)
 
@@ -220,18 +328,19 @@ func (p Post) GetComments() (Comments, error) {
 	var comments Comments
 	var approved CommentList
 	var unapproved CommentList
-	sel, err := database.GetStatement("GetPostCategoriesStmt")
+	sel, err := database.GetStatement("GetPostCommentsStmt")
 	if err != nil {
 		return comments, err
 	}
+	sel.Raw.Reset()
 	sel.Bind(p.ID)
 	rows, res, err := sel.Exec()
 	if err != nil {
 		return comments, err
 	}
 	ch := make(chan Comment)
-	for _, row := range rows {
-		go Comment{}.PopulateComment(row, res, ch)
+	for i, _ := range rows {
+		go Comment{}.PopulateComment(rows[i], res, ch)
 	}
 	for _, _ = range rows {
 		c := <-ch
@@ -260,6 +369,65 @@ func (c Comment) PopulateComment(row mysql.Row, res mysql.Result, ch chan Commen
 		Active:   row.Bool(res.Map("active")),
 	}
 	ch <- comment
+}
+
+func (c Comment) GetAll() (CommentList, error) {
+	var comments CommentList
+	sel, err := database.GetStatement("GetBlogCommentsStmt")
+	if err != nil {
+		return comments, err
+	}
+	rows, res, err := sel.Exec()
+	if err != nil {
+		return comments, err
+	}
+	ch := make(chan Comment)
+	for _, row := range rows {
+		go c.PopulateComment(row, res, ch)
+	}
+	for _, _ = range rows {
+		comments = append(comments, <-ch)
+	}
+	return comments, nil
+}
+
+func (c Comment) Get() (Comment, error) {
+	comment := Comment{}
+	sel, err := database.GetStatement("GetBlogCommentStmt")
+	if err != nil {
+		return comment, err
+	}
+	sel.Bind(c.ID)
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return comment, err
+	}
+	ch := make(chan Comment)
+	go c.PopulateComment(row, res, ch)
+	return <-ch, nil
+}
+
+func (c Comment) Approve() error {
+	upd, err := database.GetStatement("ApproveBlogCommentStmt")
+	if err != nil {
+		return err
+	}
+	upd.Bind(c.ID)
+	_, _, err = upd.Exec()
+	return err
+}
+
+func (c Comment) Delete() bool {
+	upd, err := database.GetStatement("DeleteBlogCommentStmt")
+	if err != nil {
+		return false
+	}
+	upd.Bind(c.ID)
+	_, _, err = upd.Exec()
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func (c BlogCategories) Len() int           { return len(c) }

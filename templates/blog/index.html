@@ -35,7 +35,7 @@
                         <a href="/Blog/Edit/{{ .ID }}" title="Edit">Edit</a> | 
                         <a href="/Blog/Delete/{{ .ID}}" title="Delete" class="delete_post">Delete</a>
                         {{ if showCommentsLink .Comments }}
-                            <text>|</text> <a href="/BlogComments/PostComments/{{ .ID }}" title="Moderate Comments">Comments</a>
+                            <text>|</text> <a href="/Blog/PostComments/{{ .ID }}" title="Moderate Comments">Comments</a>
                         {{ end }}
                     </td>
                 </tr>

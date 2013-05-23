@@ -1,0 +1,16 @@
+{{ define "content" }}
+<div id="content_container">
+    <h2>View Comment</h2>
+    {{ with .error }}
+        <p>.</p>
+    {{ end }}
+
+    <h3>Comment for Post: <a href="http://www.curtmfg.com/Blog/Post/{{ formatDateForURL .post.Published }}/{{ .post.Slug }}">{{ .post.Title }}</a></h3>
+    <p>Name: {{ .comment.Name }}</p>
+    {{ if isNotNull .comment.Email }}
+        <p>Email: {{ .comment.Email }}</p>
+    {{ end }}
+    <p>Posted On: {{ formatDate .comment.Created }}</p>
+    <p>Comment: {{ .comment.Comment }}</p>
+</div>
+{{ end }}

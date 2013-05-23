@@ -1,0 +1,66 @@
+{{ define "content" }}
+<div id="content_container">
+
+    <h2>Blog Comments</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Created</th>
+                <th>Approved</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .comments }}
+                <tr>
+                    <td>{{ .Name }}</td>
+                    <td>{{ .Email }}</td>
+                    <td>{{ formatDate .Created }}</td>
+                    <td>{{ if .Approved }}Yes{{ else }}No{{ end }}</td>
+                    <td>
+                        <a href="/Blog/Comment/{{ .ID }}" title="View">View</a> | 
+                        <a href="/Blog/ApproveComment/{{ .ID }}" title="Approve">Approve</a> | 
+                        <a href="/Blog/DeleteComment/{{ .ID }}" title="Delete" data-id="{{ .ID }}" class="delete_comment">Delete</a>
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript" src="/js/admin/blog.js"></script>
+<script type="text/javascript">
+    $(function () {
+
+        var commentTable = $('table').dataTable({
+            "bJQueryUI": true,
+            "aoColumns": [
+            null,
+            null,
+            { "sType": "date" },
+            null,
+            null
+        ],
+            "aaSorting": [[2, "asc"]]
+        });
+
+        $(document).on('click','.delete_comment', function () {
+            var comment_id = $(this).attr('data-id');
+            var table_row = $(this).parent().parent().get()[0];
+            if (comment_id > 0 && confirm("Are you sure you want to remove this Comment?")) {
+                $.getJSON('/Blog/DeleteComment/' + comment_id, function (resp) {
+                    if (resp) {
+                        commentTable.fnDeleteRow(table_row);
+                        showMessage('Comment removed.');
+                    } else {
+                        showMessage("There was a problem removing the comment");
+                    }
+                });
+            }
+            return false;
+        });
+    });
+</script>
+{{ end }}

@@ -157,6 +157,14 @@ func main() {
 	server.Get("/Blog/EditCategory/:id", blog.EditCategory)
 	server.Post("/Blog/SaveCategory", blog.SaveCategory)
 	server.Get("/Blog/DeleteCategory/:id", blog.DeleteCategory)
+	server.Get("/Blog/Add", blog.AddPost)
+	server.Get("/Blog/Edit/:id", blog.EditPost)
+	server.Post("/Blog/Save", blog.SavePost)
+	server.Get("/Blog/Delete/:id", blog.DeletePost)
+	server.Get("/Blog/Comments", blog.Comments)
+	server.Get("/Blog/Comment/:id", blog.Comment)
+	server.Get("/Blog/ApproveComment/:id", blog.ApproveComment)
+	server.Get("/Blog/DeleteComment/:id", blog.DeleteComment)
 
 	// Home page route
 	server.Get("/", controllers.Index)
