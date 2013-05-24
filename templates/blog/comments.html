@@ -21,7 +21,7 @@
                     <td>{{ if .Approved }}Yes{{ else }}No{{ end }}</td>
                     <td>
                         <a href="/Blog/Comment/{{ .ID }}" title="View">View</a> | 
-                        <a href="/Blog/ApproveComment/{{ .ID }}" title="Approve">Approve</a> | 
+                        <a href="/Blog/ApproveComment/{{ .ID }}" title="Approve" data-id="{{ .ID }}" class="approvecomment">Approve</a> | 
                         <a href="/Blog/DeleteComment/{{ .ID }}" title="Delete" data-id="{{ .ID }}" class="delete_comment">Delete</a>
                     </td>
                 </tr>
@@ -44,6 +44,23 @@
             null
         ],
             "aaSorting": [[2, "asc"]]
+        });
+
+        $(document).on('click','a.approvecomment', function (event) {
+            event.preventDefault();
+            var comment_id = $(this).attr('data-id');
+            var table_row = $(this).parent().parent().get()[0];
+            if (comment_id > 0 && confirm("Are you sure you want to approve this Comment?")) {
+                $.getJSON('/Blog/ApproveComment/' + comment_id, function (resp) {
+                    if (resp) {
+                        commentTable.fnDeleteRow(table_row);
+                        showMessage('Comment approved.');
+                    } else {
+                        showMessage("Comment failed to approve.");
+                    }
+                });
+            }
+            return false;
         });
 
         $(document).on('click','.delete_comment', function () {

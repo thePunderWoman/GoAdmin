@@ -340,8 +340,8 @@ func Comment(w http.ResponseWriter, r *http.Request) {
 func ApproveComment(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
 	comment := models.Comment{ID: id}
-	comment.Approve()
-	http.Redirect(w, r, "/Blog/Comments", http.StatusFound)
+	success := comment.Approve()
+	plate.ServeFormatted(w, r, success)
 }
 
 func DeleteComment(w http.ResponseWriter, r *http.Request) {
@@ -349,4 +349,32 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 	comment := models.Comment{ID: id}
 	success := comment.Delete()
 	plate.ServeFormatted(w, r, success)
+}
+
+func PostComments(w http.ResponseWriter, r *http.Request) {
+	tmpl := plate.NewTemplate(w)
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+
+	post, _ := models.Post{ID: id}.Get()
+
+	tmpl.FuncMap["formatDateForURL"] = func(dt time.Time) string {
+		tlayout := "1-02-2006"
+		Local, _ := time.LoadLocation("US/Central")
+		return dt.In(Local).Format(tlayout)
+	}
+	tmpl.FuncMap["formatDate"] = func(dt time.Time) string {
+		tlayout := "01/02/2006 3:04 PM"
+		Local, _ := time.LoadLocation("US/Central")
+		return dt.In(Local).Format(tlayout)
+	}
+	tmpl.Bag["PageTitle"] = "Post Comments"
+	tmpl.Bag["post"] = post
+
+	tmpl.ParseFile("templates/blog/navigation.html", false)
+	tmpl.ParseFile("templates/blog/postcomments.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
 }

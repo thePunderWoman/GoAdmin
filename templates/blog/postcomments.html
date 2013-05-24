@@ -1,0 +1,171 @@
+{{ define "content" }}
+<div id="content_container">
+
+    <h2>Comments for Blog Post: {{ .post.Title }} <a href="/Blog" class="backButton">Back to Posts</a></h2>
+    <hr />
+
+    <p>Posted On {{ formatDate .post.Published }}</p>
+    <p>Author: {{ .post.Author.Fname }} {{ .post.Author.Lname }}</p>
+
+    <table id="comments_list">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Created</th>
+                <th>Approved</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .post.Comments.Approved }}
+                <tr>
+                    <td>{{ .Name }}</td>
+                    <td>{{ .Email }}</td>
+                    <td>{{ formatDate .Created }}</td>
+                    <td>Yes</td>
+                    <td>
+                        <a href="/Blog/Comment/{{ .ID }}" class="viewcomment" data-id="{{ .ID }}" title="View">View</a> | 
+                        <a href="/Blog/DeleteComment/{{ .ID }}" title="Delete" data-id="{{ .ID }}" class="delete_comment">Delete</a>
+                    </td>
+                </tr>
+            {{ end }}
+            {{ range .post.Comments.Unapproved }}
+                <tr>
+                    <td>{{ .Name }}</td>
+                    <td>{{ .Email }}</td>
+                    <td>{{ formatDate .Created }}</td>
+                    <td>No</td>
+                    <td>
+                        <a href="/Blog/Comment/{{ .ID }}" class="viewcomment" data-id="{{ .ID }}" title="View">View</a> | 
+                        <a href="/Blog/ApproveComment/{{ .ID }}" class="approvecomment" data-id="{{ .ID }}" title="Approve">Approve</a> |
+                        <a href="/Blog/DeleteComment/{{ .ID }}" title="Delete" data-id="{{ .ID }}" class="delete_comment">Delete</a>
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+<!-- Edit Modal Dialog -->
+<div id="comment_dialog">
+    <p id="comment_box_text"></p>
+</div>
+<!-- End Modal Dialog -->
+
+<script type="text/javascript">
+    $(function () {
+
+        var commentTable = $('table').dataTable({
+            "bJQueryUI": true,
+            "aoColumns": [
+            null,
+            null,
+            { "sType": "date" },
+            null,
+            null
+        ],
+            "aaSorting": [[3, "asc"]]
+        });
+
+        $(document).on('click','.delete_comment', function () {
+            var comment_id = $(this).attr('data-id');
+            var table_row = $(this).parent().parent().get()[0];
+            if (comment_id > 0 && confirm("Are you sure you want to remove this Comment?")) {
+                $.getJSON('/Blog/DeleteComment/' + comment_id, function (resp) {
+                    if (resp.error == undefined) {
+                        commentTable.fnDeleteRow(table_row);
+                        showMessage('Comment removed.');
+                    } else {
+                        showMessage(resp.error);
+                    }
+                });
+            }
+            return false;
+        });
+
+        /*$(document).on('click','.viewcomment', function (event) {
+            event.preventDefault();
+            var table_row = $(this).parent().parent().get()[0];
+            var comment_id = $(this).attr('data-id');
+            if (comment_id > 0) {
+                $.getJSON('/BlogComments/CommentJSON/' + comment_id, function (resp) {
+                    if (resp.error == undefined) {
+                        $('#comment_box_text').html(resp.comment_text);
+                        $('#comment_dialog').dialog({
+                            autoOpen: false,
+                            title: "Comment",
+                            modal: true,
+                            buttons: {
+                                "Approve": function () {
+                                    var dialog = $(this);
+                                    $.getJSON('/BlogComments/ApproveAjax/' + comment_id, function (resp) {
+                                        if (resp.error == undefined) {
+                                            commentTable.fnDeleteRow(table_row);
+                                            commentTable.fnAddData([
+                                            resp.commentID,
+                                            resp.name,
+                                            resp.email,
+                                            resp.createdDate,
+                                            resp.approved,
+                                            '<a href="/BlogComments/Index/' + resp.commentID + '" class="viewcomment" data-id="' + resp.commentID + '" title="View">View</a> | <a href="/Admin/Comments/Delete/' + resp.commentID + '" title="Delete" data-id="' + resp.commentID + '" class="delete_comment">Delete</a>'
+                                            ]);
+                                            showMessage('Comment approved.');
+                                            $('#comment_box_text').empty();
+                                        } else {
+                                            showMessage(resp.error);
+                                        };
+                                    });
+                                    $(this).dialog("close");
+                                },
+                                "Delete": function () {
+                                    var dialog = $(this);
+                                    if (comment_id > 0 && confirm("Are you sure you want to remove this Comment?")) {
+                                        $.getJSON('/BlogComments/Delete/' + comment_id, function (resp) {
+                                            if (resp.error == undefined) {
+                                                commentTable.fnDeleteRow(table_row);
+                                                showMessage('Comment removed.');
+                                                $('#comment_box_text').empty();
+                                            } else {
+                                                showMessage(resp.error);
+                                            }
+                                        });
+                                    };
+                                    $(this).dialog("close");
+                                },
+                                Cancel: function () {
+                                    $(this).dialog("close");
+                                    $('#comment_box_text').empty();
+                                }
+                            },
+                            close: function () { }
+                        });
+                        $('#comment_dialog').dialog('open');
+                    } else {
+                        showMessage(resp.error);
+                    }
+                });
+            }
+            return false;
+        });*/
+
+        $(document).on('click','a.approvecomment', function (event) {
+            event.preventDefault();
+            var linkobj = $(this)
+            var comment_id = $(this).attr('data-id');
+            var table_row = $(this).parent().parent().get()[0];
+            if (comment_id > 0 && confirm("Are you sure you want to approve this Comment?")) {
+                $.getJSON('/Blog/ApproveComment/' + comment_id, function (resp) {
+                    if (resp) {
+                        $(linkobj).hide();
+                        $(linkobj).parent().prev().html("Yes")
+                        showMessage('Comment approved.');
+                    } else {
+                        showMessage("Comment failed to approve.");
+                    }
+                });
+            }
+            return false;
+        });
+    });
+</script>
+{{ end }}

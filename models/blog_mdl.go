@@ -407,14 +407,17 @@ func (c Comment) Get() (Comment, error) {
 	return <-ch, nil
 }
 
-func (c Comment) Approve() error {
+func (c Comment) Approve() bool {
 	upd, err := database.GetStatement("ApproveBlogCommentStmt")
 	if err != nil {
-		return err
+		return false
 	}
 	upd.Bind(c.ID)
 	_, _, err = upd.Exec()
-	return err
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func (c Comment) Delete() bool {

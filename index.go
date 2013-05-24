@@ -165,6 +165,7 @@ func main() {
 	server.Get("/Blog/Comment/:id", blog.Comment)
 	server.Get("/Blog/ApproveComment/:id", blog.ApproveComment)
 	server.Get("/Blog/DeleteComment/:id", blog.DeleteComment)
+	server.Get("/Blog/PostComments/:id", blog.PostComments)
 
 	// Home page route
 	server.Get("/", controllers.Index)
