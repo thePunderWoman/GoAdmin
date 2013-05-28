@@ -12,9 +12,10 @@ type SalesRep struct {
 	Code          string
 	CustomerCount int
 }
+type SalesReps []SalesRep
 
-func (s SalesRep) GetAll() ([]SalesRep, error) {
-	reps := make([]SalesRep, 0)
+func (s SalesRep) GetAll() (SalesReps, error) {
+	var reps SalesReps
 	sel, err := database.GetStatement("GetAllSalesRepsStmt")
 	if err != nil {
 		return reps, err
@@ -101,4 +102,12 @@ func (s SalesRep) Delete() bool {
 		return false
 	}
 	return true
+}
+
+func (r SalesReps) ToMap() map[int]SalesRep {
+	repmap := make(map[int]SalesRep, 0)
+	for _, rep := range r {
+		repmap[rep.ID] = rep
+	}
+	return repmap
 }

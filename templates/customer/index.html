@@ -1,6 +1,6 @@
 {{ define "content" }}
 <style type="text/css">
-    table tbody tr td:nth-child(7){
+    table tbody tr td:nth-child(8){
         text-align: center;
     }
     
@@ -54,6 +54,7 @@
                 <th>Name</th>
                 <th>Phone</th>
                 <th>E-Mail</th>
+                <th>Sales Rep</th>
                 <th>Tier</th>
                 <th>Dealer Type</th>
                 <th># of Locations</th>
@@ -63,13 +64,14 @@
         <tbody>
             {{ range .customers }}
                 <tr>
-                    <td>{{ .CustomerID }}</td>
+                    <td>{{ if isZero .CustomerID }}{{ else }}{{ .CustomerID }}{{ end }}</td>
                     <td>{{ .Name }}</td>
                     <td>{{ .Phone }}</td>
                     <td>{{ .Email }}</td>
+                    <td>{{ .SalesRep.Name }}</td>
                     <td>{{ .DealerTier.Name }}</td>
                     <td>{{ .DealerType.Name }}</td>
-                    <td>0</td>
+                    <td>{{ .LocationCount }}</td>
                     <td>
                         <a href="/Customers/Locations/{{ .ID }}" class="locations">Locations</a> | 
                         <a href="/Customers/ViewCustomersUsers/{{ .ID }}">Users</a> |
@@ -80,6 +82,19 @@
                 </tr>
             {{ end }}
         </tbody>
+        <tfoot>
+            <tr>
+                <th>Customer ID</th>
+                <th>Customer Name</th>
+                <th>Phone</th>
+                <th>E-Mail</th>
+                <th>Sales Rep</th>
+                <th>Tier</th>
+                <th>Dealer Type</th>
+                <th>Locations</th>
+                <th></th>
+            </tr>
+        </tfoot>
     </table>
     <div id="map_container">
         <div id="map"></div>
@@ -90,7 +105,19 @@
     var customerTable = "";
     var map;
     $(function () {
-        customerTable = $('table').dataTable({ "bJQueryUI": true, "bDeferRender": true });
+        customerTable = $('table').dataTable({ "bJQueryUI": true, "bDeferRender": true }).columnFilter({
+            aoColumns: [ { type: "number"},
+                     { type: "text" },
+                     { type: "text" },
+                     { type: "text" },
+                     { type: "select" },
+                     { type: "select" },
+                     { type: "select" },
+                     { type: "number" },
+                     null,
+                ]
+
+        });
         $('#loading_area').hide();
         $('table').fadeIn('fast');
 

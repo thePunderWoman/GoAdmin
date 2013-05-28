@@ -202,11 +202,12 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["GetAllCountriesStmt"] = `SELECT * from Country`
 	UnPreparedStatements["GetCountryStmt"] = `SELECT * from Country WHERE countryID = ?`
 	UnPreparedStatements["GetStatesByCountryStmt"] = `SELECT * from States WHERE countryID = ?`
+	UnPreparedStatements["GetAllStatesStmt"] = `SELECT * from States`
 	UnPreparedStatements["GetStateStmt"] = `SELECT * from States WHERE stateID = ?`
 
 	// Customer
-	UnPreparedStatements["GetAllCustomersStmt"] = `SELECT * from Customer`
-	UnPreparedStatements["GetCustomerStmt"] = `SELECT * from Customer WHERE cust_id = ?`
+	UnPreparedStatements["GetAllCustomersStmt"] = `SELECT *, (SELECT COUNT(locationID) FROM CustomerLocations WHERE cust_id = Customer.cust_id) AS locationCount from Customer`
+	UnPreparedStatements["GetCustomerStmt"] = `SELECT *, (SELECT COUNT(locationID) FROM CustomerLocations WHERE cust_id = Customer.cust_id) AS locationCount from Customer WHERE cust_id = ?`
 
 	// Dealer Types
 	UnPreparedStatements["GetAllDealerTypesStmt"] = `SELECT * From DealerTypes`

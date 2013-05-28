@@ -41,6 +41,7 @@ type Customer struct {
 	Tier          int
 	DealerTier    DealerTier
 	ShowWebsite   bool
+	LocationCount int
 }
 
 type DealerType struct {
@@ -87,12 +88,66 @@ func (c Customer) GetAll() (Customers, error) {
 		return customers, err
 	}
 
+	typeMap := make(map[int]DealerType)
+	tierMap := make(map[int]DealerTier)
+	repMap := make(map[int]SalesRep)
+	codeMap := make(map[int]MapicsCode)
+	stateMap := make(map[int]State)
+
+	typechan := make(chan int)
+	tierchan := make(chan int)
+	repchan := make(chan int)
+	codechan := make(chan int)
+	statechan := make(chan int)
+
+	go func(ch chan int) {
+		dealertypes, _ := DealerType{}.GetAll()
+		typeMap = dealertypes.ToMap()
+		ch <- 1
+	}(typechan)
+
+	go func(ch chan int) {
+		dealertiers, _ := DealerTier{}.GetAll()
+		tierMap = dealertiers.ToMap()
+		ch <- 1
+	}(tierchan)
+
+	go func(ch chan int) {
+		salesreps, _ := SalesRep{}.GetAll()
+		repMap = salesreps.ToMap()
+		ch <- 1
+	}(repchan)
+
+	go func(ch chan int) {
+		mapicscodes, _ := MapicsCode{}.GetAll()
+		codeMap = mapicscodes.ToMap()
+		ch <- 1
+	}(codechan)
+
+	go func(ch chan int) {
+		states, _ := State{}.GetAll()
+		stateMap = states.ToMap()
+		ch <- 1
+	}(statechan)
+	<-typechan
+	<-tierchan
+	<-repchan
+	<-codechan
+	<-statechan
+
 	ch := make(chan Customer)
 	for _, row := range rows {
 		go c.PopulateCustomer(row, res, ch)
 	}
 	for _, _ = range rows {
-		customers = append(customers, <-ch)
+		cust := <-ch
+		cust.State = stateMap[cust.StateID]
+		cust.DealerType = typeMap[cust.DealerTypeID]
+		cust.DealerTier = tierMap[cust.Tier]
+		cust.MapicsCode = codeMap[cust.MapicsCodeID]
+		cust.SalesRep = repMap[cust.SalesRepID]
+
+		customers = append(customers, cust)
 	}
 	return customers, nil
 }
@@ -142,43 +197,8 @@ func (c Customer) PopulateCustomer(row mysql.Row, res mysql.Result, ch chan Cust
 		APIKey:        row.Str(res.Map("APIKey")),
 		Tier:          row.Int(res.Map("tier")),
 		ShowWebsite:   row.Bool(res.Map("showWebsite")),
+		LocationCount: row.Int(res.Map("locationCount")),
 	}
-	statechan := make(chan State)
-	typechan := make(chan DealerType)
-	tierchan := make(chan DealerTier)
-	codechan := make(chan MapicsCode)
-	repchan := make(chan SalesRep)
-	go func(id int, ch chan State) {
-		state := State{ID: id}
-		state, _ = state.Get()
-		ch <- state
-	}(customer.StateID, statechan)
-	go func(id int, ch chan DealerType) {
-		dealertype := DealerType{ID: id}
-		dealertype, _ = dealertype.Get()
-		ch <- dealertype
-	}(customer.DealerTypeID, typechan)
-	go func(id int, ch chan DealerTier) {
-		tier := DealerTier{ID: id}
-		tier, _ = tier.Get()
-		ch <- tier
-	}(customer.Tier, tierchan)
-	go func(id int, ch chan MapicsCode) {
-		code := MapicsCode{ID: id}
-		code, _ = code.Get()
-		ch <- code
-	}(customer.MapicsCodeID, codechan)
-	go func(id int, ch chan SalesRep) {
-		rep := SalesRep{ID: id}
-		rep, _ = rep.Get()
-		ch <- rep
-	}(customer.SalesRepID, repchan)
-
-	customer.State = <-statechan
-	customer.DealerType = <-typechan
-	customer.DealerTier = <-tierchan
-	customer.MapicsCode = <-codechan
-	customer.SalesRep = <-repchan
 
 	ch <- customer
 }
@@ -309,6 +329,30 @@ func (m MapicsCode) Get() (code MapicsCode, err error) {
 		code = <-ch
 	}
 	return
+}
+
+func (m MapicsCodes) ToMap() map[int]MapicsCode {
+	codemap := make(map[int]MapicsCode, 0)
+	for _, code := range m {
+		codemap[code.ID] = code
+	}
+	return codemap
+}
+
+func (d DealerTypes) ToMap() map[int]DealerType {
+	typemap := make(map[int]DealerType, 0)
+	for _, dtype := range d {
+		typemap[dtype.ID] = dtype
+	}
+	return typemap
+}
+
+func (d DealerTiers) ToMap() map[int]DealerTier {
+	tiermap := make(map[int]DealerTier, 0)
+	for _, tier := range d {
+		tiermap[tier.ID] = tier
+	}
+	return tiermap
 }
 
 func (m MapicsCode) PopulateCode(row mysql.Row, res mysql.Result, ch chan MapicsCode) {

@@ -81,6 +81,26 @@ func (c *Country) GetStates() error {
 	return nil
 }
 
+func (s State) GetAll() (States, error) {
+	var states States
+	sel, err := database.GetStatement("GetAllStatesStmt")
+	if err != nil {
+		return states, err
+	}
+	rows, res, err := sel.Exec()
+	if err != nil {
+		return states, err
+	}
+	ch := make(chan State)
+	for _, row := range rows {
+		go s.PopulateState(row, res, ch)
+	}
+	for _, _ = range rows {
+		states = append(states, <-ch)
+	}
+	return states, nil
+}
+
 func (s State) Get() (State, error) {
 	var state State
 	if s.ID > 0 {
@@ -125,4 +145,12 @@ func (s States) Less(i, j int) bool { return s[i].Name < (s[j].Name) }
 
 func (s *States) Sort() {
 	sort.Sort(s)
+}
+
+func (s States) ToMap() map[int]State {
+	statemap := make(map[int]State, 0)
+	for _, state := range s {
+		statemap[state.ID] = state
+	}
+	return statemap
 }
