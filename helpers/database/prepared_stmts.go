@@ -205,7 +205,7 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["GetStateStmt"] = `SELECT * from States WHERE stateID = ?`
 
 	// Customer
-	UnPreparedStatements["GetAllCustomersStmt"] = `SELECT * from Customer LIMIT 100`
+	UnPreparedStatements["GetAllCustomersStmt"] = `SELECT * from Customer`
 	UnPreparedStatements["GetCustomerStmt"] = `SELECT * from Customer WHERE cust_id = ?`
 
 	// Dealer Types
