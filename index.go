@@ -6,6 +6,7 @@ import (
 	"./controllers/base"
 	"./controllers/blog"
 	"./controllers/contact"
+	"./controllers/customer"
 	"./controllers/faq"
 	"./controllers/landingpage"
 	"./controllers/news"
@@ -166,6 +167,9 @@ func main() {
 	server.Get("/Blog/ApproveComment/:id", blog.ApproveComment)
 	server.Get("/Blog/DeleteComment/:id", blog.DeleteComment)
 	server.Get("/Blog/PostComments/:id", blog.PostComments)
+
+	// Customers
+	server.Get("/Customers", customer.Index)
 
 	// Home page route
 	server.Get("/", controllers.Index)

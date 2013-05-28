@@ -37,18 +37,22 @@ func (s SalesRep) GetAll() ([]SalesRep, error) {
 
 func (s SalesRep) Get() (SalesRep, error) {
 	var rep SalesRep
-	sel, err := database.GetStatement("GetSalesRepStmt")
-	if err != nil {
-		return rep, err
+	if s.ID > 0 {
+		sel, err := database.GetStatement("GetSalesRepStmt")
+		if err != nil {
+			return rep, err
+		}
+		sel.Raw.Reset()
+		sel.Bind(s.ID)
+		row, res, err := sel.ExecFirst()
+		if err != nil {
+			return rep, err
+		}
+		ch := make(chan SalesRep)
+		go s.PopulateSalesRep(row, res, ch)
+		rep = <-ch
 	}
-	sel.Bind(s.ID)
-	row, res, err := sel.ExecFirst()
-	if err != nil {
-		return rep, err
-	}
-	ch := make(chan SalesRep)
-	go s.PopulateSalesRep(row, res, ch)
-	return <-ch, nil
+	return rep, nil
 }
 
 func (s SalesRep) PopulateSalesRep(row mysql.Row, res mysql.Result, ch chan SalesRep) {

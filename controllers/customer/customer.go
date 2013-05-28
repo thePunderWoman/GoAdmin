@@ -6,9 +6,9 @@ import (
 	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
+	//"net/url"
+	//"strconv"
+	//"strings"
 	"time"
 )
 
@@ -28,7 +28,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	tmpl.Bag["PageTitle"] = "View Customers"
 	tmpl.Bag["customers"] = customers
 
-	tmpl.ParseFile("templates/customer/navigation.html", false)
 	tmpl.ParseFile("templates/customer/index.html", false)
 
 	err := tmpl.Display(w)

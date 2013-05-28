@@ -204,6 +204,22 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["GetStatesByCountryStmt"] = `SELECT * from States WHERE countryID = ?`
 	UnPreparedStatements["GetStateStmt"] = `SELECT * from States WHERE stateID = ?`
 
+	// Customer
+	UnPreparedStatements["GetAllCustomersStmt"] = `SELECT * from Customer LIMIT 100`
+	UnPreparedStatements["GetCustomerStmt"] = `SELECT * from Customer WHERE cust_id = ?`
+
+	// Dealer Types
+	UnPreparedStatements["GetAllDealerTypesStmt"] = `SELECT * From DealerTypes`
+	UnPreparedStatements["GetDealerTypeStmt"] = `SELECT * from DealerTypes WHERE dealer_type = ?`
+
+	// Dealer Tier
+	UnPreparedStatements["GetAllDealerTiersStmt"] = `SELECT * from DealerTiers`
+	UnPreparedStatements["GetDealerTierStmt"] = `SELECT * from DealerTiers WHERE ID = ?`
+
+	// Mapics Codes
+	UnPreparedStatements["GetAllMapicsCodesStmt"] = `SELECT * from MapixCode`
+	UnPreparedStatements["GetMapicsCodeStmt"] = `SELECT * from MapixCode WHERE mCodeID = ?`
+
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()
 	}

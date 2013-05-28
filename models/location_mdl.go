@@ -3,10 +3,10 @@ package models
 import (
 	"../helpers/database"
 	"github.com/ziutek/mymysql/mysql"
-	_ "log"
+	//"log"
 	"sort"
-	"strconv"
-	"time"
+	//"strconv"
+	//"time"
 )
 
 type State struct {
@@ -69,7 +69,7 @@ func (c *Country) GetStates() error {
 	}
 	var states States
 	ch := make(chan State)
-	s := make(State)
+	s := State{}
 	for _, row := range rows {
 		go s.PopulateState(row, res, ch)
 	}
@@ -83,18 +83,21 @@ func (c *Country) GetStates() error {
 
 func (s State) Get() (State, error) {
 	var state State
-	sel, err := database.GetStatement("GetStatesByCountryStmt")
-	if err != nil {
-		return state, err
+	if s.ID > 0 {
+		sel, err := database.GetStatement("GetStateStmt")
+		if err != nil {
+			return state, err
+		}
+		sel.Raw.Reset()
+		sel.Bind(s.ID)
+		row, res, err := sel.ExecFirst()
+		if err != nil {
+			return state, err
+		}
+		ch := make(chan State)
+		go s.PopulateState(row, res, ch)
+		state = <-ch
 	}
-	sel.Bind(s.ID)
-	row, res, err := sel.ExecFirst()
-	if err != nil {
-		return state, err
-	}
-	ch := make(chan State)
-	go s.PopulateState(row, res, ch)
-	state <- ch
 	return state, nil
 }
 
