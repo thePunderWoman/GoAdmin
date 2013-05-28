@@ -198,6 +198,12 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["ApproveBlogCommentStmt"] = `UPDATE Comments set approved = 1 WHERE commentID = ?`
 	UnPreparedStatements["DeleteBlogCommentStmt"] = `UPDATE Comments set active = 0 WHERE commentID = ?`
 
+	// Locations
+	UnPreparedStatements["GetAllCountriesStmt"] = `SELECT * from Country`
+	UnPreparedStatements["GetCountryStmt"] = `SELECT * from Country WHERE countryID = ?`
+	UnPreparedStatements["GetStatesByCountryStmt"] = `SELECT * from States WHERE countryID = ?`
+	UnPreparedStatements["GetStateStmt"] = `SELECT * from States WHERE stateID = ?`
+
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()
 	}
