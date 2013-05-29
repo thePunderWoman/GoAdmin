@@ -207,6 +207,7 @@ func PrepareCurtDev() error {
 
 	// Customer
 	UnPreparedStatements["GetAllCustomersStmt"] = `SELECT *, (SELECT COUNT(locationID) FROM CustomerLocations WHERE cust_id = Customer.cust_id) AS locationCount from Customer`
+	UnPreparedStatements["GetAllSimpleCustomersStmt"] = `SELECT cust_id, name, customerID from Customer`
 	UnPreparedStatements["GetCustomerStmt"] = `SELECT *, (SELECT COUNT(locationID) FROM CustomerLocations WHERE cust_id = Customer.cust_id) AS locationCount from Customer WHERE cust_id = ?`
 
 	// Dealer Types

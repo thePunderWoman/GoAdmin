@@ -63,6 +63,9 @@ func Base(w http.ResponseWriter, r *http.Request) {
 		}
 		return false
 	}
+	tmpl.FuncMap["isNotZero"] = func(num int) bool {
+		return num != 0
+	}
 	tmpl.FuncMap["isZero"] = func(num int) bool {
 		return num == 0
 	}

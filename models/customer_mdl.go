@@ -152,6 +152,27 @@ func (c Customer) GetAll() (Customers, error) {
 	return customers, nil
 }
 
+func (c Customer) GetAllSimple() (Customers, error) {
+	var customers Customers
+	sel, err := database.GetStatement("GetAllSimpleCustomersStmt")
+	if err != nil {
+		return customers, err
+	}
+	rows, res, err := sel.Exec()
+	if err != nil {
+		return customers, err
+	}
+	ch := make(chan Customer)
+	for _, row := range rows {
+		go c.PopulateSimpleCustomer(row, res, ch)
+	}
+	for _, _ = range rows {
+		customers = append(customers, <-ch)
+	}
+	return customers, nil
+
+}
+
 func (c Customer) Get() (cust Customer, err error) {
 	sel, err := database.GetStatement("GetCustomerStmt")
 	if err != nil {
@@ -198,6 +219,16 @@ func (c Customer) PopulateCustomer(row mysql.Row, res mysql.Result, ch chan Cust
 		Tier:          row.Int(res.Map("tier")),
 		ShowWebsite:   row.Bool(res.Map("showWebsite")),
 		LocationCount: row.Int(res.Map("locationCount")),
+	}
+
+	ch <- customer
+}
+
+func (c Customer) PopulateSimpleCustomer(row mysql.Row, res mysql.Result, ch chan Customer) {
+	customer := Customer{
+		ID:         row.Int(res.Map("cust_id")),
+		Name:       row.Str(res.Map("name")),
+		CustomerID: row.Int(res.Map("customerID")),
 	}
 
 	ch <- customer

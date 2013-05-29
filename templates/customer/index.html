@@ -4,44 +4,23 @@
         text-align: center;
     }
     
-    h2{
-        float:left;
-    }
-    
-    #addCustomer, #massUpload{
-        float:right;
-    }
-    
-    #massUpload{
-        margin-top: 30px;
-    }
-    
-    #map_container #map{
-        width: 100%;
-        height: 500px;
-        border: 1px solid #343434;
-        border-radus: 3px 3px 3px;
-        margin:auto;
-    }
-    
-    #map_container{
-        display:none;
-        margin: auto;
-        margin-top: 50px;
+    table {
+        font-size: 12px;
     }
 </style>
+<ul id="subNav">
+    <li>
+        <a href="/Customers" class="active">Customers</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/Add">Add Customer</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/MassUpload">Mass Upload</a>
+    </li>
+</ul>
 <div id="content_container">
     <h2>All Customers</h2>
-    <a href="/Customers/Add" title="Add Customer" id="addCustomer">
-        <img src="/img/addCustomer.png" alt="Add Customer" />
-    </a>
-    <a href="/Customers/MassUpload" title="Mass Upload" id="massUpload">
-        <img src="/img/mass_upload.png" alt="Mass Upload" />
-    </a>
-    <hr style="border-bottom:1px dotted #343434;clear:both" />
-
-    <!-- Explain what's here (for Chris) -->
-    <p>This page only displays the customer's main location. The branch locations can be accessed by clicking the 'Locations' link for a customer. If you would like to see a map of all the customer locations, <a href="#map_container" id="viewMap">Click Here</a>.</p>
 
     <div id="loading_area">
         <p>Loading Customers...</p>
@@ -73,11 +52,14 @@
                     <td>{{ .DealerType.Name }}</td>
                     <td>{{ .LocationCount }}</td>
                     <td>
-                        <a href="/Customers/Locations/{{ .ID }}" class="locations">Locations</a> | 
-                        <a href="/Customers/ViewCustomersUsers/{{ .ID }}">Users</a> |
-                        <a href="/Customers/ViewCustomerWebProperties/{{ .ID }}">Web Properties</a> | 
-                        <a href="/Customers/Edit/{{ .ID }}" class="edit">Edit</a> | 
-                        <a href="javascript:void(0)" class="delete" id="{{ .ID }}">Delete</a>
+                        <select class="user_action" data-id="{{ .ID }}">
+                            <option value="">Select Action</option>
+                            <option value="edit">Edit</option>
+                            <option value="locations">Locations</option>
+                            <option value="users">Users</option>
+                            <option value="properties">Web Properties</option>
+                            <option value="delete">Delete</option>
+                        </select>
                     </td>
                 </tr>
             {{ end }}
@@ -103,7 +85,6 @@
 <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script type="text/javascript">
     var customerTable = "";
-    var map;
     $(function () {
         customerTable = $('table').dataTable({ "bJQueryUI": true, "bDeferRender": true }).columnFilter({
             aoColumns: [ { type: "number"},
@@ -121,60 +102,36 @@
         $('#loading_area').hide();
         $('table').fadeIn('fast');
 
-        $('#viewMap').click(showMap);
-        $(document).on('click','.delete', function () {
-            var custID = $(this).attr('id');
+        $(document).on('change','.user_action', function () {
+            var custID = $(this).data('id');
+            var choice = $(this).val()
             var table_row = $(this).parent().parent().get()[0];
-            if (custID > 0 && confirm('Are you sure you want to delete this customer?')) {
-                $.get('/Customers/Delete/' + custID, function (response) {
-                    if (response.length == 0) {
-                        customerTable.fnDeleteRow(table_row);
-                    } else {
-                        showMessage(response);
+            switch (choice) {
+                case "edit":
+                    window.location = "/Customers/Edit/" + custID
+                    break;
+                case "locations":
+                    break;
+                case "properties":
+                    break;
+                case "users":
+                    break;
+                case "delete":
+                    if (custID > 0 && confirm('Are you sure you want to delete this customer?')) {
+                        $.get('/Customers/Delete/' + custID, function (response) {
+                            if (response.length == 0) {
+                                customerTable.fnDeleteRow(table_row);
+                            } else {
+                                showMessage(response);
+                            }
+                        });
                     }
-                });
+                    break;
+                default:
+                    break;
             }
         });
     });
 
-    function showMap(event) {
-        event.preventDefault();
-        $('#map_container').fadeIn();
-        var latlng = new google.maps.LatLng(40.3130432088809, -94.658203125);
-        var options = {
-            zoom: 4,
-            center: latlng,
-            mapTypeId: google.maps.MapTypeId.TERRAIN
-        };
-        map = new google.maps.Map(document.getElementById('map'), options);
-        var infoWindows = new Array();
-        var markers = new Array();
-
-        $.getJSON('/Customers/GetCustomersJSON', function (geo_json) {
-            $.each(geo_json, function (i, customer) {
-                var latitude = customer.latitude;
-                var longitude = customer.longitude;
-                var name = customer.name;
-                var loc_latlng = new google.maps.LatLng(latitude, longitude);
-                var contentString = '<div id="content"><div id="siteNotice"></div><p><strong>' + name + '</strong><br>';
-                contentString += customer.address + '<br>' + customer.city + ', ' + ((customer.state == null) ? "" : customer.state.abbr) + ' ' + customer.postalCode + '<br>';
-                contentString += customer.phone + '</p></div>';
-                infoWindows[i] = new google.maps.InfoWindow({
-                    content: contentString
-                });
-
-                markers[i] = new google.maps.Marker({
-                    position: loc_latlng,
-                    map: map,
-                    icon: customer.dealerType.mapicon,
-                    shadow: customer.dealerType.mapiconshadow,
-                    title: name
-                });
-                google.maps.event.addListener(markers[i], 'click', function () {
-                    infoWindows[i].open(map, markers[i]);
-                });
-            });
-        });
-    }
 </script>
 {{ end }}

@@ -42,7 +42,9 @@ func (c Country) GetAll() (Countries, error) {
 		go c.PopulateCountry(row, res, ch)
 	}
 	for _, _ = range rows {
-		countries = append(countries, <-ch)
+		country := <-ch
+		country.GetStates()
+		countries = append(countries, country)
 	}
 	countries.Sort()
 	return countries, nil

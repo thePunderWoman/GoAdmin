@@ -1,0 +1,213 @@
+{{ define "content" }}
+<style type="text/css">
+    input.error{
+        border: 3px inset #bd0100;
+    }
+</style>
+<script src="/js/fileiframe.js"></script>
+<script src="/js/admin/selectfile.js"></script>
+<div id="content_container">
+    {{ if isZero .customer.ID }}
+    <h2>Add Customer</h2>
+    {{ else }}
+    <h2>Edit Customer # {{ .customer.ID }}</h2>
+    {{ end }}
+
+    {{ with .error }}
+        <p style="font-weight: bold; color:Red;">{{ . }}</p>
+    {{ end }}
+
+    <form method="post" action="/Customers/Save" class="form_left">
+        <input type="hidden" name="customerID" value="{{ .customer.ID }}" />
+        <label for="name">
+            Customer Name
+            <input type="text" name="name" id="name" placeholder="Enter the Name of the Customer" value="{{ .customer.Name }}" required />
+        </label>
+
+        <label for="customerID">
+            Customer ID
+            <input type="text" name="customerID" id="customerID" placeholder="Enter the CustomerID" value="{{ if isNotZero .customer.CustomerID }}{{ .customer.CustomerID }}{{ end }}" />
+        </label>
+
+        <label for="parentID">
+            Parent Customer
+            <select name="parentID" id="parentID">
+                <option value="">- Select Client -</option>
+                {{ $customerID := .customer.CustomerID }}
+                {{ range .customers }}
+                    <option value="{{ .ID }}" {{ if equals .ID $customerID }}selected="selected"{{ end }}>{{ .Name }}</option>
+                {{ end }}
+            </select>
+        </label>
+
+        <label for="email">
+            E-Mail
+            <input type="email" name="email" id="email" placeholder="Enter the E-Mail Address" value="{{ .customer.Email }}" />
+        </label>
+
+        <label for="phone">
+            Phone
+            <input type="tel" name="phone" id="phone" placeholder="Enter the Phone Number" value="{{ .customer.Phone }}" />
+        </label>
+
+        <label for="fax">
+            Fax
+            <input type="tel" name="fax" id="fax" placeholder="Enter the Fax Number" value="{{ .customer.Fax }}" />
+        </label>
+
+        <label for="address">
+            Address
+            <input type="text" name="address" id="address" placeholder="Enter the Street Address" value="{{ .customer.Address }}" />
+        </label>
+
+        <label for="address2">
+            Address Line 2
+            <input type="text" name="address2" id="address2" placeholder="Enter Address Line 2 (optional)" value="{{ .customer.Address2 }}" />
+        </label>
+
+        <label for="city">
+            City
+            <input type="text" name="city" id="city" placeholder="Enter the City" value="{{ .customer.City }}" />
+        </label>
+
+        <label for="state">
+            State / Province
+            <select name="state" id="state">
+                <option value="0">- Select State / Province -</option>
+                {{ $stateID := .customer.StateID }}
+                {{ range .countries }}
+                    <optgroup label="{{ .Name }}">
+                        {{ range .States }}
+                            <option value="{{ .ID }}" {{ if equals .ID $stateID }}selected="selected" {{ end }}>{{ .Abbr }} - {{ .Name }}</option>
+                        {{ end }}
+                    </optgroup>
+                {{ end }}
+            </select>
+        </label>
+
+        <label for="postal_code">
+            Postal Code
+            <input type="text" name="postal_code" id="postal_code" placeholder="Enter Postal Code" value="{{ .customer.PostalCode }}" />
+        </label>
+
+        <label for="contact_person">
+            Contact Person
+            <input type="text" name="contact_person" id="contact_person" placeholder="Enter Primary Contact Name" value="{{ .customer.ContactPerson }}" />
+        </label>
+
+        <label for="website">
+            Website
+            <input type="url" name="website" id="website" placeholder="Enter customer's web address" value="{{ .customer.Website }}" />
+        </label>
+
+        <label for="eLocalURL">
+            eLocal URL
+            <input type="url" name="eLocalURL" id="eLocalURL" placeholder="Enter customer's eLocal address" value="{{ .customer.ELocalURL }}" />
+        </label>
+
+        <label for="logo">
+            Customer Logo
+            <input type="hidden" name="logo" id="file" value="{{ .customer.Logo }}" />
+            <div id="photobox">
+                <div id="photo-file">
+                    {{ if isNotNull .customer.Logo }}
+                        <img src="{{ .customer.Logo }}" alt="logo" />
+                    {{ else }}
+                        <img src="/Content/img/noimage.jpg" alt="No Logo" />
+                    {{ end }}
+                </div>
+                <button type="button" id="choose-photo">Choose</button>
+                <button type="button" id="clear-photo">Clear</button>
+            </div>
+            <div style="clear:both"></div>
+        </label>
+
+        <label for="searchURL">
+            Search / Part URL
+            <input type="url" name="searchURL" id="searchURL" placeholder="Enter customer's part url" value="{{ .customer.SearchURL }}" />
+        </label>
+
+        <label for="APIKey">
+            API Key
+            <input type="text" name="APIKey" id="APIKey" value="{{ .customer.APIKey }}" readonly="readonly" />
+        </label>
+
+        <label for="dealer_type">
+            Dealer Type
+            <select name="dealer_type" id="dealer_type" required>
+                <option value="0">- Select Type -</option>
+                {{ $typeID := .customer.DealerTypeID }}
+                {{ range .dealertypes }}
+                    <option value="{{ .ID }}" {{ if equals .ID $typeID }}selected="selected"{{ end }}>{{ .Name }}{{ if .Online }} (online){{ end }}</option>
+                {{ end }}
+            </select>
+        </label>
+
+        <label for="tier">
+            Dealer Tier
+            <select name="tier" id="tier" required>
+                {{ $tierID := .customer.Tier }}
+                {{ range .tiers }}
+                    <option value="{{ .ID }}" {{ if equals .ID $tierID }}selected="selected"{{ end }}>{{ .Name }}</option>
+                {{ end }}
+            </select>
+        </label>
+
+        <label for="mapixCodeID">
+            Mapics Code
+            <select name="mapixCodeID" id="mapixCodeID">
+                <option value="0">- Select Code -</option>
+                {{ $codeID := .customer.MapicsCodeID }}
+                {{ range .mapicscodes }}
+                    <option value="{{ .ID }}" {{ if equals .ID $codeID }}selected="selected"{{ end }}>{{ .Description }} ({{ .Code }})</option>
+                {{ end }}
+            </select>
+        </label>
+
+        <label for="salesRepID">
+            Sales Rep
+            <select name="salesRepID" id="salesRepID">
+                <option value="0">- Select Representative -</option>
+                {{ $repID := .customer.SalesRepID }}
+                {{ range .salesreps }}
+                    <option value="{{ .ID }}" {{ if equals .ID $repID }}selected="selected"{{ end }}>{{ .Name }} ({{ .Code }})</option>
+                {{ end }}
+            </select>
+        </label>
+
+        <label for="isDummy">
+            Show on Where To Buy?
+            Yes <input type="radio" id="isDummy" name="isDummy" value="false" {{ if not .customer.IsDummy }} checked {{ end }} />
+            No <input type="radio" name="isDummy" value="true" {{ if .customer.IsDummy }} checked {{ end }} />
+        </label>
+
+        <label for="showWebsite">
+            Show website on Where To Buy?
+            Yes <input type="radio" id="showWebsite" name="showWebsite" value="true" {{ if .customer.ShowWebsite }} checked {{ end }}/>
+            No <input type="radio" name="showWebsite" value="false" {{ if not .customer.ShowWebsite }} checked {{ end }} />
+        </label>
+
+        <div id="buttons">
+            <input type="submit" name="btnSubmit" id="btnSubmit" value="Save" />
+            <input type="reset" name="btnReset" id="btnReset" value="Clear" />
+        </div>
+    </form>
+
+</div>
+<script type="text/javascript">
+    $(function () {
+
+        $(document).on('click','#btnSubmit', function () {
+            var errors = 0;
+            $.each($('input:required'), function (i, input) {
+                if ($(this).val().length == 0) { $(this).css('border', '3px inset #bd0100'); errors++; }
+            });
+            if (errors > 0) {
+                showMessage('Please fix the errors outlined in red.');
+                return false;
+            }
+        });
+    });
+</script>
+<div id="file-dialog"></div>
+{{ end }}
