@@ -209,6 +209,11 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["GetAllCustomersStmt"] = `SELECT *, (SELECT COUNT(locationID) FROM CustomerLocations WHERE cust_id = Customer.cust_id) AS locationCount from Customer`
 	UnPreparedStatements["GetAllSimpleCustomersStmt"] = `SELECT cust_id, name, customerID from Customer`
 	UnPreparedStatements["GetCustomerStmt"] = `SELECT *, (SELECT COUNT(locationID) FROM CustomerLocations WHERE cust_id = Customer.cust_id) AS locationCount from Customer WHERE cust_id = ?`
+	UnPreparedStatements["UpdateCustomerStmt"] = `UPDATE Customer SET name = ?, email = ?, address = ?, address2 = ?, city = ?, stateID = ?, postal_code = ?, phone = ?, fax = ?, 
+												  contact_person = ?, dealer_type = ?, tier = ?, website = ?, searchURL = ?, eLocalURL = ?, logo = ?, customerID = ?,
+												  parentID = ?, isDummy = ?, mCodeID = ?, salesRepID = ?, showWebsite = ? WHERE cust_id = ?`
+	UnPreparedStatements["AddCustomerStmt"] = `INSERT INTO Customer (name,email,address,address2,city,stateID,postal_code,phone,fax,contact_person,dealer_type,tier,website,searchURL,eLocalURL,logo,customerID,parentID,isDummy,mCodeID,salesRepID,showWebsite)
+											   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
 
 	// Dealer Types
 	UnPreparedStatements["GetAllDealerTypesStmt"] = `SELECT * From DealerTypes`

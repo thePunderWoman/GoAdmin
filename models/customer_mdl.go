@@ -1,6 +1,7 @@
 package models
 
 import (
+	"../helpers/UDF"
 	"../helpers/database"
 	"github.com/ziutek/mymysql/mysql"
 	//"log"
@@ -232,6 +233,128 @@ func (c Customer) PopulateSimpleCustomer(row mysql.Row, res mysql.Result, ch cha
 	}
 
 	ch <- customer
+}
+
+func (c *Customer) Save() error {
+	if c.ID > 0 {
+		// Update Customer
+		upd, err := database.GetStatement("UpdateCustomerStmt")
+		if err != nil {
+			return err
+		}
+		params := struct {
+			Name          string
+			Email         *string
+			Address       *string
+			Address2      *string
+			City          *string
+			StateID       *int
+			PostalCode    *string
+			Phone         *string
+			Fax           *string
+			ContactPerson *string
+			DealerTypeID  int
+			DealerTierID  int
+			Website       *string
+			SearchURL     *string
+			ELocalURL     *string
+			Logo          *string
+			CustomerID    *int
+			ParentID      *int
+			IsDummy       bool
+			MapicsCodeID  int
+			SalesRepID    *int
+			ShowWebsite   bool
+			ID            int
+		}{
+			c.Name,
+			UDF.StrOrNil(c.Email),
+			UDF.StrOrNil(c.Address),
+			UDF.StrOrNil(c.Address2),
+			UDF.StrOrNil(c.City),
+			UDF.IntOrNil(c.StateID),
+			UDF.StrOrNil(c.PostalCode),
+			UDF.StrOrNil(c.Phone),
+			UDF.StrOrNil(c.Fax),
+			UDF.StrOrNil(c.ContactPerson),
+			c.DealerTypeID,
+			c.Tier,
+			UDF.StrOrNil(c.Website),
+			UDF.StrOrNil(c.SearchURL),
+			UDF.StrOrNil(c.ELocalURL),
+			UDF.StrOrNil(c.Logo),
+			UDF.IntOrNil(c.CustomerID),
+			UDF.IntOrNil(c.ParentID),
+			c.IsDummy,
+			c.MapicsCodeID,
+			UDF.IntOrNil(c.SalesRepID),
+			c.ShowWebsite,
+			c.ID,
+		}
+		upd.Bind(&params)
+		_, _, err = upd.Exec()
+		return err
+	} else {
+		// New Customer
+		ins, err := database.GetStatement("AddCustomerStmt")
+		if err != nil {
+			return err
+		}
+		params := struct {
+			Name          string
+			Email         *string
+			Address       *string
+			Address2      *string
+			City          *string
+			StateID       *int
+			PostalCode    *string
+			Phone         *string
+			Fax           *string
+			ContactPerson *string
+			DealerTypeID  int
+			DealerTierID  int
+			Website       *string
+			SearchURL     *string
+			ELocalURL     *string
+			Logo          *string
+			CustomerID    *int
+			ParentID      *int
+			IsDummy       bool
+			MapicsCodeID  int
+			SalesRepID    *int
+			ShowWebsite   bool
+		}{
+			c.Name,
+			UDF.StrOrNil(c.Email),
+			UDF.StrOrNil(c.Address),
+			UDF.StrOrNil(c.Address2),
+			UDF.StrOrNil(c.City),
+			UDF.IntOrNil(c.StateID),
+			UDF.StrOrNil(c.PostalCode),
+			UDF.StrOrNil(c.Phone),
+			UDF.StrOrNil(c.Fax),
+			UDF.StrOrNil(c.ContactPerson),
+			c.DealerTypeID,
+			c.Tier,
+			UDF.StrOrNil(c.Website),
+			UDF.StrOrNil(c.SearchURL),
+			UDF.StrOrNil(c.ELocalURL),
+			UDF.StrOrNil(c.Logo),
+			UDF.IntOrNil(c.CustomerID),
+			UDF.IntOrNil(c.ParentID),
+			c.IsDummy,
+			c.MapicsCodeID,
+			UDF.IntOrNil(c.SalesRepID),
+			c.ShowWebsite,
+		}
+		ins.Bind(&params)
+		_, res, err := ins.Exec()
+		if err != nil {
+			return err
+		}
+		c.ID = int(res.InsertId())
+	}
+	return nil
 }
 
 func (d DealerType) GetAll() (types DealerTypes, err error) {

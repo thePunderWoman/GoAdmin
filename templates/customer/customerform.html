@@ -6,11 +6,40 @@
 </style>
 <script src="/js/fileiframe.js"></script>
 <script src="/js/admin/selectfile.js"></script>
+<ul id="subNav">
+    {{ if isZero .customer.ID }}
+    <li>
+        <a href="/Customers">Customers</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/Add" class="active">Add Customer</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/MassUpload">Mass Upload</a>
+    </li>
+    {{ else }}
+    <li>
+        <a href="/Customers/Edit/{{ .customer.ID }}" class="active">Details</a>
+    </li>
+    <li>
+        <a href="/Customers/Locations/{{ .customer.ID }}">Locations</a>
+    </li>
+    <li>
+        <a href="/Customers/CustomerUsers/{{ .customer.ID }}">Users</a>
+    </li>
+    <li>
+        <a href="/Customers/CustomerWebProperties/{{ .customer.ID }}">Web Properties</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/Add">Add Customer</a>
+    </li>
+    {{ end }}
+</ul>
 <div id="content_container">
     {{ if isZero .customer.ID }}
     <h2>Add Customer</h2>
     {{ else }}
-    <h2>Edit Customer # {{ .customer.ID }}</h2>
+    <h2>Edit Customer # {{ .customer.ID }}<br /><span style="font-size: 12px;">{{ if isZero .customer.CustomerID }} No CURT Customer Number {{ else }}CURT Customer #: {{ .customer.CustomerID }}{{ end }}<span></h2>
     {{ end }}
 
     {{ with .error }}
@@ -18,7 +47,7 @@
     {{ end }}
 
     <form method="post" action="/Customers/Save" class="form_left">
-        <input type="hidden" name="customerID" value="{{ .customer.ID }}" />
+        <input type="hidden" name="cust_id" value="{{ .customer.ID }}" />
         <label for="name">
             Customer Name
             <input type="text" name="name" id="name" placeholder="Enter the Name of the Customer" value="{{ .customer.Name }}" required />
@@ -33,7 +62,7 @@
             Parent Customer
             <select name="parentID" id="parentID">
                 <option value="">- Select Client -</option>
-                {{ $customerID := .customer.CustomerID }}
+                {{ $customerID := .customer.ParentID }}
                 {{ range .customers }}
                     <option value="{{ .ID }}" {{ if equals .ID $customerID }}selected="selected"{{ end }}>{{ .Name }}</option>
                 {{ end }}
@@ -113,7 +142,7 @@
                     {{ if isNotNull .customer.Logo }}
                         <img src="{{ .customer.Logo }}" alt="logo" />
                     {{ else }}
-                        <img src="/Content/img/noimage.jpg" alt="No Logo" />
+                        <img src="/img/noimage.jpg" alt="No Logo" />
                     {{ end }}
                 </div>
                 <button type="button" id="choose-photo">Choose</button>
@@ -156,7 +185,6 @@
         <label for="mapixCodeID">
             Mapics Code
             <select name="mapixCodeID" id="mapixCodeID">
-                <option value="0">- Select Code -</option>
                 {{ $codeID := .customer.MapicsCodeID }}
                 {{ range .mapicscodes }}
                     <option value="{{ .ID }}" {{ if equals .ID $codeID }}selected="selected"{{ end }}>{{ .Description }} ({{ .Code }})</option>

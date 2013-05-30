@@ -171,6 +171,8 @@ func main() {
 	// Customers
 	server.Get("/Customers", customer.Index)
 	server.Get("/Customers/Edit/:id", customer.Edit)
+	server.Get("/Customers/Add", customer.Add)
+	server.Post("/Customers/Save", customer.Save)
 
 	// Home page route
 	server.Get("/", controllers.Index)
