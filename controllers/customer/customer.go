@@ -267,3 +267,35 @@ func Save(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, "/Customers/Edit/"+strconv.Itoa(cust.ID), http.StatusFound)
 }
+
+func Locations(w http.ResponseWriter, r *http.Request) {
+
+	tmpl := plate.NewTemplate(w)
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+
+	customer, _ := models.Customer{ID: id}.Get()
+	locations, _ := models.CustomerLocation{CustomerID: customer.ID}.GetAll()
+
+	tmpl.Bag["PageTitle"] = "Customer Locations"
+	tmpl.Bag["customer"] = customer
+	tmpl.Bag["locations"] = locations
+
+	tmpl.ParseFile("templates/customer/navigation.html", false)
+	tmpl.ParseFile("templates/customer/locations.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func LocationsJSON(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+	locations, _ := models.CustomerLocation{CustomerID: id}.GetAll()
+	plate.ServeFormatted(w, r, locations)
+}
+
+func MapIconJSON(w http.ResponseWriter, r *http.Request) {
+	icons, _ := models.MapIcon{}.GetAll()
+	plate.ServeFormatted(w, r, icons)
+}

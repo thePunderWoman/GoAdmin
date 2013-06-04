@@ -68,7 +68,7 @@ type MapicsCode struct {
 }
 type MapicsCodes []MapicsCode
 
-type MapIcons struct {
+type MapIcon struct {
 	ID            int
 	DealerTierID  int
 	DealerTypeID  int
@@ -80,14 +80,6 @@ type Customers []Customer
 
 func (c Customer) GetAll() (Customers, error) {
 	var customers Customers
-	sel, err := database.GetStatement("GetAllCustomersStmt")
-	if err != nil {
-		return customers, err
-	}
-	rows, res, err := sel.Exec()
-	if err != nil {
-		return customers, err
-	}
 
 	typeMap := make(map[int]DealerType)
 	tierMap := make(map[int]DealerTier)
@@ -130,6 +122,16 @@ func (c Customer) GetAll() (Customers, error) {
 		stateMap = states.ToMap()
 		ch <- 1
 	}(statechan)
+
+	sel, err := database.GetStatement("GetAllCustomersStmt")
+	if err != nil {
+		return customers, err
+	}
+	rows, res, err := sel.Exec()
+	if err != nil {
+		return customers, err
+	}
+
 	<-typechan
 	<-tierchan
 	<-repchan
@@ -516,6 +518,36 @@ func (m MapicsCode) PopulateCode(row mysql.Row, res mysql.Result, ch chan Mapics
 		Description: row.Str(res.Map("description")),
 	}
 	ch <- code
+}
+
+func (m MapIcon) GetAll() (icons []MapIcon, err error) {
+	sel, err := database.GetStatement("GetMapIconsStmt")
+	if err != nil {
+		return icons, err
+	}
+	rows, res, err := sel.Exec()
+	if err != nil {
+		return icons, err
+	}
+	ch := make(chan MapIcon)
+	for _, row := range rows {
+		go m.PopulateIcon(row, res, ch)
+	}
+	for _, _ = range rows {
+		icons = append(icons, <-ch)
+	}
+	return
+}
+
+func (m MapIcon) PopulateIcon(row mysql.Row, res mysql.Result, ch chan MapIcon) {
+	icon := MapIcon{
+		ID:            row.Int(res.Map("ID")),
+		DealerTierID:  row.Int(res.Map("tier")),
+		DealerTypeID:  row.Int(res.Map("dealer_type")),
+		MapIcon:       row.Str(res.Map("mapicon")),
+		MapIconShadow: row.Str(res.Map("mapiconshadow")),
+	}
+	ch <- icon
 }
 
 func (c Customers) Len() int           { return len(c) }

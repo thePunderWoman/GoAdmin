@@ -7,6 +7,9 @@
     table {
         font-size: 12px;
     }
+    table tfoot input {
+        width: auto;
+    }
 </style>
 <ul id="subNav">
     <li>
@@ -111,6 +114,7 @@
                     window.location = "/Customers/Edit/" + custID
                     break;
                 case "locations":
+                    window.location = "/Customers/Locations/" + custID
                     break;
                 case "properties":
                     break;

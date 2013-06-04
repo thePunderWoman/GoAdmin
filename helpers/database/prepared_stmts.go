@@ -227,6 +227,13 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["GetAllMapicsCodesStmt"] = `SELECT * from MapixCode`
 	UnPreparedStatements["GetMapicsCodeStmt"] = `SELECT * from MapixCode WHERE mCodeID = ?`
 
+	// MapIcons
+	UnPreparedStatements["GetMapIconsStmt"] = `SELECT * from MapIcons`
+
+	// Customer Locations
+	UnPreparedStatements["GetCustomerLocationsStmt"] = `SELECT * from CustomerLocations WHERE cust_id = ?`
+	UnPreparedStatements["GetCustomerLocationStmt"] = `SELECT * from CustomerLocations WHERE locationID = ?`
+
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()
 	}

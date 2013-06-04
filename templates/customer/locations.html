@@ -1,0 +1,152 @@
+{{ define "content" }}
+<style type="text/css">
+    table tbody tr td:nth-child(6){
+        text-align: center;
+    }
+    
+    #map_container #map{
+        width: 100%;
+        height: 500px;
+        border: 1px solid #343434;
+        border-radius: 3px 3px 3px;
+    }
+    
+    #map_container{
+        float:left;
+        margin: auto;
+        width: 100%;
+    }
+</style>
+<ul id="subNav">
+    <li>
+        <a href="/Customers/Edit/{{ .customer.ID }}">Details</a>
+    </li>
+    <li>
+        <a href="/Customers/Locations/{{ .customer.ID }}" class="active">Locations</a>
+    </li>
+    <li>
+        <a href="/Customers/CustomerUsers/{{ .customer.ID }}">Users</a>
+    </li>
+    <li>
+        <a href="/Customers/CustomerWebProperties/{{ .customer.ID }}">Web Properties</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/AddLocation/{{ .customer.ID }}">Add Location</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/PopulateLocations/{{ .customer.ID }}">Populate Locations</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>
+        Locations for 
+        <a href="/Customers/Edit/{{ .customer.ID }}" title="Edit Customer">{{ .customer.Name }}</a>
+    </h2>
+    <hr style="border-bottom:1px dotted #343434;clear:both" />
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Location</th>
+                <th>Phone</th>
+                <th>Lat/log</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .locations }}
+                <tr>
+                    <td>{{ .Name }}</td>
+                    <td>{{ .City }}, {{ .State.Abbr }}</td>
+                    <td>{{ .Phone }}</td>
+                    <td>{{ .Latitude }} / {{ .Longitude }}</td>
+                    <td>
+                        <a href="/Customers/EditLocation/{{ .ID }}" title="Edit Location">Edit</a> | 
+                        <a href="javascript:void(0)" class="delete" data-id="{{ .ID }}">Delete</a>
+                        <input type="hidden" name="location_geo:{{ .ID }}" id="location_geo:{{ .ID }}" class="geo" value="{{ .Latitude }}:{{ .Longitude }}:{{ .Name }}" />
+                    </td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+    <div id="map_container">
+        <div id="map"></div>
+    </div>
+</div>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript">
+    var map;
+    $(function () {
+        var typeID = {{ .customer.DealerTypeID }};
+        var tierID = {{ .customer.Tier }};
+        var loc_table = $('table').dataTable({ "bJQueryUI": true });
+
+        var latlng = new google.maps.LatLng(40.3130432088809, -94.658203125);
+        var options = {
+            zoom: 4,
+            center: latlng,
+            mapTypeId: google.maps.MapTypeId.TERRAIN
+        };
+        map = new google.maps.Map(document.getElementById('map'), options);
+        var infoWindows = new Array();
+        var markers = new Array();
+        var boundaries = new google.maps.LatLngBounds();
+        var icons = new Array();
+
+        $.getJSON('/Customers/MapIcons', function(mapresp){
+            $(mapresp).each(function(x,icon) {
+                if(icons[icon.DealerTypeID] === undefined) {
+                    icons[icon.DealerTypeID] = new Array();
+                }
+                icons[icon.DealerTypeID][icon.DealerTierID] = icon;
+            });
+
+            $.getJSON('/Customers/LocationJSON/{{ .customer.ID }}', function (geo_json) {
+                $(geo_json).each(function (i, customer) {
+                    var latitude = customer.Latitude;
+                    var longitude = customer.Longitude;
+                    var name = customer.Name;
+                    var loc_latlng = new google.maps.LatLng(latitude, longitude);
+                    boundaries.extend(loc_latlng);
+                    var contentString = '<div id="content"><div id="siteNotice"></div><p><strong>' + name + '</strong><br>';
+                    contentString += customer.Address + '<br>' + customer.City + ', ' + ((customer.State == null) ? "" : customer.State.Abbr) + ' ' + customer.PostalCode + '<br>';
+                    contentString += customer.Phone + '</p></div>';
+                    infoWindows[i] = new google.maps.InfoWindow({
+                        content: contentString
+                    });
+                    markers[i] = new google.maps.Marker({
+                        position: loc_latlng,
+                        map: map,
+                        title: name,
+                        draggable: false,
+                        icon: icons[typeID][tierID].MapIcon,
+                        shadow: icons[typeID][tierID].MapIconShadow,
+                        animation: google.maps.Animation.DROP
+                    });
+                    google.maps.event.addListener(markers[i], 'click', function () {
+                        infoWindows[i].open(map, markers[i]);
+                    });
+                });
+                map.fitBounds(boundaries);
+            });
+        });
+
+
+        $(document).on('click','.delete', function () {
+            var locationID = $(this).attr('id');
+            var row = $(this).parent().parent().get()[0];
+            if (locationID > 0 && confirm('Are you sure you want to remove this location?')) {
+                $.get('/Customers/DeleteLocation/' + locationID, function (response) {
+                    if (response.length == 0) {
+                        loc_table.fnDeleteRow(row);
+                    } else {
+                        showMessage(response);
+                    }
+                });
+            }
+        });
+
+    });
+</script>
+{{ end }}
