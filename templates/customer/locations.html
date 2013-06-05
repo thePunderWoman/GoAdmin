@@ -115,15 +115,25 @@
                     infoWindows[i] = new google.maps.InfoWindow({
                         content: contentString
                     });
-                    markers[i] = new google.maps.Marker({
-                        position: loc_latlng,
-                        map: map,
-                        title: name,
-                        draggable: false,
-                        icon: icons[typeID][tierID].MapIcon,
-                        shadow: icons[typeID][tierID].MapIconShadow,
-                        animation: google.maps.Animation.DROP
-                    });
+                    if(icons[typeID] !== undefined && icons[typeID][tierID] !== undefined) {
+                        markers[i] = new google.maps.Marker({
+                            position: loc_latlng,
+                            map: map,
+                            title: name,
+                            draggable: false,
+                            icon: icons[typeID][tierID].MapIcon,
+                            shadow: icons[typeID][tierID].MapIconShadow,
+                            animation: google.maps.Animation.DROP
+                        });
+                    } else {
+                         markers[i] = new google.maps.Marker({
+                            position: loc_latlng,
+                            map: map,
+                            title: name,
+                            draggable: false,
+                            animation: google.maps.Animation.DROP
+                        });
+                     }
                     google.maps.event.addListener(markers[i], 'click', function () {
                         infoWindows[i].open(map, markers[i]);
                     });
