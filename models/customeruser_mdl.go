@@ -19,7 +19,7 @@ type CustomerUser struct {
 	LocationID  int
 	IsSudo      bool
 	NotCustomer bool
-	Keys        []APIkey
+	Keys        []APIKey
 }
 
 type APIKey struct {
@@ -43,7 +43,7 @@ func (c CustomerUser) GetAllByCustomer() (users []CustomerUser, err error) {
 
 	ch := make(chan CustomerUser)
 	for _, row := range rows {
-		id := row.Int(res.Map("id"))
+		//id := row.Int(res.Map("id"))
 
 		go c.PopulateUser(row, res, ch)
 	}
