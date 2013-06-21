@@ -299,3 +299,24 @@ func MapIconJSON(w http.ResponseWriter, r *http.Request) {
 	icons, _ := models.MapIcon{}.GetAll()
 	plate.ServeFormatted(w, r, icons)
 }
+
+func CustomerUsers(w http.ResponseWriter, r *http.Request) {
+
+	tmpl := plate.NewTemplate(w)
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+
+	customer, _ := models.Customer{ID: id}.Get()
+	users, _ := models.CustomerUser{CustID: customer.ID}.GetAllByCustomer()
+
+	tmpl.Bag["PageTitle"] = "Customer Users"
+	tmpl.Bag["customer"] = customer
+	tmpl.Bag["users"] = users
+
+	tmpl.ParseFile("templates/customer/navigation.html", false)
+	tmpl.ParseFile("templates/customer/users.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}

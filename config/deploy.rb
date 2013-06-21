@@ -9,9 +9,10 @@ set :scm, :git
 set :scm_passphrase, ""
 set :user, "deployer"
 
-role :web, "curt-api-server1.cloudapp.net", "curt-api-server2.cloudapp.net"
+#role :web, "curt-api-server1.cloudapp.net", "curt-api-server2.cloudapp.net"
+role :web, "173.255.117.20", "173.255.112.170"
 
-set :deploy_to, "/home/deployer/#{application}"
+set :deploy_to, "/home/#{user}/#{application}"
 set :deploy_via, :remote_cache
 
 set :use_sudo, false
@@ -74,15 +75,15 @@ namespace :deploy do
   	run "/usr/local/go/bin/go get github.com/gorilla/sessions"
   end
   task :compile do
-  	run "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/go/bin/go build -o #{deploy_to}/current/go-admin #{deploy_to}/current/index.go"
+  	run "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /home/#{user}/bin/go build -o #{deploy_to}/current/go-admin #{deploy_to}/current/index.go"
   end
   task :start do ; end
   task :stop do 
       kill_processes_matching "go-admin"
   end
   task :restart do
-  	restart_cmd = "./go-admin"
-  	run "cd #{current_release} && nohup sh -c '#{restart_cmd} -http=127.0.0.1:8082 &' > goadmin-nohup.out"
+  	restart_cmd = "#{current_release}/go-admin"
+  	run "cd #{current_release} && nohup sh -c '#{restart_cmd} -http=127.0.0.1:8082 &' > #{application}-nohup.out"
   end
 end
 

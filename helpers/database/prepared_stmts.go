@@ -234,6 +234,9 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["GetCustomerLocationsStmt"] = `SELECT * from CustomerLocations WHERE cust_id = ?`
 	UnPreparedStatements["GetCustomerLocationStmt"] = `SELECT * from CustomerLocations WHERE locationID = ?`
 
+	// Customer Users
+	UnPreparedStatements["GetCustomerUsersStmt"] = `SELECT * from CustomerUser WHERE cust_id = ?`
+
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()
 	}
