@@ -19,9 +19,9 @@ set :use_sudo, false
 set :sudo_prompt, ""
 set :normalize_asset_timestamps, false
 
-set :default_environment, {
-  'GOPATH' => "$HOME/gocode"
-}
+#set :default_environment, {
+#  'GOPATH' => "$HOME/gocode"
+#}
 
 after :deploy, "deploy:goget", "db:configure", "email:configure", "deploy:compile", "deploy:stop", "deploy:restart"
 
