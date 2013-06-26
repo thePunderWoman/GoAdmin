@@ -65,6 +65,7 @@
                     <th>Is Customer</th>
                     <th>Is Sudo</th>
                     <th>Is Active?</th>
+                    <th>Keys</th>
                     <th></th>
                 </tr>
             </thead>
@@ -79,6 +80,7 @@
                         <td class="center">
                             <input type="checkbox" name="isActive" id="isActive:{{ .ID }}" class="isActive" {{ if not .Active }}title="not active"{{ end }} value="1" {{ if .Active }}checked{{ end }} />
                         </td>
+                        <td class="center">{{ len .Keys }}</td>
                         <td class="center">
                             <select id="action:{{ .ID }}" class="user_action">
                                 <option value="0">Select Action</option>

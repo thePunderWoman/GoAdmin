@@ -66,7 +66,7 @@ func (c CustomerUser) GetAllByCustomer() (users []CustomerUser, err error) {
 	}
 	for _, _ = range rows {
 		custuser := <-ch
-		//custuser.Keys = keyMap[custuser.ID]
+		custuser.Keys = keyMap[custuser.ID]
 		users = append(users, custuser)
 	}
 	return

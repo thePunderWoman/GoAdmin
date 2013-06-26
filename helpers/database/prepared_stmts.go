@@ -240,7 +240,7 @@ func PrepareCurtDev() error {
 														from ApiKey AK
 														INNER JOIN ApiKeyType AKT ON AK.type_id = AKT.id
 														INNER JOIN CustomerUser CU on AK.user_id = CU.id
-														where CU.customerID = ?`
+														where CU.cust_ID = ?`
 
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()
