@@ -119,6 +119,7 @@
                 case "properties":
                     break;
                 case "users":
+                    window.location = "/Customers/CustomerUsers/" + custID
                     break;
                 case "delete":
                     if (custID > 0 && confirm('Are you sure you want to delete this customer?')) {

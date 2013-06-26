@@ -9,36 +9,20 @@
 </style>
 <script src="/js/jquery.dataTables.min.js"></script>
 
-<ul id="subNav">
-    <li>
-        <a href="/Customers/Edit/{{ .customer.ID }}">Details</a>
-    </li>
-    <li>
-        <a href="/Customers/Locations/{{ .customer.ID }}">Locations</a>
-    </li>
-    <li>
-        <a href="/Customers/CustomerUsers/{{ .customer.ID }}" class="active">Users</a>
-    </li>
-    <li>
-        <a href="/Customers/CustomerWebProperties/{{ .customer.ID }}">Web Properties</a>
-    </li>
-    <li class="add">
-        <a href="/Customers/AddUser/{{ .customer.ID }}">Add User</a>
-    </li>
-</ul>
 <div id="content_container">
-    <h2>Users For {{ .customer.Name }}<br /><span style="font-size: 12px;">{{ if isZero .customer.CustomerID }} No CURT Customer Number {{ else }}CURT Customer #: {{ .customer.CustomerID }}{{ end }}<span></h2>
+    <h2>All Customer Users</h2>
     <hr style="border-bottom:1px dotted #343434;clear:both" />
     <div style="width: 100%;margin:auto">
         <table style="width: 100% !important">
             <thead>
                 <tr>
+                    <th>Customer #</th>
                     <th>Name</th>
                     <th>E-Mail</th>
                     <th>Date Added</th>
                     <th>Is Customer</th>
-                    <th>Is Sudo</th>
-                    <th>Is Active?</th>
+                    <th>Sudo</th>
+                    <th>Active</th>
                     <th>Keys</th>
                     <th></th>
                 </tr>
@@ -46,6 +30,7 @@
             <tbody>
                 {{ range .users }}
                     <tr id="user:{{ .ID }}">
+                        <td>{{ .CustomerID }}</td>
                         <td>{{ .Name }}</td>
                         <td>{{ .Email }}</td>
                         <td>{{ formatDate .DateAdded }}</td>
@@ -66,8 +51,21 @@
                     </tr>
                 {{ end }}
             </tbody>
+            <tfoot>
+                <tr>
+                    <th>Customer ID</th>
+                    <th>Name</th>
+                    <th>E-Mail</th>
+                    <th>Date Added</th>
+                    <th>Is Customer</th>
+                    <th>Sudo</th>
+                    <th>Active</th>
+                    <th>Keys</th>
+                    <th></th>
+                </tr>
+            </tfoot>
         </table>
     </div>
 </div>
-<script src="/js/admin/custusers.js"></script>
+<script src="/js/admin/allcustusers.js"></script>
 {{ end }}

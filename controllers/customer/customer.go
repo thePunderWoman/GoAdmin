@@ -327,3 +327,27 @@ func CustomerUsers(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 }
+
+func AllCustomerUsers(w http.ResponseWriter, r *http.Request) {
+
+	tmpl := plate.NewTemplate(w)
+
+	users, _ := models.CustomerUser{}.GetAll()
+
+	tmpl.FuncMap["formatDate"] = func(dt time.Time) string {
+		tlayout := "01/02/06 3:04PM MST"
+		Local, _ := time.LoadLocation("US/Central")
+		return dt.In(Local).Format(tlayout)
+	}
+
+	tmpl.Bag["PageTitle"] = "All Customer Users"
+	tmpl.Bag["users"] = users
+
+	tmpl.ParseFile("templates/customer/navigation.html", false)
+	tmpl.ParseFile("templates/customer/allusers.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
