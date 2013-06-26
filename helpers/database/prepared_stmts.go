@@ -236,6 +236,11 @@ func PrepareCurtDev() error {
 
 	// Customer Users
 	UnPreparedStatements["GetCustomerUsersStmt"] = `SELECT * from CustomerUser WHERE cust_id = ?`
+	UnPreparedStatements["GetCustomerUserKeysStmt"] = `select AK.*, AKT.type, AKT.date_added AS typeDateAdded
+														from ApiKey AK
+														INNER JOIN ApiKeyType AKT ON AK.type_id = AKT.id
+														INNER JOIN CustomerUser CU on AK.user_id = CU.id
+														where CU.customerID = ?`
 
 	if !CurtDevDb.Raw.IsConnected() {
 		CurtDevDb.Raw.Connect()

@@ -176,6 +176,7 @@ func main() {
 	server.Get("/Customers/Locations/:id", customer.Locations)
 	server.Get("/Customers/LocationJSON/:id", customer.LocationsJSON)
 	server.Get("/Customers/MapIcons", customer.MapIconJSON)
+	server.Get("/Customers/CustomerUsers/:id", customer.CustomerUsers)
 
 	// Home page route
 	server.Get("/", controllers.Index)

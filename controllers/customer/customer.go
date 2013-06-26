@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var store = sessions.NewCookieStore([]byte("adminstuffs"))
@@ -307,6 +308,12 @@ func CustomerUsers(w http.ResponseWriter, r *http.Request) {
 
 	customer, _ := models.Customer{ID: id}.Get()
 	users, _ := models.CustomerUser{CustID: customer.ID}.GetAllByCustomer()
+
+	tmpl.FuncMap["formatDate"] = func(dt time.Time) string {
+		tlayout := "01/02/06 3:04PM MST"
+		Local, _ := time.LoadLocation("US/Central")
+		return dt.In(Local).Format(tlayout)
+	}
 
 	tmpl.Bag["PageTitle"] = "Customer Users"
 	tmpl.Bag["customer"] = customer

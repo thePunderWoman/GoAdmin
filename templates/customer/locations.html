@@ -38,10 +38,7 @@
     </li>
 </ul>
 <div id="content_container">
-    <h2>
-        Locations for 
-        <a href="/Customers/Edit/{{ .customer.ID }}" title="Edit Customer">{{ .customer.Name }}</a>
-    </h2>
+    <h2>Locations For {{ .customer.Name }}<br /><span style="font-size: 12px;">{{ if isZero .customer.CustomerID }} No CURT Customer Number {{ else }}CURT Customer #: {{ .customer.CustomerID }}{{ end }}<span></h2>
     <hr style="border-bottom:1px dotted #343434;clear:both" />
 
     <table>

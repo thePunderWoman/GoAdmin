@@ -46,6 +46,7 @@
         <p style="font-weight: bold; color:Red;">{{ . }}</p>
     {{ end }}
 
+    <hr style="border-bottom:1px dotted #343434;clear:both" />
     <form method="post" action="/Customers/Save" class="form_left">
         <input type="hidden" name="cust_id" value="{{ .customer.ID }}" />
         <label for="name">
