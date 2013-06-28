@@ -294,13 +294,19 @@ func AddLocation(w http.ResponseWriter, r *http.Request) {
 
 	tmpl := plate.NewTemplate(w)
 	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+	error, _ := url.QueryUnescape(r.URL.Query().Get("error"))
 
 	custchan := make(chan int)
-	locchan := make(chan int)
 	countrychan := make(chan int)
 	customer := models.Customer{}
 	countries := models.Countries{}
-	location := models.CustomerLocation{}
+	location := models.CustomerLocation{CustomerID: customer.ID}
+
+	session, _ := store.Get(r, "adminstuffs")
+	if cjson := session.Flashes("location"); len(cjson) > 0 {
+		json.Unmarshal([]byte(cjson[0].(string)), &location)
+		session.Save(r, w)
+	}
 
 	go func(ch chan int) {
 		customer, _ = models.Customer{ID: id}.Get()
@@ -310,17 +316,14 @@ func AddLocation(w http.ResponseWriter, r *http.Request) {
 		countries, _ = models.Country{}.GetAll()
 		ch <- 1
 	}(countrychan)
-	go func(ch chan int) {
-		location = models.CustomerLocation{CustomerID: customer.ID}
-		ch <- 1
-	}(locchan)
-
 	<-custchan
-	<-locchan
 	<-countrychan
 
 	tmpl.FuncMap["equals"] = func(locstateID int, stateID int) bool {
 		return locstateID == stateID
+	}
+	if strings.TrimSpace(error) != "" {
+		tmpl.Bag["error"] = error
 	}
 	tmpl.Bag["PageTitle"] = "Customer Locations"
 	tmpl.Bag["customer"] = customer
@@ -340,6 +343,7 @@ func EditLocation(w http.ResponseWriter, r *http.Request) {
 
 	tmpl := plate.NewTemplate(w)
 	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+	error, _ := url.QueryUnescape(r.URL.Query().Get("error"))
 
 	custchan := make(chan int)
 	countrychan := make(chan int)
@@ -363,6 +367,9 @@ func EditLocation(w http.ResponseWriter, r *http.Request) {
 	tmpl.FuncMap["equals"] = func(locstateID int, stateID int) bool {
 		return locstateID == stateID
 	}
+	if strings.TrimSpace(error) != "" {
+		tmpl.Bag["error"] = error
+	}
 	tmpl.Bag["PageTitle"] = "Customer Locations"
 	tmpl.Bag["customer"] = customer
 	tmpl.Bag["countries"] = countries
@@ -375,6 +382,50 @@ func EditLocation(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func SaveLocation(w http.ResponseWriter, r *http.Request) {
+	customerID, _ := strconv.Atoi(r.FormValue("customerID"))
+	locationID, _ := strconv.Atoi(r.FormValue("locationID"))
+	stateID, _ := strconv.Atoi(r.FormValue("state"))
+	var latitude, longitude float64
+	latitude, err := strconv.ParseFloat(r.FormValue("latitude"), 64)
+	if err != nil {
+		latitude = 0
+	}
+	longitude, err = strconv.ParseFloat(r.FormValue("longitude"), 64)
+	if err != nil {
+		longitude = 0
+	}
+	location := models.CustomerLocation{
+		ID:         locationID,
+		CustomerID: customerID,
+		Name:       strings.TrimSpace(r.FormValue("name")),
+		Address:    strings.TrimSpace(r.FormValue("address")),
+		City:       strings.TrimSpace(r.FormValue("city")),
+		StateID:    stateID,
+		PostalCode: strings.TrimSpace(r.FormValue("postalCode")),
+		Email:      strings.TrimSpace(r.FormValue("email")),
+		Phone:      strings.TrimSpace(r.FormValue("phone")),
+		Fax:        strings.TrimSpace(r.FormValue("fax")),
+		Latitude:   latitude,
+		Longitude:  longitude,
+	}
+	err = location.Save()
+	if err != nil {
+		if location.ID > 0 {
+			http.Redirect(w, r, "/Customers/EditLocation/"+strconv.Itoa(location.ID)+"?error="+url.QueryEscape(err.Error()), http.StatusFound)
+			return
+		} else {
+			cjson, _ := json.Marshal(&location)
+			session, _ := store.Get(r, "adminstuffs")
+			session.AddFlash(string(cjson), "location")
+			session.Save(r, w)
+			http.Redirect(w, r, "/Customers/AddLocation/"+strconv.Itoa(customerID)+"?error="+url.QueryEscape(err.Error()), http.StatusFound)
+			return
+		}
+	}
+	http.Redirect(w, r, "/Customers/Locations/"+strconv.Itoa(customerID), http.StatusFound)
 }
 
 func LocationsJSON(w http.ResponseWriter, r *http.Request) {

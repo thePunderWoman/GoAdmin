@@ -1,4 +1,17 @@
 {{ define "content" }}
+<style type="text/css">
+    #map_container #map{
+        width: 325px;
+        height: 325px;
+        border: 1px solid #343434;
+        border-radius: 3px 3px 3px;
+    }
+    
+    #map_container{
+        float:left;
+        margin-left: 15px;
+    }
+</style>
 <ul id="subNav">
     <li>
         <a href="/Customers/Edit/{{ .customer.ID }}">Details</a>
@@ -30,9 +43,10 @@
         <p>{{ . }}</p>
     {{ end }}
     {{ $countries := .countries }}
+    {{ $customerID := .customer.ID }}
     {{ with .location }}
     <form action="/Customers/Location/Save" method="post" class="form_left">
-        <input type="hidden" name="customerID" value="{{ .CustomerID }}" />
+        <input type="hidden" name="customerID" value="{{ $customerID }}" />
         <input type="hidden" name="locationID" value="{{ .ID }}" />
         <label for="name">
             Location Name
@@ -84,15 +98,55 @@
             <input type="text" name="postalCode" id="postalCode" placeholder="Enter the Postal Code" value="{{ .PostalCode }}" required />
         </label>
 
+        {{ if isNotZero .ID }}
+        <label for="latitude">
+            Latitude
+            <input type="text" name="latitude" id="latitude" placeholder="Latitude" value="{{ .Latitude }}" />
+        </label>
+        <label for="longitude">
+            Longitude
+            <input type="text" name="longitude" id="longitude" placeholder="Longitude" value="{{ .Longitude }}" />
+        </label>
+        {{ end }}
+
         <div id="buttons">
             <input type="submit" name="btnSubmit" id="btnSubmit" value="Save" />
             <input type="reset" name="btnReset" id="btnReset" value="Clear" />
         </div>
     </form>
     {{ end }}
+    {{ if isNotZero .location.ID }}
+    <div id="map_container">
+        <div id="map"></div>
+    </div>
+    {{ end }}
 </div>
-<script>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript">
+    var marker;
+    var map;
     $(function () {
+        var lat = $('#latitude').val();
+        var long = $('#longitude').val();
+        if (lat != undefined && long != undefined) {
+            var latlng = new google.maps.LatLng(lat, long);
+            var options = {
+                zoom: 10,
+                center: latlng,
+                mapTypeId: google.maps.MapTypeId.TERRAIN
+            };
+            map = new google.maps.Map(document.getElementById('map'), options);
+
+            marker = new google.maps.Marker({
+                position: latlng,
+                map: map,
+                title: $('#name').val(),
+                draggable: false,
+                animation: google.maps.Animation.BOUNCE
+            });
+            google.maps.event.addListener(marker, 'click', toggleBounce);
+        }
+
         $(document).on('click','#btnSubmit', function () {
             var errors = 0;
             $.each($('input:required'), function (i, input) {
@@ -104,5 +158,14 @@
             }
         });
     });
+
+    function toggleBounce() {
+        if (marker.getAnimation() != null) {
+            marker.setAnimation(null);
+        } else {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+        }
+    }
+
 </script>
 {{ end }}

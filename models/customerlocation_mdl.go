@@ -1,10 +1,10 @@
 package models
 
 import (
-	//"../helpers/UDF"
+	"../helpers/UDF"
 	"../helpers/database"
+	"../helpers/geo"
 	"github.com/ziutek/mymysql/mysql"
-	//"sort"
 )
 
 type CustomerLocation struct {
@@ -77,6 +77,103 @@ func (c CustomerLocation) Get() (location CustomerLocation, err error) {
 	location = <-ch
 	location.State, _ = State{ID: location.StateID}.Get()
 	return
+}
+
+func (c CustomerLocation) Save() error {
+	if c.ID > 0 {
+		// update location
+		upd, err := database.GetStatement("UpdateCustomerLocationStmt")
+		if err != nil {
+			return err
+		}
+		if c.Latitude == 0 && c.Longitude == 0 {
+			state, _ := State{ID: c.StateID}.Get()
+			latlng, err := geo.GetLatLng(c.Address, c.City, state.Abbr)
+			if err == nil {
+				c.Latitude = latlng.Lat
+				c.Longitude = latlng.Lng
+			}
+		}
+		params := struct {
+			Name       string
+			Address    string
+			City       string
+			StateID    int
+			PostalCode string
+			Email      *string
+			Phone      *string
+			Fax        *string
+			Latitude   float64
+			Longitude  float64
+			ID         int
+		}{
+			c.Name,
+			c.Address,
+			c.City,
+			c.StateID,
+			c.PostalCode,
+			UDF.StrOrNil(c.Email),
+			UDF.StrOrNil(c.Phone),
+			UDF.StrOrNil(c.Fax),
+			c.Latitude,
+			c.Longitude,
+			c.ID,
+		}
+		upd.Bind(&params)
+		_, _, err = upd.Exec()
+		return err
+
+	} else {
+		// new location
+		ins, err := database.GetStatement("AddCustomerLocationStmt")
+		if err != nil {
+			return err
+		}
+		if c.Latitude == 0 && c.Longitude == 0 {
+			state, _ := State{ID: c.StateID}.Get()
+			latlng, err := geo.GetLatLng(c.Address, c.City, state.Abbr)
+			if err == nil {
+				c.Latitude = latlng.Lat
+				c.Longitude = latlng.Lng
+			}
+		}
+		params := struct {
+			Name            string
+			Address         string
+			City            string
+			StateID         int
+			PostalCode      string
+			Email           *string
+			Phone           *string
+			Fax             *string
+			Latitude        float64
+			Longitude       float64
+			CustomerID      int
+			IsPrimary       bool
+			ShippingDefault bool
+			ContactPerson   *string
+		}{
+			c.Name,
+			c.Address,
+			c.City,
+			c.StateID,
+			c.PostalCode,
+			UDF.StrOrNil(c.Email),
+			UDF.StrOrNil(c.Phone),
+			UDF.StrOrNil(c.Fax),
+			c.Latitude,
+			c.Longitude,
+			c.CustomerID,
+			false,
+			false,
+			nil,
+		}
+		ins.Bind(&params)
+		_, _, err = ins.Exec()
+		return err
+
+	}
+	return nil
 }
 
 func (c CustomerLocation) PopulateLocation(row mysql.Row, res mysql.Result, ch chan CustomerLocation) {
