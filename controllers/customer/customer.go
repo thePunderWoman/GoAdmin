@@ -290,6 +290,93 @@ func Locations(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func AddLocation(w http.ResponseWriter, r *http.Request) {
+
+	tmpl := plate.NewTemplate(w)
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+
+	custchan := make(chan int)
+	locchan := make(chan int)
+	countrychan := make(chan int)
+	customer := models.Customer{}
+	countries := models.Countries{}
+	location := models.CustomerLocation{}
+
+	go func(ch chan int) {
+		customer, _ = models.Customer{ID: id}.Get()
+		ch <- 1
+	}(custchan)
+	go func(ch chan int) {
+		countries, _ = models.Country{}.GetAll()
+		ch <- 1
+	}(countrychan)
+	go func(ch chan int) {
+		location = models.CustomerLocation{CustomerID: customer.ID}
+		ch <- 1
+	}(locchan)
+
+	<-custchan
+	<-locchan
+	<-countrychan
+
+	tmpl.FuncMap["equals"] = func(locstateID int, stateID int) bool {
+		return locstateID == stateID
+	}
+	tmpl.Bag["PageTitle"] = "Customer Locations"
+	tmpl.Bag["customer"] = customer
+	tmpl.Bag["countries"] = countries
+	tmpl.Bag["location"] = location
+
+	tmpl.ParseFile("templates/customer/navigation.html", false)
+	tmpl.ParseFile("templates/customer/locationform.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func EditLocation(w http.ResponseWriter, r *http.Request) {
+
+	tmpl := plate.NewTemplate(w)
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+
+	custchan := make(chan int)
+	countrychan := make(chan int)
+	customer := models.Customer{}
+	countries := models.Countries{}
+	location := models.CustomerLocation{}
+
+	location, _ = models.CustomerLocation{ID: id}.Get()
+	go func(ch chan int) {
+		customer, _ = models.Customer{ID: location.CustomerID}.Get()
+		ch <- 1
+	}(custchan)
+	go func(ch chan int) {
+		countries, _ = models.Country{}.GetAll()
+		ch <- 1
+	}(countrychan)
+
+	<-custchan
+	<-countrychan
+
+	tmpl.FuncMap["equals"] = func(locstateID int, stateID int) bool {
+		return locstateID == stateID
+	}
+	tmpl.Bag["PageTitle"] = "Customer Locations"
+	tmpl.Bag["customer"] = customer
+	tmpl.Bag["countries"] = countries
+	tmpl.Bag["location"] = location
+
+	tmpl.ParseFile("templates/customer/navigation.html", false)
+	tmpl.ParseFile("templates/customer/locationform.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
 func LocationsJSON(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
 	locations, _ := models.CustomerLocation{CustomerID: id}.GetAll()

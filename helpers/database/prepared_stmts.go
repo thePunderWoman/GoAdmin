@@ -206,9 +206,17 @@ func PrepareCurtDev() error {
 	UnPreparedStatements["GetStateStmt"] = `SELECT * from States WHERE stateID = ?`
 
 	// Customer
-	UnPreparedStatements["GetAllCustomersStmt"] = `SELECT *, (SELECT COUNT(locationID) FROM CustomerLocations WHERE cust_id = Customer.cust_id) AS locationCount from Customer`
+	UnPreparedStatements["GetAllCustomersStmt"] = `SELECT *, 
+													(SELECT COUNT(locationID) FROM CustomerLocations WHERE cust_id = Customer.cust_id) AS locationCount,
+													(SELECT COUNT(id) FROM CustomerUser WHERE cust_ID = Customer.cust_id) AS userCount,
+													(SELECT COUNT(id) FROM WebProperties WHERE cust_ID = Customer.cust_id) AS propertyCount 
+													from Customer`
 	UnPreparedStatements["GetAllSimpleCustomersStmt"] = `SELECT cust_id, name, customerID from Customer`
-	UnPreparedStatements["GetCustomerStmt"] = `SELECT *, (SELECT COUNT(locationID) FROM CustomerLocations WHERE cust_id = Customer.cust_id) AS locationCount from Customer WHERE cust_id = ?`
+	UnPreparedStatements["GetCustomerStmt"] = `SELECT *, 
+												(SELECT COUNT(locationID) FROM CustomerLocations WHERE cust_id = Customer.cust_id) AS locationCount,
+												(SELECT COUNT(id) FROM CustomerUser WHERE cust_ID = Customer.cust_id) AS userCount,
+												(SELECT COUNT(id) FROM WebProperties WHERE cust_ID = Customer.cust_id) AS propertyCount 
+												from Customer WHERE cust_id = ?`
 	UnPreparedStatements["UpdateCustomerStmt"] = `UPDATE Customer SET name = ?, email = ?, address = ?, address2 = ?, city = ?, stateID = ?, postal_code = ?, phone = ?, fax = ?, 
 												  contact_person = ?, dealer_type = ?, tier = ?, website = ?, searchURL = ?, eLocalURL = ?, logo = ?, customerID = ?,
 												  parentID = ?, isDummy = ?, mCodeID = ?, salesRepID = ?, showWebsite = ? WHERE cust_id = ?`

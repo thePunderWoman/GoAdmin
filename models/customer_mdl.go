@@ -43,6 +43,8 @@ type Customer struct {
 	DealerTier    DealerTier
 	ShowWebsite   bool
 	LocationCount int
+	UserCount     int
+	PropertyCount int
 }
 
 type DealerType struct {
@@ -222,6 +224,8 @@ func (c Customer) PopulateCustomer(row mysql.Row, res mysql.Result, ch chan Cust
 		Tier:          row.Int(res.Map("tier")),
 		ShowWebsite:   row.Bool(res.Map("showWebsite")),
 		LocationCount: row.Int(res.Map("locationCount")),
+		UserCount:     row.Int(res.Map("userCount")),
+		PropertyCount: row.Int(res.Map("propertyCount")),
 	}
 
 	ch <- customer

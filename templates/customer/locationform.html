@@ -1,0 +1,108 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/Customers/Edit/{{ .customer.ID }}">Details</a>
+    </li>
+    <li>
+        <a href="/Customers/Locations/{{ .customer.ID }}">Locations</a>
+    </li>
+    <li>
+        <a href="/Customers/CustomerUsers/{{ .customer.ID }}">Users</a>
+    </li>
+    <li>
+        <a href="/Customers/CustomerWebProperties/{{ .customer.ID }}">Web Properties</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/AddLocation/{{ .customer.ID }}" class="active">Add Location</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/PopulateLocations/{{ .customer.ID }}">Populate Locations</a>
+    </li>
+</ul>
+<div id="content_container">
+    {{ if isZero .location.ID }}
+    <h2>Add New Location for {{ .customer.Name }}</h2>
+    {{ else }}
+    <h2>Edit {{ .customer.Name }} Location</h2>
+    {{ end }}
+
+    {{ with .error }}
+        <p>{{ . }}</p>
+    {{ end }}
+    {{ $countries := .countries }}
+    {{ with .location }}
+    <form action="/Customers/Location/Save" method="post" class="form_left">
+        <input type="hidden" name="customerID" value="{{ .CustomerID }}" />
+        <input type="hidden" name="locationID" value="{{ .ID }}" />
+        <label for="name">
+            Location Name
+            <input type="text" name="name" id="name" placeholder="Enter the Name of the Location" value="{{ .Name }}" required />
+        </label>
+
+        <label for="email">
+            E-Mail
+            <input type="email" name="email" id="email" placeholder="Enter the E-Mail Address" value="{{ .Email }}" />
+        </label>
+
+        <label for="phone">
+            Phone
+            <input type="tel" name="phone" id="phone" placeholder="Enter the Phone Number" value="{{ .Phone }}" required />
+        </label>
+
+        <label for="fax">
+            Fax
+            <input type="tel" name="fax" id="fax" placeholder="Enter the Fax Number" value="{{ .Fax }}" />
+        </label>
+
+        <label for="address">
+            Address
+            <input type="text" name="address" id="address" placeholder="Enter the Street Address" value="{{ .Address }}" required />
+        </label>
+
+        <label for="city">
+            City
+            <input type="text" name="city" id="city" placeholder="Enter the City" value="{{ .City }}" required />
+        </label>
+
+        <label for="state">
+            State / Province
+            <select name="state" id="state">
+                <option value="0">- Select State / Province -</option>
+                {{ $stateID := .StateID }}
+                {{ range $countries }}
+                    <optgroup label="{{ .Name }}">
+                        {{ range .States }}
+                            <option value="{{ .ID }}" {{ if equals $stateID .ID }}selected="selected"{{ end }}>{{ .Abbr }} - {{ .Name }}</option>
+                        {{ end }}
+                    </optgroup>
+                {{ end }}
+            </select>
+        </label>
+
+        <label for="postalCode">
+            Postal Code
+            <input type="text" name="postalCode" id="postalCode" placeholder="Enter the Postal Code" value="{{ .PostalCode }}" required />
+        </label>
+
+        <div id="buttons">
+            <input type="submit" name="btnSubmit" id="btnSubmit" value="Save" />
+            <input type="reset" name="btnReset" id="btnReset" value="Clear" />
+        </div>
+    </form>
+    {{ end }}
+</div>
+<script>
+    $(function () {
+        $(document).on('click','#btnSubmit', function () {
+            var errors = 0;
+            $.each($('input:required'), function (i, input) {
+                if ($(this).val().length == 0) { $(this).css('border', '3px inset #bd0100'); errors++; }
+            });
+            if (errors > 0) {
+                showMessage('Please fix the errors outlined in red.');
+                return false;
+            }
+        });
+    });
+</script>
+{{ end }}

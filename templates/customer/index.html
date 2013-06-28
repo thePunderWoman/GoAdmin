@@ -1,6 +1,6 @@
 {{ define "content" }}
 <style type="text/css">
-    table tbody tr td:nth-child(8){
+    table tbody tr td:nth-child(8), table tbody tr td:nth-child(9), table tbody tr td:nth-child(10){
         text-align: center;
     }
     
@@ -8,7 +8,7 @@
         font-size: 12px;
     }
     table tfoot input {
-        width: auto;
+        width: 90%;
     }
 </style>
 <ul id="subNav">
@@ -39,7 +39,9 @@
                 <th>Sales Rep</th>
                 <th>Tier</th>
                 <th>Dealer Type</th>
-                <th># of Locations</th>
+                <th>Locations</th>
+                <th>Users</th>
+                <th>Web Properties</th>
                 <th></th>
             </tr>
         </thead>
@@ -54,6 +56,8 @@
                     <td>{{ .DealerTier.Name }}</td>
                     <td>{{ .DealerType.Name }}</td>
                     <td>{{ .LocationCount }}</td>
+                    <td>{{ .UserCount }}</td>
+                    <td>{{ .PropertyCount }}</td>
                     <td>
                         <select class="user_action" data-id="{{ .ID }}">
                             <option value="">Select Action</option>
@@ -77,6 +81,8 @@
                 <th>Tier</th>
                 <th>Dealer Type</th>
                 <th>Locations</th>
+                <th>Users</th>
+                <th>Web Properties</th>
                 <th></th>
             </tr>
         </tfoot>
@@ -97,6 +103,8 @@
                      { type: "select" },
                      { type: "select" },
                      { type: "select" },
+                     { type: "number" },
+                     { type: "number" },
                      { type: "number" },
                      null,
                 ]

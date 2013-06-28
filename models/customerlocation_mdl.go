@@ -61,6 +61,24 @@ func (c CustomerLocation) GetAll() (locations CustomerLocations, err error) {
 	return
 }
 
+func (c CustomerLocation) Get() (location CustomerLocation, err error) {
+	sel, err := database.GetStatement("GetCustomerLocationStmt")
+	if err != nil {
+		return location, err
+	}
+	sel.Bind(c.ID)
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return location, err
+	}
+
+	ch := make(chan CustomerLocation)
+	go c.PopulateLocation(row, res, ch)
+	location = <-ch
+	location.State, _ = State{ID: location.StateID}.Get()
+	return
+}
+
 func (c CustomerLocation) PopulateLocation(row mysql.Row, res mysql.Result, ch chan CustomerLocation) {
 	location := CustomerLocation{
 		ID:              row.Int(res.Map("locationID")),
