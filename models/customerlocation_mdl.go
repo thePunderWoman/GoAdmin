@@ -61,6 +61,39 @@ func (c CustomerLocation) GetAll() (locations CustomerLocations, err error) {
 	return
 }
 
+func (c CustomerLocation) GetAllNoGeo() (locations CustomerLocations, err error) {
+	stateMap := make(map[int]State)
+	statechan := make(chan int)
+
+	go func(ch chan int) {
+		states, _ := State{}.GetAll()
+		stateMap = states.ToMap()
+		ch <- 1
+	}(statechan)
+
+	sel, err := database.GetStatement("GetCustomerLocationsNoGeoStmt")
+	if err != nil {
+		return locations, err
+	}
+	sel.Bind(c.CustomerID)
+	rows, res, err := sel.Exec()
+	if err != nil {
+		return locations, err
+	}
+	<-statechan
+
+	ch := make(chan CustomerLocation)
+	for _, row := range rows {
+		go c.PopulateLocation(row, res, ch)
+	}
+	for _, _ = range rows {
+		loc := <-ch
+		loc.State = stateMap[loc.StateID]
+		locations = append(locations, loc)
+	}
+	return
+}
+
 func (c CustomerLocation) Get() (location CustomerLocation, err error) {
 	sel, err := database.GetStatement("GetCustomerLocationStmt")
 	if err != nil {
@@ -174,6 +207,19 @@ func (c CustomerLocation) Save() error {
 
 	}
 	return nil
+}
+
+func (c CustomerLocation) Delete() bool {
+	del, err := database.GetStatement("DeleteCustomerLocationStmt")
+	if err != nil {
+		return false
+	}
+	del.Bind(c.ID)
+	_, _, err = del.Exec()
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func (c CustomerLocation) PopulateLocation(row mysql.Row, res mysql.Result, ch chan CustomerLocation) {

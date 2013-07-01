@@ -240,9 +240,11 @@ func PrepareCurtDev() error {
 
 	// Customer Locations
 	UnPreparedStatements["GetCustomerLocationsStmt"] = `SELECT * from CustomerLocations WHERE cust_id = ?`
+	UnPreparedStatements["GetCustomerLocationsNoGeoStmt"] = `SELECT * from CustomerLocations WHERE cust_id = ? AND (latitude = 0 OR longitude = 0)`
 	UnPreparedStatements["GetCustomerLocationStmt"] = `SELECT * from CustomerLocations WHERE locationID = ?`
 	UnPreparedStatements["UpdateCustomerLocationStmt"] = `UPDATE CustomerLocations SET name=?, address = ?, city = ?, stateID = ?, postalCode = ?, email = ?, phone = ?, fax = ?, latitude = ?, longitude = ? WHERE locationID = ?`
 	UnPreparedStatements["AddCustomerLocationStmt"] = `INSERT INTO CustomerLocations (name,address,city,stateID,postalCode,email,phone,fax,latitude,longitude,cust_id,isprimary,ShippingDefault,contact_person) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+	UnPreparedStatements["DeleteCustomerLocationStmt"] = `DELETE FROM CustomerLocations WHERE locationID = ?`
 
 	// Customer Users
 	UnPreparedStatements["GetAllCustomerUsersStmt"] = `SELECT * from CustomerUser`

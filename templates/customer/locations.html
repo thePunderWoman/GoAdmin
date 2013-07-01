@@ -60,7 +60,7 @@
                     <td>{{ .Latitude }} / {{ .Longitude }}</td>
                     <td>
                         <a href="/Customers/EditLocation/{{ .ID }}" title="Edit Location">Edit</a> | 
-                        <a href="javascript:void(0)" class="delete" data-id="{{ .ID }}">Delete</a>
+                        <a href="#" class="delete" data-id="{{ .ID }}">Delete</a>
                         <input type="hidden" name="location_geo:{{ .ID }}" id="location_geo:{{ .ID }}" class="geo" value="{{ .Latitude }}:{{ .Longitude }}:{{ .Name }}" />
                     </td>
                 </tr>
@@ -140,15 +140,16 @@
         });
 
 
-        $(document).on('click','.delete', function () {
-            var locationID = $(this).attr('id');
+        $(document).on('click','.delete', function (e) {
+            e.preventDefault();
+            var locationID = $(this).data('id');
             var row = $(this).parent().parent().get()[0];
             if (locationID > 0 && confirm('Are you sure you want to remove this location?')) {
-                $.get('/Customers/DeleteLocation/' + locationID, function (response) {
-                    if (response.length == 0) {
+                $.get('/Customers/Location/Delete/' + locationID, function (response) {
+                    if (response) {
                         loc_table.fnDeleteRow(row);
                     } else {
-                        showMessage(response);
+                        showMessage("There was a problem removing the location. Try again.");
                     }
                 });
             }

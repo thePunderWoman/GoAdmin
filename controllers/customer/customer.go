@@ -428,6 +428,27 @@ func SaveLocation(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/Customers/Locations/"+strconv.Itoa(customerID), http.StatusFound)
 }
 
+func DeleteLocation(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+	success := models.CustomerLocation{ID: id}.Delete()
+	plate.ServeFormatted(w, r, success)
+}
+
+func PopulateCustomerLocations(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+	if id > 0 {
+		locations, err := models.CustomerLocation{CustomerID: id}.GetAllNoGeo()
+		if err == nil && len(locations) > 0 {
+			for _, loc := range locations {
+				go func(location models.CustomerLocation) {
+					location.Save()
+				}(loc)
+			}
+		}
+	}
+	http.Redirect(w, r, "/Customers/Locations/"+strconv.Itoa(id), http.StatusFound)
+}
+
 func LocationsJSON(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
 	locations, _ := models.CustomerLocation{CustomerID: id}.GetAll()
