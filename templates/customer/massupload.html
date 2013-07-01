@@ -1,0 +1,40 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/Customers">Customers</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/Add">Add Customer</a>
+    </li>
+    <li class="add">
+        <a href="/Customers/MassUpload" class="active">Mass Upload</a>
+    </li>
+</ul>
+<div id="content_container">
+    <h2>Mass Upload</h2>
+    
+    {{ with .msg }}
+        <p style="color:red; font-weight: bold;">{{ .msg }}</p>
+    {{ end }}
+    
+    {{ with .errors }}
+        <ul style="color: Red;">
+            {{ range . }}
+                <li>{{ . }}</li>
+            {{ end }}
+        </ul>
+    {{ end }}
+
+    <p>Upload file must be a Pipe (|) delimited text file with columns in the order of <strong>Curt Acct #</strong>|<strong>Customer Name</strong>|<strong>Website</strong>|<strong>Location Name</strong>|<strong>Contact First Name</strong>|<strong>Contact Last Name</strong>|<strong>Phone</strong>|<strong>Street</strong>|<strong>City</strong>|<strong>State</strong>|<strong>zip</strong>|<strong>Sales Rep</strong>|<strong>Dealer Tier</strong>|<strong>Dealer Type</strong>|<strong>Parent ID</strong>.</p>
+    <form class="form_left" method="post" enctype="multipart/form-data" action="/Customers/MassLoad">
+        <label for="dealers">
+            Upload File
+            <input type="file" name="dealers" id="dealers" placeholder="Upload XLSX" />
+        </label>
+
+        <div class="buttons">
+            <input type="submit" name="btnSubmit" id="btnSubmit" value="Save" />
+        </div>
+    </form>
+</div>
+{{ end }}

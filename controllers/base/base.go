@@ -63,6 +63,12 @@ func Base(w http.ResponseWriter, r *http.Request) {
 		}
 		return false
 	}
+	tmpl.FuncMap["isNullOrEmpty"] = func(str string) bool {
+		if strings.TrimSpace(str) == "" {
+			return true
+		}
+		return false
+	}
 	tmpl.FuncMap["isNotZero"] = func(num int) bool {
 		return num != 0
 	}

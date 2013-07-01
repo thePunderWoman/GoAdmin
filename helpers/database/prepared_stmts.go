@@ -249,6 +249,11 @@ func PrepareCurtDev() error {
 	// Customer Users
 	UnPreparedStatements["GetAllCustomerUsersStmt"] = `SELECT * from CustomerUser`
 	UnPreparedStatements["GetCustomerUsersStmt"] = `SELECT * from CustomerUser WHERE cust_id = ?`
+	UnPreparedStatements["GetCustomerUserStmt"] = `SELECT * from CustomerUser WHERE id = ?`
+	UnPreparedStatements["GetUserKeysStmt"] = `select AK.*, AKT.type, AKT.date_added AS typeDateAdded
+														from ApiKey AK
+														INNER JOIN ApiKeyType AKT ON AK.type_id = AKT.id
+														where AK.user_id = ?`
 	UnPreparedStatements["GetCustomerUserKeysStmt"] = `select AK.*, AKT.type, AKT.date_added AS typeDateAdded
 														from ApiKey AK
 														INNER JOIN ApiKeyType AKT ON AK.type_id = AKT.id

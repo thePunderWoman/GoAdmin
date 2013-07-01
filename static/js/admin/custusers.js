@@ -4,22 +4,22 @@
         "bJQueryUI": true
     });
 
-    $('.user_action').live('change', function () {
+    $(document).on('change','.user_action', function () {
         var action = $(this).val();
         var user_id = $(this).attr('id').split(':')[1];
         switch (action) {
             case 'delete':
                 if (confirm('Are you sure you want to remove this user?')) {
-                    $.get('/Customers/RemoveCustomerUser', { 'userID': user_id }, function (data) {
+                    $.get('/Customers/CustomerUsers/Delete', { 'userID': user_id }, function (data) {
                         deleteUser(data, user_id);
                     });
                 }
                 break;
             case 'edit':
-                window.location.href = "/Customers/EditCustomerUser?user_id=" + user_id;
+                window.location.href = "/Customers/CustomerUsers/Edit/" + user_id;
                 break;
             case 'webProp':
-                window.location.href = "/Customers/ViewUserWebProperties?userID=" + user_id;
+                //window.location.href = "/Customers/ViewUserWebProperties?userID=" + user_id;
                 break;
             default:
 
@@ -27,7 +27,7 @@
         $(this).val(0);
     });
 
-    $('.isActive').live('click', function () {
+    $(document).on('click','.isActive', function () {
         var user_id = $(this).attr('id').split(':')[1];
         set_isActive(user_id);
     });

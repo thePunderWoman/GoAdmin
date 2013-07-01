@@ -70,6 +70,33 @@ func (c CustomerUser) GetAll() (users []CustomerUser, err error) {
 	return
 }
 
+func (c CustomerUser) Get() (user CustomerUser, err error) {
+	var keys APIKeys
+	keychan := make(chan int)
+
+	go func(ch chan int) {
+		keys, _ = c.GetUserKeys()
+		ch <- 1
+	}(keychan)
+
+	sel, err := database.GetStatement("GetCustomerUserStmt")
+	if err != nil {
+		return user, err
+	}
+	sel.Bind(c.ID)
+	row, res, err := sel.ExecFirst()
+	if err != nil {
+		return user, err
+	}
+	<-keychan
+
+	ch := make(chan CustomerUser)
+	go c.PopulateUser(row, res, ch)
+	user = <-ch
+	user.Keys = keys
+	return
+}
+
 func (c CustomerUser) GetAllByCustomer() (users []CustomerUser, err error) {
 
 	keyMap := make(map[string]APIKeys)
@@ -146,6 +173,27 @@ func (c CustomerUser) GetCustomerKeys() (keys APIKeys, err error) {
 		return keys, err
 	}
 	sel.Bind(c.CustID)
+	rows, res, err := sel.Exec()
+	if err != nil {
+		return keys, err
+	}
+
+	ch := make(chan APIKey)
+	for _, row := range rows {
+		go c.PopulateKey(row, res, ch)
+	}
+	for _, _ = range rows {
+		keys = append(keys, <-ch)
+	}
+	return
+}
+
+func (c CustomerUser) GetUserKeys() (keys APIKeys, err error) {
+	sel, err := database.GetStatement("GetUserKeysStmt")
+	if err != nil {
+		return keys, err
+	}
+	sel.Bind(c.ID)
 	rows, res, err := sel.Exec()
 	if err != nil {
 		return keys, err

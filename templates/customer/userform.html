@@ -1,0 +1,68 @@
+{{ define "content" }}
+<ul id="subNav">
+    <li>
+        <a href="/Customers/CustomerUsers/{{ .customer.ID }}">Back to Users</a>
+    </li>
+    {{ if isNotNull .custuser.ID }}
+    <li>
+        <a href="/Customers/Customers/User/Keys/{{ .custuser.ID }}">User API Keys</a>
+    </li>
+    <li>
+        <a href="/Customers/Customers/User/WebProperties/{{ .custuser.ID }}">User Web Properties</a>
+    </li>
+    {{ end }}
+    <li class="add">
+        <a href="/Customers/CustomerUsers/Add/{{ .customer.ID }}" class="active">Add User</a>
+    </li>
+</ul><div id="content_container">
+    {{ if isNotNull .custuser.ID }}
+    <h2>Edit Customer User - {{ .custuser.Name }}</h2>
+    {{ else }}
+    <h2>Add Customer User</h2>
+    {{ end }}
+    {{ with .error }}
+         <p style="font-weight: bold; color: Red;">{{ . }}</p>
+    {{ end }}
+    {{ with .msg }}
+        <p style="font-weight: bold; color: Green;">{{ . }}</p>
+    {{ end }}
+    {{ with .custuser }}
+    <form action="/Customers/CustomerUsers/Save" method="post" class="form_left">
+        <input type="hidden" name="userID" value="{{ .ID }}" />
+        <label for="name">
+            Name
+            <input type="text" name="name" id="name" value="{{ .Name }}" />
+        </label>
+
+        <label for="email">
+            Email
+            <input type="text" name="email" id="email" value="{{ .Email }}" />
+        </label>
+
+        <label for="customerID">
+            Customer ID
+            <input type="text" name="customerID" id="customerID" value="{{ .CustomerID }}" />
+        </label>
+
+        <label for="isActive">
+            Is Active:
+            <input type="checkbox" name="isActive" id="isActive" {{ if .Active }}checked="checked"{{ end }} />
+        </label>
+
+        <label for="isSudo">
+            Is Sudo:
+            <input type="checkbox" name="isSudo" id="isSudo" {{ if .IsSudo }}checked="checked"{{ end }} />
+        </label>
+
+        <label for="notCustomer">
+            Not a Customer:
+            <input type="checkbox" name="notCustomer" id="notCustomer" {{ if .NotCustomer }}checked="checked"{{ end }} />
+        </label>
+
+        <div id="buttons">
+            <input type="submit" name="btnSubmit" id="btnSubmit" value="Save" />
+        </div>
+    </form>
+    {{ end }}
+</div>
+{{ end }}

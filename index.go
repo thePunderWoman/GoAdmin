@@ -173,6 +173,7 @@ func main() {
 	server.Get("/Customers/Edit/:id", customer.Edit)
 	server.Get("/Customers/Add", customer.Add)
 	server.Post("/Customers/Save", customer.Save)
+	server.Get("/Customers/MassUpload", customer.MassUpload)
 
 	// Customer Locations
 	server.Get("/Customers/Locations/:id", customer.Locations)
@@ -188,6 +189,8 @@ func main() {
 	// Customer Users
 	server.Get("/Customers/CustomerUsers/:id", customer.CustomerUsers)
 	server.Get("/Customers/Users", customer.AllCustomerUsers)
+	server.Get("/Customers/CustomerUsers/Edit/:id", customer.EditCustomerUser)
+	server.Get("/Customers/CustomerUsers/Add/:id", customer.AddCustomerUser)
 
 	// Home page route
 	server.Get("/", controllers.Index)

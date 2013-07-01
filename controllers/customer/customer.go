@@ -269,6 +269,18 @@ func Save(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/Customers/Edit/"+strconv.Itoa(cust.ID), http.StatusFound)
 }
 
+func MassUpload(w http.ResponseWriter, r *http.Request) {
+	tmpl := plate.NewTemplate(w)
+	tmpl.Bag["PageTitle"] = "Mass Upload Customers"
+	tmpl.ParseFile("templates/customer/navigation.html", false)
+	tmpl.ParseFile("templates/customer/massupload.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
 func Locations(w http.ResponseWriter, r *http.Request) {
 
 	tmpl := plate.NewTemplate(w)
@@ -504,6 +516,61 @@ func AllCustomerUsers(w http.ResponseWriter, r *http.Request) {
 
 	tmpl.ParseFile("templates/customer/navigation.html", false)
 	tmpl.ParseFile("templates/customer/allusers.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func EditCustomerUser(w http.ResponseWriter, r *http.Request) {
+	tmpl := plate.NewTemplate(w)
+	id := r.URL.Query().Get(":id")
+
+	custuser, _ := models.CustomerUser{ID: id}.Get()
+	customer, _ := models.Customer{ID: custuser.CustID}.Get()
+
+	tmpl.FuncMap["formatDate"] = func(dt time.Time) string {
+		tlayout := "01/02/06 3:04PM MST"
+		Local, _ := time.LoadLocation("US/Central")
+		return dt.In(Local).Format(tlayout)
+	}
+
+	tmpl.Bag["PageTitle"] = "Edit Customer User"
+	tmpl.Bag["customer"] = customer
+	tmpl.Bag["custuser"] = custuser
+
+	tmpl.ParseFile("templates/customer/navigation.html", false)
+	tmpl.ParseFile("templates/customer/userform.html", false)
+
+	err := tmpl.Display(w)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func AddCustomerUser(w http.ResponseWriter, r *http.Request) {
+	tmpl := plate.NewTemplate(w)
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+
+	customer, _ := models.Customer{ID: id}.Get()
+	custuser := models.CustomerUser{
+		CustID:     customer.ID,
+		CustomerID: customer.CustomerID,
+	}
+
+	tmpl.FuncMap["formatDate"] = func(dt time.Time) string {
+		tlayout := "01/02/06 3:04PM MST"
+		Local, _ := time.LoadLocation("US/Central")
+		return dt.In(Local).Format(tlayout)
+	}
+
+	tmpl.Bag["PageTitle"] = "Add Customer User"
+	tmpl.Bag["customer"] = customer
+	tmpl.Bag["custuser"] = custuser
+
+	tmpl.ParseFile("templates/customer/navigation.html", false)
+	tmpl.ParseFile("templates/customer/userform.html", false)
 
 	err := tmpl.Display(w)
 	if err != nil {
